@@ -5,6 +5,7 @@ class Medal(ndb.Model):
     image_filename = ndb.StringProperty(required=True)
     icon_filename = ndb.StringProperty(required=True)
 
+'''
     @property
     def img_path(self):
         return "/static/img/medals/%s" % self.image_filename
@@ -12,6 +13,7 @@ class Medal(ndb.Model):
     @property
     def icon_path(self):
         return "/static/img/medals/%s" % self.icon_filename
+'''
 
 
 class LeaderboardEntry(ndb.Model):
@@ -22,6 +24,7 @@ class LeaderboardEntry(ndb.Model):
     wins = ndb.IntegerProperty(default=0)
     medals = ndb.KeyProperty(kind=Medal, repeated=True)
 
+'''
     @property
     def username(self):
         username = UserProfile.query(UserProfile.user_id == self.user_id).get().username
@@ -34,6 +37,7 @@ class LeaderboardEntry(ndb.Model):
     def suggestions(self):
         return Suggestion.query(Suggestion.show == self.show,
                                 Suggestion.user_id == self.user_id).count()
+'''
 
 
 class LeaderboardSpan(ndb.Model):

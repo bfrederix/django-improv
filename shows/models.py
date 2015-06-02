@@ -1,11 +1,8 @@
 import datetime
-import math
 import random
 
-from google.appengine.ext import ndb
-
-from timezone import (get_mountain_time, back_to_tz, get_today_start,
-                      get_tomorrow_start)
+#from timezone import (get_mountain_time, back_to_tz, get_today_start,
+#                      get_tomorrow_start)
 
 VOTE_STYLE = ['player-options', 'player-pool', 'options',
               'preshow-voted', 'all-players', 'test']
@@ -13,22 +10,12 @@ OCCURS_TYPE = ['during', 'before']
 
 LEVEL_POINT = 30
 
-
+'''
 def get_current_show():
     return Show.query(
             Show.created >= get_today_start(),
             Show.created < get_tomorrow_start()).order(-Show.created).get()
-
-
-class Player(ndb.Model):
-    name = ndb.StringProperty(required=True)
-    photo_filename = ndb.StringProperty(required=True, indexed=False)
-    star = ndb.BooleanProperty(default=False)
-    date_added = ndb.DateTimeProperty()
-
-    @property
-    def img_path(self):
-        return "/static/img/players/%s" % self.photo_filename
+'''
 
 
 class SuggestionPool(ndb.Model):
@@ -38,6 +25,7 @@ class SuggestionPool(ndb.Model):
 
     created = ndb.DateProperty(required=True)
 
+'''
     @property
     def available_suggestions(self):
         return Suggestion.query(Suggestion.show == get_current_show().key,
@@ -62,6 +50,7 @@ class SuggestionPool(ndb.Model):
         if not self.created:
             self.created = get_mountain_time()
         return super(SuggestionPool, self).put(*args, **kwargs)
+'''
 
 
 class VoteType(ndb.Model):
@@ -84,6 +73,7 @@ class VoteType(ndb.Model):
     current_interval = ndb.IntegerProperty(indexed=False)
     current_init = ndb.DateTimeProperty(indexed=False)
 
+'''
     def get_next_interval(self, show, current_voted_not_required=False):
         # If given an interval
         if self.current_interval != None:
@@ -227,7 +217,7 @@ class VoteType(ndb.Model):
         # Convert the option list keys into actual entities
         suggestions = ndb.get_multi(vote_option_list)
         return suggestions
-
+'''
 
 
 class Show(ndb.Model):
@@ -251,6 +241,7 @@ class Show(ndb.Model):
     recap_init = ndb.DateTimeProperty(indexed=False)
     locked = ndb.BooleanProperty(default=False, indexed=False)
 
+'''
     @property
     def show_option_list(self):
         return range(0, self.vote_options)
@@ -637,6 +628,7 @@ class Show(ndb.Model):
         if not self.created:
             self.created = get_mountain_time()
         return super(Show, self).put(*args, **kwargs)
+'''
 
 
 class Suggestion(ndb.Model):
@@ -653,6 +645,7 @@ class Suggestion(ndb.Model):
 
     created = ndb.DateTimeProperty()
 
+'''
     def get_live_vote_exists(self, show, interval, session_id):
         """Determine if a live vote exists for this suggestion by this session"""
         return bool(LiveVote.query(
@@ -687,6 +680,7 @@ class Suggestion(ndb.Model):
         if not self.created:
             self.created = get_mountain_time()
         return super(Suggestion, self).put(*args, **kwargs)
+'''
 
 
 class PreshowVote(ndb.Model):
@@ -694,6 +688,7 @@ class PreshowVote(ndb.Model):
     suggestion = ndb.KeyProperty(kind=Suggestion, required=True)
     session_id = ndb.StringProperty(required=True)
 
+'''
     def put(self, *args, **kwargs):
         """Increment the Suggestion's pre-show value"""
         if self.suggestion:
@@ -701,6 +696,7 @@ class PreshowVote(ndb.Model):
             suggestion_entity.preshow_value += 1
             suggestion_entity.put()
         return super(PreshowVote, self).put(*args, **kwargs)
+'''
 
 
 class LiveVote(ndb.Model):
@@ -712,6 +708,7 @@ class LiveVote(ndb.Model):
     session_id = ndb.StringProperty(required=True)
     user_id = ndb.StringProperty(default=None)
 
+'''
     def put(self, *args, **kwargs):
         """Increment the Suggestion's live value"""
         if self.suggestion:
@@ -721,6 +718,7 @@ class LiveVote(ndb.Model):
                 suggestion_entity.voted_on = True
                 suggestion_entity.put()
         return super(LiveVote, self).put(*args, **kwargs)
+'''
 
 
 class ShowInterval(ndb.Model):
@@ -744,6 +742,7 @@ class VotedItem(ndb.Model):
     player = ndb.KeyProperty(kind=Player)
     interval = ndb.IntegerProperty(default=None)
 
+'''
     def add_leaderboard_win(self):
         # Get the user that created the suggestion (if there was one)
         if self.suggestion:
@@ -757,3 +756,4 @@ class VotedItem(ndb.Model):
                     # Add the win
                     entry.wins += 1
                     entry.put()
+'''
