@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block nav_bar %}{% endblock %}
+{% block admin-selected %} active{% endblock %}
+{% block pre-show-selected %}class="active"{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+
+        <div id="default-screen">
+            <div class="row">
+                <div class="col-sm-11">
+                    <h3 class="text-center" style="background-color:#003D7A;">
+                        <a href="/" class="white-link">{{host_domain}}</a>{% if show.theme %} - Tonight's Theme: {{show.theme.get.name}}{% endif %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5 col-md-offset-3">
+                <img src="{{image_path}}adventure-pre-show.png" class="img-responsive img-thumbnail" />
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

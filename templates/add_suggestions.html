@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block add_head %}
+<script src="{{js_path}}jquery.upvote.js"></script>
+
+{% include "async_upvote.html" %}
+{% endblock %}
+
+{% block suggestions-selected %} active{% endblock %}
+
+{% block content %}
+	<div class="container-fluid">
+        {% if created %}
+            <div class="row">
+                <div class="col-md-5 col-md-offset-1">
+                    <div class="label label-info" style="font-size:large;">{{suggestion_pool.display_name}} Added Successfully!</div>
+                </div>
+            </div>
+        {% endif %}
+        {% if current_suggestion_pools %}
+            <nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <li class="dropdown">
+                            <a class="dropdown-toggle navbar-brand" data-toggle="dropdown" href="#"><span class="suggestion-type pull-left">Suggestion Types&nbsp;</span> <div class="caret-up"></div></a>
+                            <ul class="dropdown-menu" role="menu">
+                                {% for pool in current_suggestion_pools %}
+                                    <li {% if current_suggestion_pool.name == pool.name %}class="active"{% endif%}><a href="/suggestions/{{pool.name}}/"><span class="suggestion-type">{{pool.display_name}}</span></a></li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    </div>
+                </div>
+            </nav>
+            <div class="row">
+                <div class="col-md-6">
+                    <a id="item-alert" href="{{path_qs}}" class="alert-link text-center white-link">
+                        <div class="alert alert-info overlay-alert"><span id="item-count"></span>New {{current_suggestion_pool.display_name}} added, click to refresh</div>
+                    </a>
+                    <div class="panel panel-danger">
+                        <div class="panel-heading x-large-font"><span class="underlay-object">Add {{current_suggestion_pool.display_name}}</span>
+                            {% if current_show and current_show.theme %}
+                                <div class="bg-info large-font">Tonight's Theme: {{show.theme.get.name}}</div>
+                            {% endif %}
+                            {% if threshold_met %}
+                                <div class="bg-info large-font">Maximum {{current_suggestion_pool.display_name}} suggestions entered. Please Upvote your favorites, or try another suggestion type.</div>
+                            {% endif %}
+                            <div class="well well-sm medium-font">
+                                {{current_suggestion_pool.description|safe}}
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <form action="/suggestions/{{current_suggestion_pool.name}}/" method="post">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <input type="text" class="form-control" name="entry_value" {% if threshold_met %}disabled{% endif %}>
+                                    </div>
+                                </div>
+                                <div class="row text-center">
+                                    <button type="submit" class="btn btn-danger" {% if threshold_met %}disabled{% endif %}>Add {{current_suggestion_pool.display_name}}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading x-large-font">Vote for {{current_suggestion_pool.display_name}}</div>
+                        <div class="panel-body">
+                            {% for suggestion in suggestions %}
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <button id="suggestion-{{suggestion.key.id}}" class="upvote btn btn-success" {% if session_id in suggestion.get_voted_sessions or session_id == suggestion.session_id %}disabled="disabled"{% endif %} type="submit">
+                                            <span class="glyphicon glyphicon-circle-arrow-up vote-button-label">Upvote</span>
+                                        </button>
+                                        <span class="vote-value">&nbsp;{{suggestion.preshow_value}}</span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <span class="word-wrap entered-value">{{suggestion.value}}</span>
+                                    </div>
+                                </div>
+                                {% if is_admin  or session_id == suggestion.session_id %}
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <form action="/suggestions/{{current_suggestion_pool.name}}/" method="post">
+                                                <input type="hidden" name="delete_id" value="{{suggestion.key.id}}"/>
+                                                <button type="submit" class="btn btn-danger">
+                                                    <span class="glyphicon glyphicon-trash vote-button-label">Delete</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if not forloop.last %}
+                                    <hr class="thick-divider bg-primary"/>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                {% comment %}THIS IS SPACING FOR THE BOTTOM BAR{% endcomment %}
+                <br/>
+                <br/>
+            </div>
+		{% else %}
+			<div class="row">
+				<div class="btn btn-primary btn-lg home-show-btn">Sorry, we're not ready for your Suggestions yet!</div>
+			</div>
+		{% endif %}
+	</div>
+{% endblock %}

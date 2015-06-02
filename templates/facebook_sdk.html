@@ -1,0 +1,90 @@
+<div id="fb-root"></div>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '518259704940406',
+      xfbml      : true,
+      status     : true,
+      cookie     : true
+    });
+
+    var username = "{{username}}";
+    if (username == "" || username == "None" ) {
+        FB.getLoginStatus(function(status_response) {
+            if (status_response.status === 'connected') {
+                $.ajax({
+                    url: '/fb_login/',
+                    data: {"user_id": status_response.authResponse.userID,
+                           "token": status_response.authResponse.accessToken},
+                    type: 'post',
+                    async: false,
+                    success: function(result){}
+                });
+            }
+        });
+    }
+  };
+
+      // All the Facebook stuff after init
+      function medal_share(link, picture, name, caption, description) {
+          // calling the API ...
+          var obj = {
+            method: 'feed',
+            link: link,
+            picture: picture,
+            name: name,
+            caption: caption,
+            description: description
+          };
+          function callback(response) {
+            //Doing nothing for now
+          }
+          FB.ui(obj, callback);
+      }
+
+      function facebook_login() {
+          FB.login(function (response) {
+              if (response.authResponse) {
+                  FB.api('/me', function (response) {
+                      // If the user logged in successfully
+                      // and allowed their information to be passed
+                      if (response.id) {
+                          FB.getLoginStatus(function(status_response) {
+                              if (status_response.status === 'connected') {
+                                  $.ajax({
+                                      url: '/fb_login/',
+                                      data: {"user_id": response.id,
+                                             "email": response.email,
+                                             "token": status_response.authResponse.accessToken},
+                                      type: 'post',
+                                      async: false,
+                                      success: function(result){
+                                          document.location.reload();
+                                      }
+                                  });
+                              }
+                              else {
+                                  alert("Facebook not connected!");
+                              }
+                          });
+                      }
+                      else {
+                          alert("Facebook login attempt failed!");
+                      }
+                  });
+              }
+              else {
+                  alert("Facebook login attempt failed!");
+              }
+          }, { scope: 'public_profile,email' });
+      }
+
+  // Load the SDK Asynchronously
+  (function(d){
+     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement('script'); js.id = id; js.async = true;
+     js.src = "//connect.facebook.net/en_US/all.js";
+     ref.parentNode.insertBefore(js, ref);
+   }(document));
+</script>

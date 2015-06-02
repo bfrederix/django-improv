@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block user-account-selected %}class="active"{% endblock %}
+
+{% block content %}
+	<div class="container-fluid">
+	    <div class="row">
+	        <div class="col-md-6 col-md-offset-3">
+	            <div class="panel panel-danger">
+	                <div class="panel-heading x-large-font">{% if page_user_id == user.user_id %}My{% else %}User{% endif %} Account</div>
+	                <div class="panel-body black-font large-font">
+                        <table class="table table-condensed black-font">
+                            <tbody>
+                                <tr><td class="warning">Username: {{user_profile.username_email_strip}}</td></tr>
+                                <tr><td class="warning">Suggestions: {{leaderboard_stats.suggestions}}</td></tr>
+                                <tr><td class="warning">Suggestion Wins: {{leaderboard_stats.wins}}</td></tr>
+                                <tr><td class="warning">Points: {{leaderboard_stats.points}}</td></tr>
+                                <tr><td>
+                                    Point Level:
+                                    <a href="/medals/#level-medal"><div class="level-medal"><div class="level-number">{{leaderboard_stats.level}}</div></div></a>
+                                    {% if page_user_id == user.user_id %}
+                                        <img class="facebook-share" src="{{image_path}}facebook_share.png" onClick="medal_share('http://{{host_domain}}{{path_qs}}', 'http://{{host_domain}}{{image_path}}medals/rank.png', 'Adventure-prov Level {{leaderboard_stats.level}} Medal', 'For reaching Level {{leaderboard_stats.level}} in Adventure-prov!', 'The current point level you have reached, based on how many votes you have received.')"/>
+                                    {% endif %}
+                                </td></tr>
+                                <tr><td>
+                                    Medals:<br/>
+                                    <div class="row">
+                                        {% for medal in leaderboard_stats.medals %}
+
+                                            <a href="/medals/#{{medal.get.name}}"><div class="{{medal.get.name}}-medal pull-left"></div></a>
+                                            {% if page_user_id == user.user_id %}
+                                                <img class="facebook-share pull-left" src="{{image_path}}facebook_share.png" onClick="medal_share('http://{{host_domain}}{{path_qs}}', 'http://{{host_domain}}{{image_path}}medals/{{medal.get.name}}.png', 'Adventure-prov {{medal.get.display_name}} Medal', 'For winning the {{medal.get.display_name}} medal at Adventure-prov!', '{{medal.get.description}}')"/>
+                                            {% endif %}
+                                            {% if forloop.counter|divisibleby:3 and not forloop.last %}</div><div class="row">{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td></tr>
+                            </tbody>
+                        </table>
+                        {% if page_user_id == user.user_id %}
+                            <hr class="thick"/>
+                            <form class="form-horizontal" role="form" action="/user/{{page_user_id}}/" method="post">
+                                <div class="form-group">
+                                     <label class="col-md-4 control-label">New Username:</label>
+                                     <div class="col-md-8">
+                                         <input type="text" class="form-control" name="change_username">
+                                     </div>
+                                 </div>
+                                 <div class="form-group">
+                                     <div class="col-md-4">
+                                         <button type="submit" class="btn btn-default">Change Username</button>
+                                     </div>
+                                 </div>
+                                 {% if update == 'changed' %}
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div class="label label-success" style="font-size:large;">Username Changed Successfully!</div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if update == 'unchanged' %}
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div class="label label-danger" style="font-size:large;">Username Already Exists!</div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </form>
+                        {% endif %}
+	                </div>
+	            </div>
+                {% if show_entries %}
+                    {% for show_entry in show_entries %}
+                        <div class="panel panel-primary">
+                            <div class="panel-heading x-large-font">{{show_entry.show_date|date:"D N jS, Y"}} Show</div>
+                            <div class="panel-body black-font large-font">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        Points Earned: {{show_entry.points}}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <a href="/leaderboards/show/{{show_entry.show.id}}/">Show Leaderboard</a>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <a href="/recap/{{show_entry.show.id}}/">Show Recap</a>
+                                    </div>
+                                </div>
+                                {% if user_suggestions %}
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-condensed black-font">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Suggestions ({{show_entry.wins}} Wins, {{show_entry.suggestions}} Submitted):</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for suggestion in user_suggestions %}
+                                                        {% if suggestion.show.id == show_entry.show.id %}
+                                                            <tr><td {% if suggestion.used %}class="success"{% else %}class="active"{% endif %}>
+                                                                {% if suggestion.voted_on %}
+                                                                    <a href="/recap/{{suggestion.show.id}}/#{{suggestion.key.id}}">{{suggestion.value}}{% if suggestion.used %}&nbsp;<img src="/static/img/star-sprite.png" />{% endif %}</a>
+                                                                {% else %}
+                                                                    {{suggestion.value}}
+                                                                {% endif %}
+                                                            </td></tr>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                           <img src="/static/img/star-sprite.png" /> = winning suggestion
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+	        </div>
+	    </div>
+	</div>
+{% endblock %}

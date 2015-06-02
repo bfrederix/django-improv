@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block add_head %}
+<link rel="stylesheet" type="text/css" href="{{css_path}}jquery.countdown.css">
+
+<script src="{{js_path}}jquery.plugin.min.js"></script>
+<script src="{{js_path}}jquery.countdown.min.js"></script>
+
+<script>
+$(document).ready(function(){
+    var timer_json_url = '/interval_timer_json/{{show.key.id}}/';
+    // Set up an initial time to get the timezone from
+    (function timer_loop(){
+        // Open the setTimeout
+        setTimeout(function(){
+            $.ajax({
+                url: timer_json_url,
+                error: function(timer_data){
+                    console.log("Interval timer fetching error!");
+                    console.log(timer_data);
+                    timer_loop(); // recurse
+                },
+                success: function(timer_data){
+                    for (var key in timer_data) {
+                        //console.log(timer_data);
+                        var timer_end = new Date('{{now_tz|date:"F j, Y H:i:s"}}');
+                        var type_data = timer_data[key];
+                        timer_end.setHours(type_data['hour'], type_data['minute'], type_data['second']);
+                        var countdown_timer = $('<span id="countdown-timer" class="glowingLayout intervalTimerLayout" style="border-color: #000;"></span>');
+                        // Set up the countdown clock
+                        $(countdown_timer).countdown({
+                            until: timer_end,
+                            compact: true,
+                            layout: '<span class="image{m10}"></span><span class="image{m1}"></span>' + 
+                                    '<span class="imageSep"></span>' + 
+                                    '<span class="image{s10}"></span><span class="image{s1}"></span>'});
+                        // Create the name of the timer element to change
+                        var element_name = '#' + key + '-countdown-column'
+                        // Clear out the countdown to refresh it
+                        $(element_name).html('');
+                        $(element_name).append($(countdown_timer));
+                    }
+                    timer_loop(); // recurse
+                }
+            });
+	    }, 1000);
+	})();
+});
+</script>
+{% endblock %}
+
+{% block admin-selected %} active{% endblock %}
+{% block interval-timer-selected %}class="active"{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        {% for vote_type in show.vote_types %}
+            {% if vote_type.get.has_intervals %}
+                <div class="row">
+                    <div class="form-group">
+                        <label class="col-md-4 xx-large-font">{{vote_type.get.display_name}} Interval:</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div id="{{vote_type.get.name}}-countdown-column" class="col-md-4">
+                        <span class="glowingLayout intervalTimerLayout" style="border-color: #000;"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 xx-large-font">
+                        <hr/>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}

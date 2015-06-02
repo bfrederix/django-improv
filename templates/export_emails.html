@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block admin-selected %} active{% endblock %}
+{% block export-emails-selected %}class="active"{% endblock %}
+
+{% block content %}
+     <div class="container-fluid">
+        <form class="form-inline" role="form" action="/export_emails/" method="post">
+            <div class="form-group">
+                <label for="show">Show Leaderboards</label>
+	            <select name="show_id" class="form-control">
+	                <option value="">Select Show</option>
+	                {% for show in shows %}
+                        <option value="{{show.key.id}}">{{show.created|date:"l N jS, Y @ P"}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            &nbsp;
+            <div class="form-group">
+                <input type="submit" class="btn btn-warning btn-block btn-lg x-large-font" value="&nbsp;Export Emails&nbsp;">
+            </div>
+        </form>
+     </div>
+{% endblock %}

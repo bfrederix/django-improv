@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block add_head %}
+<link rel="stylesheet" type="text/css" href="{{css_path}}jquery.countdown.css">
+
+<script src="{{js_path}}jquery.plugin.min.js"></script>
+<script src="{{js_path}}jquery.countdown.min.js"></script>
+
+<script>
+$(document).ready(function(){
+    var timer_json_url = '/interval_timer_json/{{show.key.id}}/';
+    // Set up an initial time to get the timezone from
+    (function timer_loop(){
+        // Open the setTimeout
+        setTimeout(function(){
+            $.ajax({
+                url: timer_json_url,
+                error: function(timer_data){
+                    console.log("Interval timer fetching error!");
+                    console.log(timer_data);
+                    timer_loop(); // recurse
+                },
+                success: function(timer_data){
+                    for (var key in timer_data) {
+                        //console.log(timer_data);
+                        var timer_end = new Date('{{now_tz|date:"F j, Y H:i:s"}}');
+                        var type_data = timer_data[key];
+                        timer_end.setHours(type_data['hour'], type_data['minute'], type_data['second']);
+                        var countdown_timer = $('<span id="countdown-timer" class="glowingLayout intervalTimerLayout" style="border-color: #000;"></span>');
+                        // Set up the countdown clock
+                        $(countdown_timer).countdown({
+                            until: timer_end,
+                            compact: true,
+                            layout: '<span class="image{m10}"></span><span class="image{m1}"></span>' + 
+                                    '<span class="imageSep"></span>' + 
+                                    '<span class="image{s10}"></span><span class="image{s1}"></span>'});
+                        // Create the name of the timer element to change
+                        var element_name = '#' + key + '-countdown-column'
+                        // Clear out the countdown to refresh it
+                        $(element_name).html('');
+                        $(element_name).append($(countdown_timer));
+                    }
+                    timer_loop(); // recurse
+                }
+            });
+	    }, 1000);
+	})();
+});
+</script>
+{% endblock %}
+
+{% block admin-selected %} active{% endblock %}
+{% block interval-timer-selected %}class="active"{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        {% if show.is_today %}
+            <div id="vote-selection-screen" class="col-md-3">
+
+                <form action="/show_control/{{show.key.id}}/" method="post">
+                    <input type="hidden" name="lock_vote" value="True">
+                    <input type="submit" class="btn btn-info btn-block btn-lg x-large-font" value="Voting {% if show.locked %}Locked{% else %}Unlocked{% endif %}">
+                </form>
+                <hr/>
+                {% for vote_type in show.vote_types %}
+                    <form id="{{vote_type.get.name}}-vote" action="/show_control/{{show.key.id}}/" method="post">
+                        {% if vote_type.get.has_intervals %}
+                            {% if vote_type.get.remaining_intervals %}
+                                {% if vote_type.get.suggestion_pool.get.available_suggestions >= vote_type.get.remaining_intervals %}
+                                    <input type="hidden" name="vote_start" value="{{vote_type.get.name}}">
+                                    <input type="submit" class="btn btn-block btn-lg white-input x-large-font" style="background-color:{{vote_type.get.button_color}};" value="Start the {{vote_type.get.display_name}} Interval Vote">
+                                {% else %}
+                                    <div class="btn btn-block btn-lg x-large-font word-wrap" style="background-color:{{vote_type.get.button_color}};">Need more {{vote_type.get.suggestion_pool.get.display_name}}</div>
+                                {% endif %}
+                            {% else %}
+                                <div class="btn btn-block btn-lg x-large-font word-wrap" style="background-color:{{vote_type.get.button_color}};">No more {{vote_type.get.display_name}} Intervals</div>
+                            {% endif %}
+                        {% else %}
+                            {% if not vote_type.get.suggestion_pool or vote_type.get.suggestion_pool.get.available_suggestions or vote_type.get.name == 'test' %}
+                                <input type="hidden" name="vote_start" value="{{vote_type.get.name}}">
+                                <input type="submit" class="btn btn-block btn-lg white-input x-large-font" style="background-color:{{vote_type.get.button_color}};" value="Start the {{vote_type.get.display_name}} Vote">
+                            {% else %}
+                                {% if vote_type.get.name in show.used_types_names %}
+                                    <input type="hidden" name="recap" value="{{vote_type.get.name}}">
+                                    <input type="submit" class="btn btn-block btn-lg white-input x-large-font" style="background-color:{{vote_type.get.button_color}};" value="Recap the {{vote_type.get.display_name}} Vote">
+                                {% else %}
+                                    <div class="btn btn-block btn-lg x-large-font word-wrap" style="background-color:{{vote_type.get.button_color}};">Need more {{vote_type.get.suggestion_pool.get.display_name}}</div>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </form>
+                    {% if vote_type.get.name == 'test' or vote_type.get.has_intervals %}
+                        <hr/>
+                    {% endif %}
+                {% endfor %}
+                {% for vote_type in show.vote_types %}
+                    {% if vote_type.get.has_intervals %}
+                        <div class="row">
+                            <div class="form-group">
+                                <label class="xx-large-font">{{vote_type.get.display_name}} Interval:</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div id="{{vote_type.get.name}}-countdown-column" class="col-md-10">
+                                <span class="glowingLayout intervalTimerLayout" style="border-color: #000;"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-10 xx-large-font">
+                                <hr/>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
