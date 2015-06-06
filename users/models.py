@@ -1,25 +1,26 @@
-class UserProfile(ndb.Model):
-    user_id = ndb.StringProperty(required=True)
-    username = ndb.StringProperty(default=None)
-    strip_username = ndb.StringProperty(default=None)
-    email = ndb.StringProperty(default=None)
-    login_type = ndb.StringProperty(default=None)
-    current_session = ndb.StringProperty(default=None)
-    fb_access_token = ndb.StringProperty(default=None)
-    created = ndb.DateTimeProperty(required=True)
+from django.db import models
 
+
+class UserProfile(models.Model):
+    user_id = models.BigIntegerField(blank=False)
+    username = models.CharField(default=None, blank=False)
+    strip_username = models.CharField(default=None, blank=False)
+    email = models.CharField(default=None, blank=True)
+    login_type = models.CharField(default=None, blank=False)
+    current_session = models.CharField(default=None, blank=True)
+    fb_access_token = models.CharField(default=None, blank=True)
+
+    created = models.DateTimeField(auto_now_add=True, blank=False)
+
+'''
     def put(self, *args, **kwargs):
         if self.username:
             self.strip_username = self.username.replace(" ", "").lower()
         return super(UserProfile, self).put(*args, **kwargs)
-
-    @property
-    def username_email_strip(self):
-        try:
-            return self.username.split('@')[0]
-        except IndexError:
-            return self.username
+'''
 
 
-class EmailOptOut(ndb.Model):
-    email = ndb.StringProperty(required=True)
+class EmailOptOut(models.Model):
+    email = models.CharField(blank=False)
+
+    created = models.DateTimeField(auto_now_add=True, blank=False)

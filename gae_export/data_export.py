@@ -6,6 +6,8 @@ from google.appengine.api.files import records
 from google.appengine.datastore import entity_pb
 from google.appengine.api import datastore
 
+from leaderboards.models import Medal, LeaderboardEntry, LeaderboardSpan
+
 for (dirpath, dirnames, filenames) in os.walk('/Users/brandon.fredericks/home_projects/django-voteprov/gae_export/adventureprovbackup/'):
     for filename in filenames:
         if not filename.endswith('backup_info'):

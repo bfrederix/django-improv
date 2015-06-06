@@ -1,11 +1,9 @@
-class Player(ndb.Model):
-    name = ndb.StringProperty(required=True)
-    photo_filename = ndb.StringProperty(required=True, indexed=False)
-    star = ndb.BooleanProperty(default=False)
-    date_added = ndb.DateTimeProperty()
+from django.db import models
 
-'''
-    @property
-    def img_path(self):
-        return "/static/img/players/%s" % self.photo_filename
-'''
+
+class Player(models.Model):
+    name = models.CharField(blank=False)
+    photo_filename = models.CharField(blank=False)
+    star = models.BooleanField(default=False, blank=True)
+
+    created = models.DateTimeField(auto_now_add=True, blank=False)
