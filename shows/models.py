@@ -58,7 +58,7 @@ class VoteType(models.Model):
     button_color = models.CharField(default="#003D7A", blank=False, max_length=100)
 
     # Dynamic
-    current_interval = models.IntegerField(blank=True)
+    current_interval = models.IntegerField(blank=True, null=True)
     current_init = models.DateTimeField(blank=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
@@ -72,17 +72,16 @@ class Show(models.Model):
     vote_options = models.IntegerField(default=3, blank=False)
     timezone = models.CharField(default='America/Denver', blank=False, max_length=100)
 
-    # Finite amount of players to select from during the show
-    # COULD HAVE BORKED THIS DUE TO MANY TO MANY
-    player_pool = FlexibleForeignKey("players.Player", blank=True, related_name='+')
     created = models.DateTimeField(auto_now_add=True, blank=False)
     archived = models.BooleanField(default=False, blank=False)
 
     # Changes during live show
-    current_vote_type = FlexibleForeignKey("VoteType", blank=True, related_name='+')
-    current_vote_init = models.DateTimeField(blank=True)
-    recap_type = FlexibleForeignKey("VoteType", blank=True, related_name='+')
-    recap_init = models.DateTimeField(blank=True)
+    current_vote_type = FlexibleForeignKey("VoteType", blank=True, related_name='+',
+                                           null=True)
+    current_vote_init = models.DateTimeField(blank=True, null=True)
+    recap_type = FlexibleForeignKey("VoteType", blank=True, related_name='+',
+                                    null=True)
+    recap_init = models.DateTimeField(blank=True, null=True)
     locked = models.BooleanField(default=False, blank=False)
 
     # Perhaps fetch all vote types by show id here
@@ -116,23 +115,23 @@ class ShowPlayerPool(models.Model):
 
 class Suggestion(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    show = FlexibleForeignKey("Show", blank=True)
+    show = FlexibleForeignKey("Show", blank=True, null=True)
     suggestion_pool = FlexibleForeignKey("SuggestionPool", blank=False)
-    used = models.BooleanField(default=False, blank=True)
+    used = models.BooleanField(default=False, blank=False)
     voted_on = models.NullBooleanField(default=False, blank=True)
-    amount_voted_on = models.IntegerField(default=0, blank=True)
+    amount_voted_on = models.IntegerField(default=0, blank=True, null=True)
     value = models.CharField(blank=False, max_length=255)
     # Pre-show upvotes
-    preshow_value = models.IntegerField(default=0, blank=True)
+    preshow_value = models.IntegerField(default=0, blank=True, null=True)
     session_id = models.CharField(blank=False, max_length=255)
-    user_id = models.BigIntegerField(blank=True)
+    user_id = models.CharField(blank=True, null=True, max_length=100)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
 
 
 class PreshowVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    show = FlexibleForeignKey("Show", blank=True)
+    show = FlexibleForeignKey("Show", blank=True, null=True)
     suggestion = FlexibleForeignKey("Suggestion", blank=False)
     session_id = models.CharField(blank=False, max_length=255)
 
@@ -151,11 +150,11 @@ class LiveVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", blank=False)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
-    player = FlexibleForeignKey("players.Player", blank=True)
-    suggestion = FlexibleForeignKey("Suggestion", blank=True)
-    interval = models.IntegerField(blank=True)
+    player = FlexibleForeignKey("players.Player", blank=True, null=True)
+    suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)
+    interval = models.IntegerField(blank=True, null=True)
     session_id = models.CharField(blank=False, max_length=255)
-    user_id = models.BigIntegerField(default=None, blank=True)
+    user_id = models.CharField(blank=True, null=True, max_length=100)
 
 
 class ShowInterval(models.Model):
@@ -163,7 +162,7 @@ class ShowInterval(models.Model):
     show = FlexibleForeignKey("Show", blank=False)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
     interval = models.IntegerField(blank=False)
-    player = FlexibleForeignKey("players.Player", blank=True)
+    player = FlexibleForeignKey("players.Player", blank=True, null=True)
 
 
 # Doing this as a Many to Many so I can use BigInts
@@ -176,7 +175,7 @@ class VoteOptions(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", blank=False)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
-    interval = models.IntegerField(blank=True)
+    interval = models.IntegerField(blank=True, null=True)
 
     # Perhaps fetch all suggestions by vote option here
 
@@ -184,6 +183,6 @@ class VotedItem(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
-    suggestion = FlexibleForeignKey("Suggestion", blank=True)
-    player = FlexibleForeignKey("players.Player", blank=True)
-    interval = models.IntegerField(default=None, blank=True)
+    suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)
+    player = FlexibleForeignKey("players.Player", blank=True, null=True)
+    interval = models.IntegerField(default=None, blank=True, null=True)

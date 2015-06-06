@@ -16,9 +16,9 @@ class LeaderboardEntry(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("shows.Show", blank=False)
     show_date = models.DateTimeField(blank=False)
-    user_id = models.BigIntegerField(blank=False)
-    points = models.IntegerField(default=0, blank=True)
-    wins = models.IntegerField(default=0, blank=True)
+    user_id = models.CharField(blank=False, max_length=100)
+    points = models.IntegerField(default=0, blank=True, null=True)
+    wins = models.IntegerField(default=0, blank=True, null=True)
 
     # Add medals here based on leaderboard entry id
     # medals =
