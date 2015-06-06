@@ -1,14 +1,16 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class UserProfile(models.Model):
+    django_user = models.OneToOneField(User)
     user_id = models.BigIntegerField(blank=False)
-    username = models.CharField(default=None, blank=False)
-    strip_username = models.CharField(default=None, blank=False)
-    email = models.CharField(default=None, blank=True)
-    login_type = models.CharField(default=None, blank=False)
-    current_session = models.CharField(default=None, blank=True)
-    fb_access_token = models.CharField(default=None, blank=True)
+    username = models.CharField(default=None, blank=False, max_length=100)
+    strip_username = models.CharField(default=None, blank=False, max_length=100)
+    email = models.CharField(default=None, blank=True, max_length=100)
+    login_type = models.CharField(default=None, blank=False, max_length=50)
+    current_session = models.CharField(default=None, blank=True, max_length=255)
+    fb_access_token = models.CharField(default=None, blank=True, max_length=255)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
 
@@ -21,6 +23,6 @@ class UserProfile(models.Model):
 
 
 class EmailOptOut(models.Model):
-    email = models.CharField(blank=False)
+    email = models.CharField(blank=False, max_length=100)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
