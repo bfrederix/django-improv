@@ -165,12 +165,6 @@ class ShowInterval(models.Model):
     player = FlexibleForeignKey("players.Player", blank=True, null=True)
 
 
-# Doing this as a Many to Many so I can use BigInts
-class OptionList(models.Model):
-    suggestion = FlexibleForeignKey("Suggestion", blank=False)
-    vote_option = FlexibleForeignKey("VoteOptions", blank=False)
-
-
 class VoteOptions(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", blank=False)
@@ -179,10 +173,17 @@ class VoteOptions(models.Model):
 
     # Perhaps fetch all suggestions by vote option here
 
+
+# Doing this as a Many to Many so I can use BigInts
+class OptionList(models.Model):
+    suggestion = FlexibleForeignKey("Suggestion", blank=False)
+    vote_option = FlexibleForeignKey("VoteOptions", blank=False)
+
+
 class VotedItem(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    vote_type = FlexibleForeignKey("VoteType", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
+    vote_type = FlexibleForeignKey("VoteType", blank=False)
     suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)
     player = FlexibleForeignKey("players.Player", blank=True, null=True)
     interval = models.IntegerField(default=None, blank=True, null=True)

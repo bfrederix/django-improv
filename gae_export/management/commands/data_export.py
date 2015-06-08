@@ -10,6 +10,7 @@ from google.appengine.datastore import entity_pb
 from google.appengine.api import datastore
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db.utils import IntegrityError
 
 from leaderboards.models import (Medal, LeaderboardEntry, LeaderboardSpan,
                                 LeaderboardEntryMedal)
@@ -17,7 +18,7 @@ from players.models import Player
 from shows.models import (SuggestionPool, VoteType, Show, ShowVoteType,
                           ShowPlayer, ShowPlayerPool, Suggestion,
                           PreshowVote, LiveVote, ShowInterval,
-                          VoteOptions, VotedItem)
+                          VoteOptions, OptionList, VotedItem)
 from users.models import UserProfile, EmailOptOut
 
 
@@ -31,7 +32,17 @@ MODEL_IMPORT_ORDER = ['Medal',
                       'Show',
                       'LeaderboardEntry',
                       'Suggestion',
-                      ]
+                      'PreshowVote',
+                      'LiveVote',
+                      'ShowInterval',
+                      'VoteOptions',
+                      'VotedItem']
+
+def get_entity_id(entity, entity_name):
+    if entity[entity_name]:
+        return entity[entity_name].id()
+    else:
+        return None
 
 
 class Command(BaseCommand):
@@ -129,10 +140,6 @@ class Command(BaseCommand):
                                   current_init=entity['current_init'],
                                   created=entity.get('created') or now).save()
                         if model_name == 'Show' and model_to_import == 'Show':
-                            try:
-                                recap_type_id = entity.get('recap_type').id()
-                            except AttributeError:
-                                recap_type_id = None
                             Show(
                                   id=entity.key().id(),
                                   vote_length=entity['vote_length'],
@@ -143,7 +150,7 @@ class Command(BaseCommand):
                                   archived=entity['archived'],
                                   current_vote_type_id=entity['current_vote_type'].id(),
                                   current_vote_init=entity['current_vote_init'],
-                                  recap_type_id=recap_type_id,
+                                  recap_type_id=get_entity_id(entity, 'recap_type'),
                                   recap_init=entity['recap_init'],
                                   locked=entity['locked']).save()
                             for vote_type in entity['vote_types']:
@@ -160,13 +167,9 @@ class Command(BaseCommand):
                                       show_id=entity.key().id(),
                                       player_id=p_player.id()).save()
                         if model_name == 'Suggestion' and model_to_import == 'Suggestion':
-                            if entity['show']:
-                                show_id = entity['show'].id()
-                            else:
-                                show_id = None
                             Suggestion(
                                   id=entity.key().id(),
-                                  show_id=show_id,
+                                  show_id=get_entity_id(entity, 'show'),
                                   suggestion_pool_id=entity['suggestion_pool'].id(),
                                   used=entity['used'],
                                   voted_on=entity['voted_on'],
@@ -176,5 +179,73 @@ class Command(BaseCommand):
                                   session_id=entity['session_id'],
                                   user_id=entity['user_id'],
                                   created=entity['created']).save()
+                        if model_name == 'PreshowVote' and model_to_import == 'PreshowVote':
+                            try:
+                                PreshowVote(
+                                      id=entity.key().id(),
+                                      show_id=get_entity_id(entity, 'show'),
+                                      suggestion_id=entity['suggestion'].id(),
+                                      session_id=entity['session_id']).save()
+                            except IntegrityError, e:
+                                if not 'not present in table "shows_suggestion"' in str(e):
+                                    raise IntegrityError(e)
+                        if model_name == 'LiveVote' and model_to_import == 'LiveVote':
+                            try:
+                                LiveVote(
+                                      id=entity.key().id(),
+                                      show_id=entity['show'].id(),
+                                      vote_type_id=entity['vote_type'].id(),
+                                      player_id=get_entity_id(entity, 'player'),
+                                      suggestion_id=get_entity_id(entity, 'suggestion'),
+                                      interval=entity['interval'],
+                                      session_id=entity['session_id'],
+                                      user_id=entity['user_id']).save()
+                            except IntegrityError, e:
+                                if not 'not present in table "shows_votetype"' in str(e) and \
+                                   not 'not present in table "shows_suggestion"' in str(e):
+                                    raise IntegrityError(e)
+                        if model_name == 'ShowInterval' and model_to_import == 'ShowInterval':
+                            try:
+                                ShowInterval(
+                                      id=entity.key().id(),
+                                      show_id=entity['show'].id(),
+                                      vote_type_id=entity['vote_type'].id(),
+                                      interval=entity['interval'],
+                                      player_id=get_entity_id(entity, 'player')).save()
+                            except IntegrityError, e:
+                                if not 'not present in table "shows_votetype"' in str(e):
+                                    raise IntegrityError(e)
+                        if model_name == 'VoteOptions' and model_to_import == 'VoteOptions':
+                            try:
+                                VoteOptions(
+                                      id=entity.key().id(),
+                                      show_id=entity['show'].id(),
+                                      vote_type_id=entity['vote_type'].id(),
+                                      interval=entity['interval']).save()
+                            except IntegrityError, e:
+                                if not 'not present in table "shows_votetype"' in str(e):
+                                    raise IntegrityError(e)
+                            for option in entity['option_list']:
+                                try:
+                                    OptionList(
+                                          vote_option_id=entity.key().id(),
+                                          suggestion_id=option.id()).save()
+                                except IntegrityError, e:
+                                    if not 'not present in table "shows_suggestion"' in str(e) and \
+                                       not 'not present in table "shows_voteoptions"' in str(e):
+                                        raise IntegrityError(e)
+                        if model_name == 'VotedItem' and model_to_import == 'VotedItem':
+                            try:
+                                VotedItem(
+                                          id=entity.key().id(),
+                                          show_id=entity['show'].id(),
+                                          vote_type_id=entity['vote_type'].id(),
+                                          player_id=get_entity_id(entity, 'player'),
+                                          suggestion_id=get_entity_id(entity, 'suggestion'),
+                                          interval=entity['interval']).save()
+                            except IntegrityError, e:
+                                if not 'not present in table "shows_votetype"' in str(e) and \
+                                   not 'not present in table "shows_suggestion"' in str(e):
+                                    raise IntegrityError(e)
 
         self.stdout.write('Successfully Imported GAE {0}'.format(model_to_import))
