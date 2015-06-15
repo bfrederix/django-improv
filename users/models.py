@@ -1,13 +1,12 @@
 from django.db import models
-from django.contrib.auth.models import User
 
 from utilities.fields import BoundedBigAutoField
 
 
 class UserProfile(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    django_user = models.OneToOneField(User)
-    user_id = models.CharField(blank=False, max_length=100)
+    is_admin = models.BooleanField(blank=False, default=False)
+    user_id = models.CharField(blank=False, max_length=100, unique=True)
     username = models.CharField(default=None, blank=False, max_length=100)
     strip_username = models.CharField(default=None, blank=False, max_length=100)
     email = models.CharField(default=None, blank=True, max_length=100)

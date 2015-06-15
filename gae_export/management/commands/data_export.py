@@ -247,5 +247,28 @@ class Command(BaseCommand):
                                 if not 'not present in table "shows_votetype"' in str(e) and \
                                    not 'not present in table "shows_suggestion"' in str(e):
                                     raise IntegrityError(e)
+                        if model_name == 'UserProfile' and model_to_import == 'UserProfile':
+                            if not UserProfile.objects.filter(user_id=entity['user_id']):
+                                if not 'login_type' in entity:
+                                    entity['login_type'] = 'google'
+                                if not entity['login_type']:
+                                    if entity['email'] != 'dkloeck@comcast.net':
+                                        entity['login_type'] = 'google'
+                                    else:
+                                        entity['login_type'] = 'facebook'
+                                UserProfile(
+                                    id=entity.key().id(),
+                                    user_id=entity['user_id'],
+                                    username=entity['username'],
+                                    strip_username=entity['strip_username'],
+                                    email=entity['email'],
+                                    login_type=entity['login_type'],
+                                    current_session=entity['current_session'],
+                                    fb_access_token=entity.get('fb_access_token'),
+                                    created=entity['created']).save()
+                        if model_name == 'EmailOptOut' and model_to_import == 'EmailOptOut':
+                                EmailOptOut(
+                                    id=entity.key().id(),
+                                    email=entity['email']).save()
 
         self.stdout.write('Successfully Imported GAE {0}'.format(model_to_import))
