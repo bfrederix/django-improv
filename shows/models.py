@@ -90,7 +90,7 @@ class Show(models.Model):
     locked = models.BooleanField(default=False, blank=False)
 
     def __unicode__(self):
-        return str(self.id)
+        return str(self.created)
 
     # Perhaps fetch all vote types by show id here
     # vote_types =

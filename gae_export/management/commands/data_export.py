@@ -112,7 +112,7 @@ class Command(BaseCommand):
                             Player(
                                   id=entity.key().id(),
                                   name=entity['name'],
-                                  photo_filename=entity['photo_filename'],
+                                  photo_url=entity['photo_filename'],
                                   star=entity['star']).save()
                         if model_name == 'SuggestionPool' and model_to_import == 'SuggestionPool':
                             SuggestionPool(
