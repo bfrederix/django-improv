@@ -16,6 +16,9 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
+from utilities import views as util_views
+
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^robots\.txt$', util_views.robots_txt, name="robots"),
 ]

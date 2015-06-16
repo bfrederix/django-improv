@@ -10,3 +10,6 @@ class Player(models.Model):
     star = models.BooleanField(default=False, blank=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
+
+    def __unicode__(self):
+        return self.name

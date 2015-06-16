@@ -36,7 +36,9 @@ MODEL_IMPORT_ORDER = ['Medal',
                       'LiveVote',
                       'ShowInterval',
                       'VoteOptions',
-                      'VotedItem']
+                      'VotedItem',
+                      'UserProfile',
+                      'EmailOptOut']
 
 def get_entity_id(entity, entity_name):
     if entity[entity_name]:

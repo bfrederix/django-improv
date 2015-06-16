@@ -18,6 +18,9 @@ class UserProfile(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
 
+    def __unicode__(self):
+        return self.strip_username
+
 '''
     def put(self, *args, **kwargs):
         if self.username:
@@ -31,3 +34,6 @@ class EmailOptOut(models.Model):
     email = models.CharField(blank=False, max_length=100)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
+
+    def __unicode__(self):
+        return self.email

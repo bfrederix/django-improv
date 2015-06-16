@@ -11,6 +11,8 @@ class Medal(models.Model):
     image_filename = models.CharField(blank=False, max_length=255)
     icon_filename = models.CharField(blank=False, max_length=255)
 
+    def __unicode__(self):
+        return self.name
 
 class LeaderboardEntry(models.Model):
     id = BoundedBigAutoField(primary_key=True)
@@ -23,6 +25,8 @@ class LeaderboardEntry(models.Model):
     # Add medals here based on leaderboard entry id
     # medals =
 
+    def __unicode__(self):
+        return str(self.id)
 
 class LeaderboardEntryMedal(models.Model):
     medal = FlexibleForeignKey("Medal", blank=False)
@@ -36,3 +40,6 @@ class LeaderboardSpan(models.Model):
     end_date = models.DateField(blank=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
+
+    def __unicode__(self):
+        return self.name

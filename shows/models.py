@@ -23,6 +23,9 @@ class SuggestionPool(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
 
+    def __unicode__(self):
+        return self.name
+
 '''
     @property
     def delete_all_suggestions_and_live_votes(self):
@@ -61,8 +64,10 @@ class VoteType(models.Model):
     current_interval = models.IntegerField(blank=True, null=True)
     current_init = models.DateTimeField(blank=True)
 
-    created = models.DateTimeField(auto_now_add=True, blank=False)
+    created = models.DateTimeField(blank=False)
 
+    def __unicode__(self):
+        return self.name
 
 class Show(models.Model):
     # Assigned to show on creation
@@ -83,6 +88,9 @@ class Show(models.Model):
                                     null=True)
     recap_init = models.DateTimeField(blank=True, null=True)
     locked = models.BooleanField(default=False, blank=False)
+
+    def __unicode__(self):
+        return str(self.id)
 
     # Perhaps fetch all vote types by show id here
     # vote_types =
@@ -128,12 +136,17 @@ class Suggestion(models.Model):
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
 
+    def __unicode__(self):
+        return self.value
 
 class PreshowVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", blank=True, null=True)
     suggestion = FlexibleForeignKey("Suggestion", blank=False)
     session_id = models.CharField(blank=False, max_length=255)
+
+    def __unicode__(self):
+        return str(self.id)
 
 '''
     def put(self, *args, **kwargs):
@@ -156,6 +169,8 @@ class LiveVote(models.Model):
     session_id = models.CharField(blank=False, max_length=255)
     user_id = models.CharField(blank=True, null=True, max_length=100)
 
+    def __unicode__(self):
+        return str(self.id)
 
 class ShowInterval(models.Model):
     id = BoundedBigAutoField(primary_key=True)
@@ -164,6 +179,8 @@ class ShowInterval(models.Model):
     interval = models.IntegerField(blank=False)
     player = FlexibleForeignKey("players.Player", blank=True, null=True)
 
+    def __unicode__(self):
+        return str(self.id)
 
 class VoteOptions(models.Model):
     id = BoundedBigAutoField(primary_key=True)
@@ -171,6 +188,8 @@ class VoteOptions(models.Model):
     vote_type = FlexibleForeignKey("VoteType", blank=False)
     interval = models.IntegerField(blank=True, null=True)
 
+    def __unicode__(self):
+        return str(self.id)
     # Perhaps fetch all suggestions by vote option here
 
 
@@ -187,3 +206,6 @@ class VotedItem(models.Model):
     suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)
     player = FlexibleForeignKey("players.Player", blank=True, null=True)
     interval = models.IntegerField(default=None, blank=True, null=True)
+
+    def __unicode__(self):
+        return str(self.id)
