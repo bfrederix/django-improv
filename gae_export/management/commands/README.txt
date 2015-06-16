@@ -13,3 +13,7 @@ COMMENT ON SCHEMA public IS 'standard public schema';
 
 ##### Activating virtualenv (work mac) #########
 pyenv activate gae_export
+
+
+#### Run the management command ############
+python manage.py data_export /Users/brandon.fredericks/home_projects/django-voteprov/gae_export/adventureprovbackup/ Medal
