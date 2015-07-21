@@ -46,7 +46,6 @@ def get_entity_id(entity, entity_name):
     else:
         return None
 
-
 class Command(BaseCommand):
     """
     How to run:
@@ -58,19 +57,30 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('data', nargs='+', type=str)
 
+    def import_all_fixtures(self, data_path):
+        for model in MODEL_IMPORT_ORDER:
+            self.import_fixtures(data_path, model)
+
     def handle(self, *args, **options):
         try:
             data_path = options['data'][0]
         except IndexError:
             raise IndexError("Command requires path argument.")
-
-        try:
-            model_to_import = options['data'][1]
-        except IndexError:
-            for model in MODEL_IMPORT_ORDER:
-                self.import_fixtures(data_path, model)
+        except KeyError:
+            data_path = args[0]
+            try:
+                model_to_import = args[1]
+            except IndexError:
+                self.import_all_fixtures(data_path)
+            else:
+                self.import_fixtures(data_path, model_to_import)
         else:
-            self.import_fixtures(data_path, model_to_import)
+            try:
+                model_to_import = options['data'][1]
+            except IndexError:
+                self.import_all_fixtures(data_path)
+            else:
+                self.import_fixtures(data_path, model_to_import)
 
     def import_fixtures(self, data_path, model_to_import):
         now = datetime.datetime.now()
@@ -152,8 +162,6 @@ class Command(BaseCommand):
                                   archived=entity['archived'],
                                   current_vote_type_id=entity['current_vote_type'].id(),
                                   current_vote_init=entity['current_vote_init'],
-                                  recap_type_id=get_entity_id(entity, 'recap_type'),
-                                  recap_init=entity['recap_init'],
                                   locked=entity['locked']).save()
                             for vote_type in entity['vote_types']:
                                 if vote_type.id() not in [5453950262181888, 6514223068741632]:

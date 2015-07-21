@@ -84,9 +84,6 @@ class Show(models.Model):
     current_vote_type = FlexibleForeignKey("VoteType", blank=True, related_name='+',
                                            null=True)
     current_vote_init = models.DateTimeField(blank=True, null=True)
-    recap_type = FlexibleForeignKey("VoteType", blank=True, related_name='+',
-                                    null=True)
-    recap_init = models.DateTimeField(blank=True, null=True)
     locked = models.BooleanField(default=False, blank=False)
 
     def __unicode__(self):
