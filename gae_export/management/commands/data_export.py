@@ -109,9 +109,10 @@ class Command(BaseCommand):
                                   user_id=entity['user_id'],
                                   points=entity['points'],
                                   wins=entity['wins']).save()
-                            LeaderboardEntryMedal(
-                                  leaderboard_entry_id=entity.key().id(),
-                                  medal_id=entity['medal'].id()).save()
+                            if 'medal' in entity:
+                                LeaderboardEntryMedal(
+                                      leaderboard_entry_id=entity.key().id(),
+                                      medal_id=entity['medal'].id()).save()
                         if model_name == 'LeaderboardSpan' and model_to_import == 'LeaderboardSpan':
                             LeaderboardSpan(
                                   id=entity.key().id(),
