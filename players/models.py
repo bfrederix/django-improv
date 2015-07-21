@@ -9,7 +9,7 @@ class Player(models.Model):
     photo_filename = models.CharField(blank=False, max_length=255)
     star = models.BooleanField(default=False, blank=True)
 
-    created = models.DateTimeField(auto_now_add=True, blank=False)
+    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     def __unicode__(self):
         return self.name
