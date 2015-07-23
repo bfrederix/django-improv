@@ -8,7 +8,8 @@ DATABASES = {
         'NAME': 'django',
         'USER': 'django',
         'PASSWORD': '***REMOVED***',
-        'HOST': 'localhost',
-        'PORT': '',
+        # voteprov-postgres droplet (prod postgres server)
+        'HOST': '104.236.161.125',
+        'PORT': '5432',
     }
 }

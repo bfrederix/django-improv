@@ -8,6 +8,7 @@ DATABASES = {
         'NAME': 'django',
         'USER': 'django',
         'PASSWORD': '***REMOVED***',
+        # voteprov-django droplet (prod django server, but dev db)
         'HOST': '***REMOVED***',
         'PORT': '5432',
     }

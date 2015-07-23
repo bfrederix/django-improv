@@ -20,6 +20,7 @@ class SuggestionPool(models.Model):
     name = models.CharField(blank=False, max_length=100)
     display_name = models.CharField(blank=False, max_length=100)
     description = models.TextField(blank=False)
+    max_user_suggestions = models.IntegerField(default=5, blank=False)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
 
