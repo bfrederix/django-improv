@@ -29,6 +29,7 @@ class LeaderboardEntry(models.Model):
         return str(self.id)
 
 class LeaderboardEntryMedal(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
     medal = FlexibleForeignKey("Medal", blank=False)
     leaderboard_entry = FlexibleForeignKey("LeaderboardEntry", blank=False)
 

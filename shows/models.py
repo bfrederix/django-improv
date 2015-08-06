@@ -17,6 +17,7 @@ LEVEL_POINT = 30
 
 class SuggestionPool(models.Model):
     id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
     name = models.CharField(blank=False, max_length=100)
     display_name = models.CharField(blank=False, max_length=100)
     description = models.TextField(blank=False)
@@ -47,6 +48,7 @@ class SuggestionPool(models.Model):
 class VoteType(models.Model):
     # Defined at creation
     id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
     name = models.CharField(blank=False, max_length=100)
     display_name = models.CharField(blank=False, max_length=100)
     suggestion_pool = FlexibleForeignKey("SuggestionPool", blank=False)
@@ -73,6 +75,7 @@ class VoteType(models.Model):
 class Show(models.Model):
     # Assigned to show on creation
     id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
     vote_length = models.IntegerField(default=25, blank=False)
     result_length = models.IntegerField(default=10, blank=False)
     vote_options = models.IntegerField(default=3, blank=False)
@@ -102,12 +105,14 @@ class Show(models.Model):
 
 # Doing this as a Many to Many so I can use BigInts
 class ShowVoteType(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
 
 
 # Doing this as a Many to Many so I can use BigInts
 class ShowPlayer(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
     player = FlexibleForeignKey("players.Player", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
 
@@ -115,12 +120,14 @@ class ShowPlayer(models.Model):
 # Doing this as a Many to Many so I can use BigInts
 # These can be deleted throughout the show to decrease the pool size
 class ShowPlayerPool(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
     player = FlexibleForeignKey("players.Player", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
 
 
 class Suggestion(models.Model):
     id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
     show = FlexibleForeignKey("Show", blank=True, null=True)
     suggestion_pool = FlexibleForeignKey("SuggestionPool", blank=False)
     used = models.BooleanField(default=False, blank=False)
@@ -139,6 +146,7 @@ class Suggestion(models.Model):
 
 class PreshowVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
     show = FlexibleForeignKey("Show", blank=True, null=True)
     suggestion = FlexibleForeignKey("Suggestion", blank=False)
     session_id = models.CharField(blank=False, max_length=255)
@@ -159,6 +167,7 @@ class PreshowVote(models.Model):
 
 class LiveVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
     player = FlexibleForeignKey("players.Player", blank=True, null=True)
@@ -193,12 +202,14 @@ class VoteOptions(models.Model):
 
 # Doing this as a Many to Many so I can use BigInts
 class OptionList(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
     suggestion = FlexibleForeignKey("Suggestion", blank=False)
     vote_option = FlexibleForeignKey("VoteOptions", blank=False)
 
 
 class VotedItem(models.Model):
     id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
     suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)

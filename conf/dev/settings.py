@@ -1,7 +1,9 @@
 from conf.settings import *
 
-# Database
+# API URL
+API_URL = 'http://localhost:8080/'
 
+# Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',

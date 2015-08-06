@@ -5,6 +5,7 @@ from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 class ShowRecap(models.Model):
     id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
     show = FlexibleForeignKey("shows.Show", blank=False)
     winners_photo_url = models.CharField(blank=True, null=True, max_length=255)
     highlights_video = models.TextField(blank=True, null=True)

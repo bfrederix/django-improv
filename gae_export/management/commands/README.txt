@@ -53,3 +53,6 @@ listen_addresses = '*'
 
 # Restart postgres
 service postgresql restart
+
+# Restart gunicorn (django)
+service gunicorn restart
