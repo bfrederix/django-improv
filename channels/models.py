@@ -7,6 +7,7 @@ class Channel(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     name = models.CharField(blank=False, max_length=50)
     display_name = models.CharField(blank=False, max_length=100)
+    is_premium = models.BooleanField(blank=False, default=False)
     short_description = models.CharField(blank=True, max_length=100)
     description = models.TextField(blank=True)
     thumbnail_url = models.CharField(blank=True, max_length=500)
