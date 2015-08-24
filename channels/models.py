@@ -28,3 +28,29 @@ class ChannelAddress(models.Model):
     city = models.CharField(blank=True, max_length=100)
     state = models.CharField(blank=True, max_length=100)
     zipcode = models.CharField(blank=True, max_length=100)
+
+
+class ChannelUser(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
+    user_id = models.CharField(blank=False, max_length=100)
+
+
+class ChannelAdmin(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
+    user_id = models.CharField(blank=False, max_length=100)
+
+
+class ChannelAdminInvite(models.Model):
+    """Used to email hash to user and allow them to become admin of a channel"""
+    id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
+    email = models.CharField(blank=False, max_length=100)
+    hash_key = models.CharField(blank=False, max_length=100)
+
+
+class ChannelOwner(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
+    user_id = models.CharField(blank=False, max_length=100)

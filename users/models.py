@@ -1,5 +1,7 @@
 from django.db import models
 
+from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
+
 
 class UserProfile(models.Model):
     user_id = models.CharField(primary_key=True, blank=False, max_length=100, unique=True)
@@ -24,13 +26,11 @@ class UserProfile(models.Model):
         if self.username:
             self.strip_username = self.username.replace(" ", "").lower()
         return super(UserProfile, self).put(*args, **kwargs)
-
-class EmailOptOut(models.Model):
-    id = BoundedBigAutoField(primary_key=True)
-    email = models.CharField(blank=False, max_length=100)
-
-    created = models.DateTimeField(auto_now_add=True, blank=False)
-
-    def __unicode__(self):
-        return self.email
 '''
+
+
+class UserChannelEmailOptIn(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("channel.Channel", blank=False)
+    user_id = models.CharField(blank=False, max_length=100)
+    opt_in = models.BooleanField(blank=False, default=False)

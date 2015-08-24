@@ -90,6 +90,10 @@ class Show(models.Model):
     current_vote_init = models.DateTimeField(blank=True, null=True)
     locked = models.BooleanField(default=False, blank=False)
 
+    # For Recap
+    winners_photo_link = models.CharField(blank=True, null=True, max_length=500)
+    embedded_youtube = models.CharField(blank=True, null=True, max_length=500)
+
     def __unicode__(self):
         return str(self.created)
 
@@ -146,7 +150,6 @@ class Suggestion(models.Model):
 
 class PreshowVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    channel = FlexibleForeignKey("channel.Channel", blank=False)
     show = FlexibleForeignKey("Show", blank=True, null=True)
     suggestion = FlexibleForeignKey("Suggestion", blank=False)
     session_id = models.CharField(blank=False, max_length=255)
@@ -167,7 +170,6 @@ class PreshowVote(models.Model):
 
 class LiveVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    channel = FlexibleForeignKey("channel.Channel", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
     player = FlexibleForeignKey("players.Player", blank=True, null=True)
@@ -209,7 +211,6 @@ class OptionList(models.Model):
 
 class VotedItem(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    channel = FlexibleForeignKey("channel.Channel", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
     vote_type = FlexibleForeignKey("VoteType", blank=False)
     suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)
