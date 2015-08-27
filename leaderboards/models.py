@@ -22,9 +22,6 @@ class LeaderboardEntry(models.Model):
     points = models.IntegerField(default=0, blank=True, null=True)
     wins = models.IntegerField(default=0, blank=True, null=True)
 
-    # Add medals here based on leaderboard entry id
-    # medals =
-
     def __unicode__(self):
         return str(self.id)
 

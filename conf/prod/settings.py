@@ -1,7 +1,7 @@
 from conf.settings import *
 
 # API URL
-API_URL = 'http://104.236.146.103/'
+API_URL = 'http://api.improvote.com/'
 
 # Database
 

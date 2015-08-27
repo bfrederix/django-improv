@@ -11,7 +11,10 @@ from google.appengine.api import datastore
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
+from django.contrib.localflavor.us.us_states import STATE_CHOICES
 
+from channels.models import (Channel, ChannelAddress, ChannelAdmin,
+                             ChannelAdminInvite, ChannelOwner, ChannelUser)
 from leaderboards.models import (Medal, LeaderboardEntry, LeaderboardSpan,
                                 LeaderboardEntryMedal)
 from players.models import Player
@@ -19,7 +22,7 @@ from shows.models import (SuggestionPool, VoteType, Show, ShowVoteType,
                           ShowPlayer, ShowPlayerPool, Suggestion,
                           PreshowVote, LiveVote, ShowInterval,
                           VoteOptions, OptionList, VotedItem)
-from users.models import UserProfile, EmailOptOut
+from users.models import UserProfile, UserChannelEmailOptIn
 
 
 MODEL_NAME_REGEX = '[\w\_]+[\d]{4}\_[\d]{2}\_[\d]{2}\_([\w]+)-'
@@ -83,6 +86,22 @@ class Command(BaseCommand):
                 self.import_fixtures(data_path, model_to_import)
 
     def import_fixtures(self, data_path, model_to_import):
+        channel_address, created = Channel.objects.get_or_create(street="123 Fake St.",
+                                                                 city="Denver",
+                                                                 state="CO",
+                                                                 zipcode="80202")
+        channel, created = Channel.objects.get_or_create(name="adventure-prov",
+                                                         display_name="Adventure-prov",
+                                                         is_premium=True,
+                                                         short_description="Adventure-prov rules!",
+                                                         description="Adventure-prov rules for real!",
+                                                         thumbnail_url="http://www.fake.com",
+                                                         logo_url="http://www.fake.com",
+                                                         team_photo_url="http://www.fake.com",
+                                                         website="http://www.fake.com",
+                                                         address=channel_address,
+                                                         buy_tickets_link="http://www.fake.com",
+                                                         next_show=datetime.datetime(2017, 8, 9))
         now = datetime.datetime.now()
         for (dirpath, dirnames, filenames) in os.walk(data_path):
             for filename in filenames:

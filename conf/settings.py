@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'gae_export',
+    'channels',
     'leaderboards',
     'players',
     'recaps',

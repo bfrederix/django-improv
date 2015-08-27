@@ -17,7 +17,7 @@ class VoteTypeAdmin(admin.ModelAdmin):
 
 @admin.register(SuggestionPool)
 class SuggestionPoolAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'display_name')
+    list_display = ('id', 'channel', 'name', 'display_name')
 
 
 @admin.register(Suggestion)

@@ -14,7 +14,7 @@ class UserProfile(models.Model):
                                        null=True)
     fb_access_token = models.CharField(default=None, blank=True, max_length=255,
                                        null=True)
-    email_opt_in = models.BooleanField(blank=False, default=False)
+    improvote_email_opt_in = models.BooleanField(blank=False, default=False)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
 
@@ -31,6 +31,6 @@ class UserProfile(models.Model):
 
 class UserChannelEmailOptIn(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    channel = FlexibleForeignKey("channel.Channel", blank=False)
+    channel = FlexibleForeignKey("channels.Channel", blank=False)
     user_id = models.CharField(blank=False, max_length=100)
-    opt_in = models.BooleanField(blank=False, default=False)
+    opt_in = models.BooleanField(blank=True)
