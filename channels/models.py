@@ -11,6 +11,7 @@ class Channel(models.Model):
     short_description = models.CharField(blank=True, max_length=100)
     description = models.TextField(blank=True)
     thumbnail_url = models.CharField(blank=True, max_length=500)
+    sponsor_logo_url = models.CharField(blank=True, max_length=500)
     logo_url = models.CharField(blank=True, max_length=500)
     team_photo_url = models.CharField(blank=True, max_length=500)
     website = models.CharField(blank=True, max_length=500)

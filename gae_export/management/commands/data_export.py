@@ -5,13 +5,14 @@ import datetime
 from pprint import pprint
 sys.path.append("/Applications/GoogleAppEngineLauncher.app/Contents/Resources/GoogleAppEngine-default.bundle/Contents/Resources/google_appengine")
 
+import pytz
 from google.appengine.api.files import records
 from google.appengine.datastore import entity_pb
 from google.appengine.api import datastore
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
-from django.contrib.localflavor.us.us_states import STATE_CHOICES
+from django.core.exceptions import ObjectDoesNotExist
 
 from channels.models import (Channel, ChannelAddress, ChannelAdmin,
                              ChannelAdminInvite, ChannelOwner, ChannelUser)
@@ -86,11 +87,12 @@ class Command(BaseCommand):
                 self.import_fixtures(data_path, model_to_import)
 
     def import_fixtures(self, data_path, model_to_import):
-        channel_address, created = Channel.objects.get_or_create(street="123 Fake St.",
-                                                                 city="Denver",
-                                                                 state="CO",
-                                                                 zipcode="80202")
-        channel, created = Channel.objects.get_or_create(name="adventure-prov",
+        channel_address, created = ChannelAddress.objects.get_or_create(street="123 Fake St.",
+                                                                        city="Denver",
+                                                                        state="CO",
+                                                                        zipcode="80202")
+        channel, created = Channel.objects.get_or_create(id=1,
+                                                         name="adventure-prov",
                                                          display_name="Adventure-prov",
                                                          is_premium=True,
                                                          short_description="Adventure-prov rules!",
@@ -101,8 +103,8 @@ class Command(BaseCommand):
                                                          website="http://www.fake.com",
                                                          address=channel_address,
                                                          buy_tickets_link="http://www.fake.com",
-                                                         next_show=datetime.datetime(2017, 8, 9))
-        now = datetime.datetime.now()
+                                                         next_show=datetime.datetime(2017, 8, 9).replace(tzinfo=pytz.utc))
+        now = datetime.datetime.now().replace(tzinfo=pytz.utc)
         for (dirpath, dirnames, filenames) in os.walk(data_path):
             for filename in filenames:
                 if not filename.endswith('backup_info'):
@@ -123,8 +125,9 @@ class Command(BaseCommand):
                         if model_name == 'LeaderboardEntry' and model_to_import == 'LeaderboardEntry':
                             LeaderboardEntry(
                                   id=entity.key().id(),
+                                  channel=channel,
                                   show_id=entity['show'].id(),
-                                  show_date=entity['show_date'],
+                                  show_date=entity['show_date'].replace(tzinfo=pytz.utc),
                                   user_id=entity['user_id'],
                                   points=entity['points'],
                                   wins=entity['wins']).save()
@@ -135,26 +138,34 @@ class Command(BaseCommand):
                         if model_name == 'LeaderboardSpan' and model_to_import == 'LeaderboardSpan':
                             LeaderboardSpan(
                                   id=entity.key().id(),
+                                  channel=channel,
                                   name=entity['name'],
                                   start_date=entity['start_date'],
                                   end_date=entity['end_date']).save()
                         if model_name == 'Player' and model_to_import == 'Player':
                             Player(
                                   id=entity.key().id(),
+                                  channel=channel,
                                   name=entity['name'],
-                                  photo_filename=entity['photo_filename'],
+                                  photo_url=entity['photo_filename'],
                                   star=entity['star']).save()
                         if model_name == 'SuggestionPool' and model_to_import == 'SuggestionPool':
                             SuggestionPool(
                                   id=entity.key().id(),
+                                  channel=channel,
                                   name=entity['name'],
                                   display_name=entity['display_name'],
                                   description=entity['description'],
-                                  created=entity['created']).save()
+                                  created=entity['created'].replace(tzinfo=pytz.utc)).save()
                         if model_name == 'VoteType' and model_to_import == 'VoteType':
                             #pprint(entity['intervals'])
+                            if entity.get('created'):
+                                sug_created = entity.get('created').replace(tzinfo=pytz.utc)
+                            else:
+                                sug_created = now
                             VoteType(
                                   id=entity.key().id(),
+                                  channel=channel,
                                   name=entity['name'],
                                   display_name=entity['display_name'],
                                   suggestion_pool_id=entity['suggestion_pool'].id(),
@@ -169,19 +180,20 @@ class Command(BaseCommand):
                                   randomize_amount=entity['randomize_amount'],
                                   button_color=entity['button_color'],
                                   current_interval=entity['current_interval'],
-                                  current_init=entity['current_init'],
-                                  created=entity.get('created') or now).save()
+                                  current_init=entity['current_init'].replace(tzinfo=pytz.utc),
+                                  created=sug_created).save()
                         if model_name == 'Show' and model_to_import == 'Show':
                             Show(
                                   id=entity.key().id(),
+                                  channel=channel,
                                   vote_length=entity['vote_length'],
                                   result_length=entity['result_length'],
                                   vote_options=entity['vote_options'],
                                   timezone=entity['timezone'],
-                                  created=entity['created'],
+                                  created=entity['created'].replace(tzinfo=pytz.utc),
                                   archived=entity['archived'],
                                   current_vote_type_id=entity['current_vote_type'].id(),
-                                  current_vote_init=entity['current_vote_init'],
+                                  current_vote_init=entity['current_vote_init'].replace(tzinfo=pytz.utc),
                                   locked=entity['locked']).save()
                             for vote_type in entity['vote_types']:
                                 if vote_type.id() not in [5453950262181888, 6514223068741632]:
@@ -199,6 +211,7 @@ class Command(BaseCommand):
                         if model_name == 'Suggestion' and model_to_import == 'Suggestion':
                             Suggestion(
                                   id=entity.key().id(),
+                                  channel=channel,
                                   show_id=get_entity_id(entity, 'show'),
                                   suggestion_pool_id=entity['suggestion_pool'].id(),
                                   used=entity['used'],
@@ -208,7 +221,7 @@ class Command(BaseCommand):
                                   preshow_value=entity['preshow_value'],
                                   session_id=entity['session_id'],
                                   user_id=entity['user_id'],
-                                  created=entity['created']).save()
+                                  created=entity['created'].replace(tzinfo=pytz.utc)).save()
                         if model_name == 'PreshowVote' and model_to_import == 'PreshowVote':
                             try:
                                 PreshowVote(
@@ -270,8 +283,8 @@ class Command(BaseCommand):
                                           id=entity.key().id(),
                                           show_id=entity['show'].id(),
                                           vote_type_id=entity['vote_type'].id(),
-                                          player_id=get_entity_id(entity, 'player'),
                                           suggestion_id=get_entity_id(entity, 'suggestion'),
+                                          player_id=get_entity_id(entity, 'player'),
                                           interval=entity['interval']).save()
                             except IntegrityError, e:
                                 if not 'not present in table "shows_votetype"' in str(e) and \
@@ -286,19 +299,31 @@ class Command(BaseCommand):
                                         entity['login_type'] = 'google'
                                     else:
                                         entity['login_type'] = 'facebook'
+                                user_id = entity['user_id']
                                 UserProfile(
-                                    id=entity.key().id(),
-                                    user_id=entity['user_id'],
+                                    user_id=user_id,
                                     username=entity['username'],
                                     strip_username=entity['strip_username'],
                                     email=entity['email'],
                                     login_type=entity['login_type'],
                                     current_session=entity['current_session'],
                                     fb_access_token=entity.get('fb_access_token'),
-                                    created=entity['created']).save()
+                                    created=entity['created'].replace(tzinfo=pytz.utc)).save()
+                                # User email opt-in
+                                UserChannelEmailOptIn.objects.get_or_create(channel=channel,
+                                                                            user_id=user_id)
+                                # Adding a user to a channel
+                                ChannelUser.objects.get_or_create(channel=channel,
+                                                                  user_id=user_id)
                         if model_name == 'EmailOptOut' and model_to_import == 'EmailOptOut':
-                                EmailOptOut(
-                                    id=entity.key().id(),
-                                    email=entity['email']).save()
+                            try:
+                                up = UserProfile.objects.get(email=entity['email'])
+                            except ObjectDoesNotExist:
+                                pass
+                            else:
+                                uc = UserChannelEmailOptIn.objects.get(user_id=up.user_id)
+                                uc.opt_in = False
+                                uc.save()
+
 
         self.stdout.write('Successfully Imported GAE {0}'.format(model_to_import))

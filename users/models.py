@@ -33,4 +33,4 @@ class UserChannelEmailOptIn(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     user_id = models.CharField(blank=False, max_length=100)
-    opt_in = models.BooleanField(blank=True)
+    opt_in = models.NullBooleanField()
