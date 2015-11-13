@@ -1,0 +1,9 @@
+div.feature-list ul,
+div.feature-list hr {
+	font-size:x-large;
+	margin: 5px 0;
+}
+
+hr.underline {
+    border-width: 10px 0;
+}

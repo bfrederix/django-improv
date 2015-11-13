@@ -70,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'context_processors.default_context',
             ],
         },
     },
@@ -92,6 +93,26 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_files/')
 STATIC_URL = '/static/'
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
+
+# Media PATHS
+
+# CSS PATH
+CSS_PATH = '/static/css/'
+
+# Home Theme Path
+HOME_THEME_PATH = '/static/bootstrap_themes/startbootstrap-freelancer-1.0.3/'
+
+# Image Path
+IMAGE_PATH = '/static/img/'
+
+# JS Path
+JS_PATH = '/static/js/'
+
+# Audio Path
+AUDIO_PATH = '/static/audio/'
+
+# Players Path
+PLAYERS_PATH = '/static/img/players/'

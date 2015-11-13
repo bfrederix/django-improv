@@ -15,10 +15,13 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 
 from utilities import views as util_views
 
-urlpatterns = [
+urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^robots\.txt$', util_views.robots_txt, name="robots"),
+    url(r'^', include('home.urls')),
 ]
