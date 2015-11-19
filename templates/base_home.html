@@ -15,6 +15,7 @@
 
     <!-- Custom CSS -->
     <link href="{{HOME_THEME_URL}}css/freelancer.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}base.css">
   	<link rel="stylesheet" type="text/css" href="{{CSS_URL}}home_base.css">
 
 	<!-- Custom Fonts -->
@@ -66,6 +67,21 @@
                     <li class="page-scroll">
                         <a href="#contact">Contact</a>
                     </li>
+                    {% if not request.user.is_authenticated %}
+                        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                Login <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{% url "social:begin" "facebook" %}?next={{request.path}}"><div class="facebook-icon-small pull-left"></div>&nbsp;<strong>Login with Facebook&nbsp;</strong></a></li>
+                                <li><a href="{% url "social:begin" "google" %}?next={{request.path}}"><div class="google-icon-small pull-left"></div>&nbsp;<strong>Login with Google</strong></a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{% url "auth_logout" %}?next={{request.path}}">Logout</a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
             <!-- /.navbar-collapse -->
@@ -84,11 +100,21 @@
     <script src="{{HOME_THEME_URL}}js/classie.js"></script>
     <script src="{{HOME_THEME_URL}}js/cbpAnimatedHeader.js"></script>
 
-    <!-- Contact Form JavaScript -->
-    <script src="{{HOME_THEME_URL}}js/jqBootstrapValidation.js"></script>
-    <script src="{{HOME_THEME_URL}}js/contact_me.js"></script>
-
     <!-- Custom Theme JavaScript -->
     <script src="{{HOME_THEME_URL}}js/freelancer.js"></script>
+
+    <script>
+        $( document ).ready(function() {
+            // Start all nav tabs as inactive
+            $(".nav").find(".active").removeClass("active");
+            // When a tab is clicked
+            $(".nav a").on("click", function(){
+                // Remove the current active class
+                $(".nav").find(".active").removeClass("active");
+                // Add the active class to the last clicked
+                $(this).parent().addClass("active");
+            });
+  	    });
+    </script>
   </body>
 </html>

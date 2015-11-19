@@ -64,3 +64,5 @@ conf/local
 
 # Static Files
 static_files/
+
+.DS_Store

@@ -3,6 +3,9 @@ from django.http import HttpResponse
 
 def robots_txt(request):
     robots_txt = """User-agent: *
+Disallow: /"""
+
+    live_txt = """User-agent: *
 Allow: /$
 Allow: /leaderboards
 Allow: /recap

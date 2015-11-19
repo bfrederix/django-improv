@@ -34,13 +34,13 @@ class ChannelAddress(models.Model):
 class ChannelUser(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
-    user_id = models.CharField(blank=False, max_length=100)
+    user_id = models.BigIntegerField(blank=False, unique=True)
 
 
 class ChannelAdmin(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
-    user_id = models.CharField(blank=False, max_length=100)
+    user_id = models.BigIntegerField(blank=False, unique=True)
 
 
 class ChannelAdminInvite(models.Model):
@@ -54,4 +54,4 @@ class ChannelAdminInvite(models.Model):
 class ChannelOwner(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
-    user_id = models.CharField(blank=False, max_length=100)
+    user_id = models.BigIntegerField(blank=False, unique=True)

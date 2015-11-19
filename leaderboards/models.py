@@ -19,7 +19,7 @@ class LeaderboardEntry(models.Model):
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     show = FlexibleForeignKey("shows.Show", blank=False)
     show_date = models.DateTimeField(blank=False)
-    user_id = models.CharField(blank=False, max_length=100)
+    user_id = models.BigIntegerField(blank=False, unique=True)
     points = models.IntegerField(default=0, blank=True, null=True)
     wins = models.IntegerField(default=0, blank=True, null=True)
 

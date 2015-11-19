@@ -12,3 +12,8 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+# Facebook OAuth2 DEV settings
+# http://stackoverflow.com/a/29132451
+SOCIAL_AUTH_FACEBOOK_KEY = '***REMOVED***'
+SOCIAL_AUTH_FACEBOOK_SECRET = '***REMOVED***'
