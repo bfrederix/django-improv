@@ -1,11 +1,12 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 
 class UserProfile(models.Model):
-    # Their django user id
-    user_id = models.BigIntegerField(primary_key=True, blank=False, null=False, unique=True)
+    # Their django user
+    user = models.OneToOneField(User)
     # Id pulled from the social service they created their account with
     social_id = models.CharField(blank=True, null=True, max_length=100)
     username = models.CharField(blank=False, max_length=100, unique=True)
@@ -30,6 +31,6 @@ class UserProfile(models.Model):
 class UserChannelEmailOptIn(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
-    # Django user id
-    user_id = models.BigIntegerField(blank=False, unique=True)
+    # Django user
+    user = models.OneToOneField(User)
     opt_in = models.BooleanField(blank=False, default=False)

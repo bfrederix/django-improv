@@ -22,7 +22,7 @@ class SuggestionPoolAdmin(admin.ModelAdmin):
 
 @admin.register(Suggestion)
 class SuggestionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'value', 'show', 'suggestion_pool', 'user_id')
+    list_display = ('id', 'value', 'show', 'suggestion_pool', 'user')
     list_display_links = ('id',)
     search_fields = ['show__id']
 

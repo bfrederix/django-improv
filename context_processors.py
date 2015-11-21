@@ -6,4 +6,5 @@ def default_context(request):
             'JS_URL': settings.JS_PATH,
             'IMAGE_URL': settings.IMAGE_PATH,
             'AUDIO_URL': settings.AUDIO_PATH,
-            'PLAYERS_URL': settings.PLAYERS_PATH}
+            'PLAYERS_URL': settings.PLAYERS_PATH,
+            'FACEBOOK_ID': settings.SOCIAL_AUTH_FACEBOOK_KEY}

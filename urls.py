@@ -25,8 +25,10 @@ urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + 
     url(r'^api/', include(router.urls)),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^robots\.txt$', util_views.robots_txt, name="robots"),
+    url(r'^loaderio-9b6fa50492da1609dc61b9198b767688.txt$', util_views.loader_io, name="loader_io"),
     url(r'^auth/logout/$', 'django.contrib.auth.views.logout', name='auth_logout'),
     url(r'^auth/', include('rest_framework_social_oauth2.urls')),
     url(r'^users/', include('users.urls')),
     url(r'^$', include('home.urls')),
+    url(r'^', include('channels.urls')),
 ]

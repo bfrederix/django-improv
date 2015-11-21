@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
@@ -19,7 +20,7 @@ class LeaderboardEntry(models.Model):
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     show = FlexibleForeignKey("shows.Show", blank=False)
     show_date = models.DateTimeField(blank=False)
-    user_id = models.BigIntegerField(blank=False, unique=True)
+    user = models.OneToOneField(User)
     points = models.IntegerField(default=0, blank=True, null=True)
     wins = models.IntegerField(default=0, blank=True, null=True)
 

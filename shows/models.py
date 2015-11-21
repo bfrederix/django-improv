@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
@@ -141,7 +142,7 @@ class Suggestion(models.Model):
     # Pre-show upvotes
     preshow_value = models.IntegerField(default=0, blank=True, null=True)
     session_id = models.CharField(blank=False, max_length=255)
-    user_id = models.BigIntegerField(blank=True, null=True)
+    user = models.OneToOneField(User, blank=True, null=True)
 
     created = models.DateTimeField(auto_now_add=True, blank=False)
 
@@ -176,7 +177,7 @@ class LiveVote(models.Model):
     suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)
     interval = models.IntegerField(blank=True, null=True)
     session_id = models.CharField(blank=False, max_length=255)
-    user_id = models.BigIntegerField(blank=True, null=True)
+    user = models.OneToOneField(User, blank=True, null=True)
 
     def __unicode__(self):
         return str(self.id)

@@ -1,0 +1,107 @@
+{% extends "channel_base.html" %}
+
+{% block leaderboards-selected %} active{% endblock %}
+
+{% block add_head %}
+<link rel="stylesheet" type="text/css" href="{{css_path}}leaderboard-table.css">
+{% endblock %}
+
+{% block content %}
+	<div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="btn-group" style="width: 100%">
+                  <button class="btn btn-primary btn-block btn-lg dropdown-toggle xx-large-font" data-toggle="dropdown" aria-expanded="false">
+                    {% if show_date %}{{show_date|date:"D. N jS, Y"}}{% else %}{% if current_leaderboard_span != None %}{{current_leaderboard_span.name}}{% else %}All-time Leaderboard{% endif %}{% endif %}&nbsp;<span class="caret "></span>
+                  </button>
+                  <ul class="dropdown-menu text-center x-large-font" role="menu" style="width: 100%">
+                        <li><a href="/leaderboards/">All-time Leaderboard</a></li>
+                        {% for leaderboard_span in leaderboard_spans %}
+                            <li><a href="/leaderboards/{{leaderboard_span.start_date|date:"mdY"}}/{{leaderboard_span.end_date|date:"mdY"}}/"
+                                >{{leaderboard_span.name}}</a></li>
+                        {% endfor %}
+                    {% for show in shows %}
+                        <li {% if show_id == show.key.id %}class="disabled"{% endif %}><a href="/leaderboards/show/{{show.key.id}}/">{{show.created|date:"l N jS, Y"}}</a></li>
+                    {% endfor %}
+                  </ul>
+                </div>
+            </div>
+        </div>
+        {% if show_id %}
+            <br/>
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="btn-group" style="width: 100%">
+                        <a class="text-center" href="/recap/{{show_id}}/">
+                            <div class="btn btn-danger btn-block btn-lg x-large-font">View Show Recap</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+	    <form class="form-inline" role="form" action="/leaderboards/show/{{show_id}}/" method="post">
+            {% if show_id and is_admin and not medals_exist %}
+                <div class="row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <div class="form-group text-center">
+                            <input type="hidden" name="award_medals" value="True">
+                            <input type="submit" class="btn btn-warning btn-block btn-lg x-large-font" value="&nbsp;Award Medals&nbsp;">
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </form>
+        <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <div class="table-responsive">
+                    <table class="table table-condensed">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Username</th>
+                                <th>Suggestions</th>
+                                <th>Points</th>
+                                <th>Winning Suggestions</th>
+                                <th>Medals</th>
+                                {% if not show_id %}
+                                    <th>Level</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in leaderboard_entries %}
+                                <tr {% if forloop.counter|divisibleby:2 %}class="even"{% endif %}>
+                                    <td>{{forloop.counter}}</td>
+                                    <td><a href="/user/{{entry.user_id}}/">{{entry.username}}</a></td>
+                                    <td>{{entry.suggestions}}</td>
+                                    <td>{{entry.points}}</td>
+                                    <td>{{entry.wins}}</td>
+                                    {% if show_id %}
+                                        <td>
+                                        {% for medal in entry.medals %}
+                                            <a href="/medals/#{{medal.get.name}}"><div class="{{medal.get.name}}-medal pull-left"></div></a>
+                                            {% if entry.user_id == user.user_id %}
+                                                <img class="facebook-share pull-left" src="{{image_path}}facebook_share.png" onClick="medal_share('http://{{host_domain}}{{path_qs}}', 'http://{{host_domain}}{{image_path}}medals/{{medal.get.name}}.png', 'Adventure-prov {{medal.get.display_name}} Medal', 'For winning the {{medal.get.display_name}} medal at Adventure-prov!', '{{medal.get.description}}')"/>
+                                            {% endif %}
+                                        {% endfor %}
+                                        </td>
+                                    {% else %}
+                                        <td>{{entry.medals|length}}</td>
+                                    {% endif %}
+                                    {% if not show_id %}
+                                        <td>
+                                            {% if entry.user_id == user.user_id %}
+                                                <img class="facebook-share" src="{{image_path}}facebook_share.png" onClick="medal_share('http://{{host_domain}}{{path_qs}}', 'http://{{host_domain}}{{image_path}}medals/rank.png', 'Adventure-prov Level {{entry.level}} Medal', 'For reaching Level {{entry.level}} in Adventure-prov!', 'The current point level you have reached, based on how many votes you have received.')"/>
+                                            {% endif %}
+                                            <a href="/medals/#level-medal"><div class="level-medal pull-left"><div class="level-number">{{entry.level}}</div></div></a>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+	</div>
+{% endblock %}

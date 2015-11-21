@@ -13,3 +13,7 @@ Allow: /user
 Allow: /medals
 Disallow: /"""
     return HttpResponse(robots_txt, content_type='text/plain')
+
+def loader_io(request):
+    robots_txt = "loaderio-9b6fa50492da1609dc61b9198b767688"
+    return HttpResponse(robots_txt, content_type='text/plain')

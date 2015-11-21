@@ -7,3 +7,6 @@ pyenv activate django-voteprov
 pip install -r requirements.txt
 
 python manage.py runserver
+
+# auth_user sycdb error
+http://stackoverflow.com/questions/29689365/auth-user-error-with-django-1-8-and-syncdb-migrate

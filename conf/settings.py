@@ -52,6 +52,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'social.apps.django_app.default',
     'rest_framework_social_oauth2',
+    'shell_plus',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -156,16 +157,16 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.associate_by_email',
     # Create a user account if we haven't found one yet.
     'social.pipeline.user.create_user',
-    # Add their data as a user profile entry
-    'users.auth_pipeline.save_user_profile',
-    # Determine their e-mail opt in preference
-    'users.auth_pipeline.save_opt_in',
     # Create the record that associated the social account with this user.
     'social.pipeline.social_auth.associate_user',
     # Populate the extra_data field
     'social.pipeline.social_auth.load_extra_data',
     # Update the user record with any changed info from the auth service.
     'social.pipeline.user.user_details',
+    # Add their data as a user profile entry
+    'users.auth_pipeline.save_user_profile',
+    # Determine their e-mail opt in preference
+    'users.auth_pipeline.save_opt_in',
 )
 
 # Static files (CSS, JavaScript, Images)
