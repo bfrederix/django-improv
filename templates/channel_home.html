@@ -57,7 +57,7 @@
                             <div class="btn btn-success btn-block btn-lg home-show-btn">Leaderboards</div>
                         </a>
                         <br/>
-                        <a class="text-center" href="/recap/">
+                        <a class="text-center" href="{% url "channel_recaps" channel.name %}">
                             <div class="btn btn-warning btn-block btn-lg home-show-btn">Show Recaps</div>
                         </a>
 					{% endif %}

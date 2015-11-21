@@ -30,5 +30,8 @@ urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + 
     url(r'^auth/', include('rest_framework_social_oauth2.urls')),
     url(r'^users/', include('users.urls')),
     url(r'^$', include('home.urls')),
-    url(r'^', include('channels.urls')),
+    url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/leaderboards/', include('leaderboards.urls')),
+    url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/recaps/', include('recaps.urls')),
+    url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/', include('channels.urls')),
+    #url(r'^', include('channels.urls')),
 ]
