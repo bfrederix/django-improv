@@ -19,7 +19,7 @@
   </head>
 
   <body>
-  {% include "facebook_sdk.html" %}
+  {% include "embedded_utils/facebook_sdk.html" %}
   	{% block nav_bar %}
 		<nav id="top-nav-bar" class="navbar navbar-default navbar-custom" role="navigation">
 			<div class="container-fluid">
@@ -68,7 +68,7 @@
                     </li>
                     <li class="{% block recap-selected %}{% endblock %}"><a href="{% url "channel_recaps" channel.name %}">Show Recaps</a></li>
     				{% if request.user.is_authenticated %}
-    				    <li {% block user-account-selected %}{% endblock %}><a href="/user/{{user.user_id}}/">My Account</a></li>
+    				    <li {% block user-account-selected %}{% endblock %}><a href="{% url "user_account" request.user.id %}?channel_name={{channel.name}}">My Account</a></li>
     				{% endif %}
 					{% if is_channel_admin %}
 						<li class="dropdown{% block admin-selected %}{% endblock %}">
@@ -107,8 +107,8 @@
                         </li>
 					{% endif %}
 				  </ul>
-				  {% if username %}
-				    <p class="navbar-text navbar-right">{{username}}</p>
+				  {% if request.user.is_authenticated %}
+				    <p class="navbar-text navbar-right">{{user_profile.username}}</p>
 				  {% endif %}
 				</div>
 			</div>

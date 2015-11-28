@@ -1,0 +1,31 @@
+{% extends "home/base_home.html" %}
+
+{% block user-account-selected %}class="active"{% endblock %}
+
+{% block title %}{{user_profile.username}}'s User Account{% endblock %}
+
+{% block content %}
+    <section><div id="container-fluid" class="container-fluid"></div></section>
+        <script type="text/babel">
+              {% include "embedded_utils/react_components.html" %}
+              ReactDOM.render(
+                <UserStats  />,
+                document.getElementById('container-fluid')
+              );
+        </script>
+
+{% endblock %}
+
+{% block add_react %}
+    {% if DEBUG %}
+        <script src="{{JS_URL}}react-0.14.0/react.js"></script>
+        <script src="{{JS_URL}}react-0.14.0/react-dom.js"></script>
+        <script src="{{JS_URL}}babel-5.6.15/browser.js"></script>
+    {% else %}
+        <script src="{{JS_URL}}react-0.14.0/react.min.js"></script>
+        <script src="{{JS_URL}}react-0.14.0/react-dom.min.js"></script>
+        <script src="{{JS_URL}}babel-5.6.15/browser.min.js"></script>
+    {% endif %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+{% endblock %}

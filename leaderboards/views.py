@@ -5,7 +5,7 @@ from channels.service import channel_or_404, check_is_channel_admin
 
 
 class ChannelLeaderboardsView(View):
-    template_name = 'channel_leaderboards.html'
+    template_name = 'leaderboards/channel_leaderboards.html'
 
     def get(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')

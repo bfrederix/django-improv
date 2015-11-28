@@ -22,7 +22,7 @@ from utilities import views as util_views
 from api_router import router
 
 urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + [
-    url(r'^api/', include(router.urls)),
+    url(r'^api/v1/', include(router.urls)),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^robots\.txt$', util_views.robots_txt, name="robots"),
     url(r'^loaderio-9b6fa50492da1609dc61b9198b767688.txt$', util_views.loader_io, name="loader_io"),

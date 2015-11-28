@@ -6,7 +6,7 @@ from channels.service import channel_or_404, check_is_channel_admin
 
 
 class ChannelRecapsView(View):
-    template_name = 'channel_recaps.html'
+    template_name = 'recaps/channel_recaps.html'
 
     def get(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')

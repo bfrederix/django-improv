@@ -10,12 +10,12 @@ def channel_or_404(channel_name):
 def check_is_channel_admin(channel_name, user_id):
     channel = Channel.objects.get(name=channel_name)
     # If the user isn't logged in
-    if user_id:
+    if not user_id:
         return False
     # Check if the user is a Channel Admin
     try:
         ChannelAdmin.objects.get(channel=channel,
-                                 user=user)
+                                 user=user_id)
     except ChannelAdmin.DoesNotExist:
         return False
     else:

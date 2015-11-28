@@ -208,10 +208,11 @@ class Command(BaseCommand):
                             else:
                                 counter['LeaderboardEntry'] += 1
                                 self.stdout.write(str(counter['LeaderboardEntry']))
-                                if 'medal' in entity:
+                            if 'medals' in entity:
+                                for medal in entity['medals']:
                                     LeaderboardEntryMedal.objects.get_or_create(
                                           leaderboard_entry_id=entity.key().id(),
-                                          medal_id=entity['medal'].id())
+                                          medal_id=medal.id())
                                     counter['LeaderboardEntryMedal'] += 1
                                     self.stdout.write(str(counter['LeaderboardEntryMedal']))
                         if model_name == 'LeaderboardSpan' and model_to_import == 'LeaderboardSpan':

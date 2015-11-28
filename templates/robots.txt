@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /$
-Allow: /leaderboards
-Allow: /recap
-Allow: /user
-Allow: /medals
-Disallow: /

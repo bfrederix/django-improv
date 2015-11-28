@@ -46,30 +46,42 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#page-top">Start Improvoting</a>
+                {% if not channel %}
+                    {% if not user_account_page %}
+                        <a class="navbar-brand" href="#page-top">Start Improvoting</a>
+                    {% else %}
+                        <a class="navbar-brand" href="{% url "improvote_home" %}">Improvote Home</a>
+                    {% endif %}
+                {% else %}
+                    <a class="navbar-brand" href="{% url "channel_home" channel.name %}">Back to {{channel.display_name}}</a>
+                {% endif %}
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav navbar-right">
-                    <li class="hidden">
-                        <a href="#page-top"></a>
-                    </li>
-                    <li class="page-scroll">
-                        <a href="#features">Features</a>
-                    </li>
-					<li class="page-scroll">
-                        <a href="#about">About</a>
-                    </li>
-                    <li class="page-scroll">
-                        <a href="http://improvote.readthedocs.org">Tutorials</a>
-                    </li>
-                    <li class="page-scroll">
-                        <a href="#contact">Contact</a>
-                    </li>
+                    {% if not user_account_page %}
+                        <li class="hidden">
+                            <a href="#page-top"></a>
+                        </li>
+                        <li class="page-scroll">
+                            <a href="#features">Features</a>
+                        </li>
+                        <li class="page-scroll">
+                            <a href="#about">About</a>
+                        </li>
+                        <li class="page-scroll">
+                            <a href="http://improvote.readthedocs.org">Tutorials</a>
+                        </li>
+                        <li class="page-scroll">
+                            <a href="#contact">Contact</a>
+                        </li>
+                    {% else %}
+                        <!-- Placeholder for all leaderboard -->
+                    {% endif %}
                     {% if not request.user.is_authenticated %}
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <li role="presentation" class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
                                 Login <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu">
@@ -83,20 +95,25 @@
                         </li>
                     {% endif %}
                 </ul>
+                {% if request.user.is_authenticated %}
+                    <p class="navbar-text navbar-right">{{user_profile.username}}</p>
+                {% endif %}
             </div>
             <!-- /.navbar-collapse -->
         </div>
         <!-- /.container-fluid -->
     </nav>
     {% block content %}{% endblock %}
-	<!-- jQuery -->
-    <script src="{{HOME_THEME_URL}}js/jquery.js"></script>
+    {% block add_react %}
+	    <!-- jQuery -->
+        <script src="{{HOME_THEME_URL}}js/jquery.js"></script>
+    {% endblock %}
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="{{HOME_THEME_URL}}js/bootstrap.min.js"></script>
 
     <!-- Plugin JavaScript -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
     <script src="{{HOME_THEME_URL}}js/classie.js"></script>
     <script src="{{HOME_THEME_URL}}js/cbpAnimatedHeader.js"></script>
 

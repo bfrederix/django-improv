@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
+from users import service as users_service
+
 
 class Medal(models.Model):
     id = BoundedBigAutoField(primary_key=True)
@@ -20,12 +22,20 @@ class LeaderboardEntry(models.Model):
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     show = FlexibleForeignKey("shows.Show", blank=False)
     show_date = models.DateTimeField(blank=False)
-    user = models.OneToOneField(User)
+    user = models.ForeignKey(User)
     points = models.IntegerField(default=0, blank=True, null=True)
     wins = models.IntegerField(default=0, blank=True, null=True)
 
     def __unicode__(self):
         return str(self.id)
+
+    def user_id(self):
+        return self.user.id
+
+    def username(self):
+        user_profile = users_service.fetch_user_profile(self.user.id)
+        return user_profile.safe_username()
+
 
 class LeaderboardEntryMedal(models.Model):
     id = BoundedBigAutoField(primary_key=True)
