@@ -6,26 +6,24 @@
 
 {% block content %}
     <section><div id="container-fluid" class="container-fluid"></div></section>
-        <script type="text/babel">
-              {% include "embedded_utils/react_components.html" %}
-              ReactDOM.render(
-                <UserStats  />,
-                document.getElementById('container-fluid')
-              );
-        </script>
+    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+
+    <input type="hidden" id="rootType" name="rootType" value="user-account" readonly>
+    <input type="hidden" id="showListUrl" name="showListUrl" value="{% url "show-list" %}" readonly>
+    <input type="hidden" id="suggestionListUrl" name="suggestionListUrl" value="{% url "suggestion-list" %}" readonly>
+    <input type="hidden" id="imageBaseUrl" name="imageBaseUrl" value="{{IMAGE_URL}}" readonly>
+    <input type="hidden" id="medalListUrl" name="medalListUrl" value="{% url "medal-list" %}" readonly>
+    {% if user_profile %}
+        <input type="hidden" id="userProfileID" name="userProfileID" value="{{user_profile.user_id}}" readonly>
+        <input type="hidden" id="leaderboardStatsUrl" name="leaderboardStatsUrl" value="{% url "leaderboard-entry-list" %}?user_id={{user_profile.user_id}}&order_by_show_date=True" readonly>
+        <input type="hidden" id="userStatsUrl" name="userStatsUrl" value="{% url "user-detail" user_profile.user_id %}" readonly>
+    {% endif %}
+    {% if request.user.is_authenticated %}
+        <input type="hidden" id="requestUserID" name="requestUserID" value="{{request.user.id}}" readonly>
+    {% endif %}
 
 {% endblock %}
 
 {% block add_react %}
-    {% if DEBUG %}
-        <script src="{{JS_URL}}react-0.14.0/react.js"></script>
-        <script src="{{JS_URL}}react-0.14.0/react-dom.js"></script>
-        <script src="{{JS_URL}}babel-5.6.15/browser.js"></script>
-    {% else %}
-        <script src="{{JS_URL}}react-0.14.0/react.min.js"></script>
-        <script src="{{JS_URL}}react-0.14.0/react-dom.min.js"></script>
-        <script src="{{JS_URL}}babel-5.6.15/browser.min.js"></script>
-    {% endif %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+    {% include "embedded_utils/react_src.html" %}
 {% endblock %}

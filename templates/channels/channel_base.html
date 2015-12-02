@@ -11,11 +11,8 @@
 	<link href="{{CSS_URL}}bootstrap.min.css" rel="stylesheet" media="screen">
   	<link rel="stylesheet" type="text/css" href="{{CSS_URL}}base.css">
   	
-  	<script src="{{JS_URL}}jquery-1.11.0.min.js"></script>
-  	<script src="{{JS_URL}}bootstrap.min.js"></script>
-  	
   	{% block add_head %}{% endblock %}
-  	<title>{% block title %}{{channel.display_name}} {% if debug %}dev{% endif %}{% endblock %}</title>
+  	<title>{% block title %}Improvote: {{channel.display_name}} {% if debug %}dev{% endif %}{% endblock %}</title>
   </head>
 
   <body>
@@ -116,5 +113,13 @@
 	{% endblock %}
 
     {% block content %}{% endblock %}
+
+  	{% block add_react %}
+  		<!-- jQuery -->
+  		<script src="{{JS_URL}}jquery-1.11.0.min.js"></script>
+    {% endblock %}
+
+  	<!-- Bootstrap Core JavaScript -->
+  	<script src="{{JS_URL}}bootstrap.min.js"></script>
   </body>
 </html>

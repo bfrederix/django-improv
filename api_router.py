@@ -23,10 +23,20 @@ router.register(r'channel',
                 channels_api_views.ChannelViewSet,
                 'channel')
 
+# Suggestions
+router.register(r'suggestion',
+                shows_api_views.SuggestionViewSet,
+                'suggestion')
+
 # Leaderboard Entries
 router.register(r'leaderboard_entry',
                 leaderboards_api_views.LeaderboardEntryViewSet,
                 'leaderboard-entry')
+
+# Leaderboards
+router.register(r'leaderboard',
+                leaderboards_api_views.LeaderboardViewSet,
+                'leaderboard')
 
 # Medals
 router.register(r'medal',

@@ -1,5 +1,4 @@
 from rest_framework import viewsets
-from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from users import service as users_service
@@ -7,20 +6,18 @@ from leaderboards import service as leaderboards_service
 from shows import service as shows_service
 from users.models import UserProfile
 from users.serializers import UserProfileSerializer
+from utilities.api import APIObject
 
 
-class UserAPIObject(object):
+class UserAPIObject(APIObject):
     field_list = ['user_id',
                   'safe_username',
                   'created',
                   'improvote_email_opt_in',
                   'channels_email_opt_in']
 
-    def __init__(self, user_profile):
-        for field in self.field_list:
-            attr_value = getattr(user_profile, field)
-            if attr_value is not None:
-                setattr(self, field, attr_value)
+    def __init__(self, user_profile, **kwargs):
+        super(UserAPIObject, self).__init__(user_profile, **kwargs)
         self.suggestions = shows_service.fetch_suggestion_count_by_user(self.user_id)
         leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_user(
                                     self.user_id)
@@ -49,10 +46,4 @@ class UserProfileViewSet(viewsets.ViewSet):
     def list(self, request):
         queryset = UserProfile.objects.all()
         serializer = UserProfileSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-class CurrentUserView(APIView):
-    def get(self, request):
-
-        serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)

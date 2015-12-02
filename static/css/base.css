@@ -332,6 +332,10 @@ a.recap-user-link {
     color:#800000;
 }
 
+span.light-gray-bg{
+    background-color: #e4e9ea;
+}
+
 /* For Facebook Like Resizing */
 #fbiframe {
     transform: scale(2);

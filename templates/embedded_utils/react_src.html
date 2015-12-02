@@ -1,0 +1,11 @@
+{% if DEBUG %}
+        <script src="{{JS_URL}}react-0.14.0/react.js"></script>
+        <script src="{{JS_URL}}react-0.14.0/react-dom.js"></script>
+        <script src="{{JS_URL}}babel-5.6.15/browser.js"></script>
+{% else %}
+    <script src="{{JS_URL}}react-0.14.0/react.min.js"></script>
+    <script src="{{JS_URL}}react-0.14.0/react-dom.min.js"></script>
+    <script src="{{JS_URL}}babel-5.6.15/browser.min.js"></script>
+{% endif %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
