@@ -73,6 +73,10 @@ button.x-large-font {
 	font-size:x-large;
 }
 
+.large-font {
+    font-size:large;
+}
+
 .x-large-font {
     font-size:x-large;
 }
@@ -254,6 +258,12 @@ hr.thick-divider {
 img.medal-resize {
     width:100%;
     height: auto;
+}
+
+tr.spacing {
+    border: solid;
+    border-width: 2px 0;
+    border-color: #fff;
 }
 
 img.improvote-home-icon {
@@ -487,6 +497,61 @@ span.slidefade {
                   -9px 9px 1px purple,
                   -10px 10px 2px rgba(0,0,0,0.7);
      }
+}
+
+/* Loading Animation */
+.spinner {
+  margin: 100px auto;
+  width: 80px;
+  height: 80px;
+  text-align: center;
+  font-size: 10px;
+}
+
+.spinner > div {
+  margin: 1px;
+  background-color: #333;
+  height: 100%;
+  width: 12px;
+  display: inline-block;
+
+  -webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
+  animation: sk-stretchdelay 1.2s infinite ease-in-out;
+}
+
+.spinner .rect2 {
+  -webkit-animation-delay: -1.1s;
+  animation-delay: -1.1s;
+}
+
+.spinner .rect3 {
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
+}
+
+.spinner .rect4 {
+  -webkit-animation-delay: -0.9s;
+  animation-delay: -0.9s;
+}
+
+.spinner .rect5 {
+  -webkit-animation-delay: -0.8s;
+  animation-delay: -0.8s;
+}
+
+@-webkit-keyframes sk-stretchdelay {
+  0%, 40%, 100% { -webkit-transform: scaleY(0.4) }
+  20% { -webkit-transform: scaleY(1.0) }
+}
+
+@keyframes sk-stretchdelay {
+  0%, 40%, 100% {
+    transform: scaleY(0.4);
+    -webkit-transform: scaleY(0.4);
+  }  20% {
+    transform: scaleY(1.0);
+    -webkit-transform: scaleY(1.0);
+  }
 }
 
 /* Fixing the nav colors of the Channel pages */

@@ -31,6 +31,12 @@ function getElementValueOrNull(elementID){
     }
 }
 
+function getSpanFormat(spanDate){
+    var date = new Date(spanDate);
+    var month = date.getMonth() + 1
+    return month + "" + date.getDate() + date.getFullYear();
+}
+
 var Panel = React.createClass({
   render: function() {
     var panelWidth = "col-md-"+this.props.panelWidth;
@@ -49,12 +55,7 @@ var Panel = React.createClass({
                          tableClasses={this.props.tableClasses}
                          contentType={this.props.contentType}
                          showStats={this.props.showStats}
-                         suggestionListUrl={this.props.suggestionListUrl}
-                         imageBaseUrl={this.props.imageBaseUrl}
-                         medalListUrl={this.props.medalListUrl}
-                         userProfileID={this.props.userProfileID}
-                         requestUserID={this.props.requestUserID}
-                         userStatsUrl={this.props.userStatsUrl} />
+                         userAccountContext={this.props.userAccountContext} />
           </div>
         </div>
       </div>
@@ -83,18 +84,10 @@ var PanelBody = React.createClass({
     if (this.props.contentType == "user-stats-table") {
         bodyContent = <Table tableClasses={this.props.tableClasses}
                              contentType={this.props.contentType}
-                             userStatsUrl={this.props.userStatsUrl}
-                             suggestionListUrl={this.props.suggestionListUrl}
-                             imageBaseUrl={this.props.imageBaseUrl}
-                             userProfileID={this.props.userProfileID}
-                             requestUserID={this.props.requestUserID}
-                             medalListUrl={this.props.medalListUrl} />;
+                             userAccountContext={this.props.userAccountContext} />;
     } else if (this.props.contentType == "user-show-stats") {
         bodyContent = <UserShowStatsPanelBody showStats={this.props.showStats}
-                                              suggestionListUrl={this.props.suggestionListUrl}
-                                              userProfileID={this.props.userProfileID}
-                                              requestUserID={this.props.requestUserID}
-                                              imageBaseUrl={this.props.imageBaseUrl} />;
+                                              userAccountContext={this.props.userAccountContext} />;
     }
     return (
       <div className={panelBodyClasses}>
@@ -113,18 +106,11 @@ var Table = React.createClass({
     var tableContents = [];
     if (this.props.contentType == "user-stats-table") {
         tableContents.push(<UserStatsTableBody key="1"
-                                               userStatsUrl={this.props.userStatsUrl}
-                                               userProfileID={this.props.userProfileID}
-                                               requestUserID={this.props.requestUserID}
-                                               imageBaseUrl={this.props.imageBaseUrl}
-                                               medalListUrl={this.props.medalListUrl} />);
+                                               userAccountContext={this.props.userAccountContext} />);
     } else if (this.props.contentType == "user-show-stats-table") {
         tableContents.push(<UserShowStatsTableBody key="1"
-                                                   userID={this.props.userID}
                                                    showID={this.props.showID}
-                                                   suggestionListUrl={this.props.suggestionListUrl}
-                                                   imageBaseUrl={this.props.imageBaseUrl}
-                                                   userProfileID={this.props.userProfileID} />);
+                                                   userAccountContext={this.props.userAccountContext} />);
     }
     return (
       <table className={tableClasses}>
@@ -140,7 +126,7 @@ var Medal = React.createClass({
   },
   componentDidMount: function() {
     // Get the medal data for the given key
-    var medalUrl = this.props.medalListUrl + this.props.medalID + "/";
+    var medalUrl = this.props.userAccountContext.medalListAPIUrl + this.props.medalID + "/";
     $.ajax({
       url: medalUrl,
       dataType: 'json',
@@ -151,6 +137,9 @@ var Medal = React.createClass({
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
+  },
+  componentDidUpdate: function() {
+
   },
   render: function() {
     // Create the medal URL
@@ -164,45 +153,140 @@ var Medal = React.createClass({
   }
 });
 
-var BigButton = React.createClass({
+var Loading = React.createClass({
   render: function() {
-    var showID = this.props.showID;
-    var buttonText = this.props.buttonText;
-    var buttonColor = this.props.buttonColor;
-    var buttonClass = "btn btn-" + buttonColor + " btn-block btn-lg text-center xx-large-font";
-    var buttonLink = "#";
-    if (this.props.buttonLink) {
-        buttonLink = this.props.buttonLink;
-    } else if (showID) {
-        buttonLink = this.props.channelRecapsUrl + showID + "/";
+    var barColor;
+    if (!this.props.loadingBarColor) {
+        var divStyle = {backgroundColor: "#333"};
+    } else {
+        var divStyle = {backgroundColor: this.props.loadingBarColor};
     }
     return (
-        <a className={buttonClass} href={buttonLink} role="button">
-            {buttonText}
-        </a>
+        <div className="spinner">
+            <div className="rect1" style={divStyle}></div>
+            <div className="rect2" style={divStyle}></div>
+            <div className="rect3" style={divStyle}></div>
+            <div className="rect4" style={divStyle}></div>
+            <div className="rect5" style={divStyle}></div>
+        </div>
+    );
+  }
+});
+
+var BigButton = React.createClass({
+  render: function() {
+    var buttonClass = "btn btn-" + this.props.buttonColor + " btn-block btn-lg text-center x-large-font";
+    return (
+        <div className="row">
+            <div className="col-md-6 col-md-offset-3">
+                <a className={buttonClass} href={this.props.buttonLink} role="button">
+                    {this.props.buttonText}
+                </a>
+            </div>
+        </div>
+    );
+  }
+});
+
+var BigButtonDropdownContents = React.createClass({
+  getInitialState: function() {
+    return {shows: undefined,
+            spans: undefined};
+  },
+  componentDidMount: function() {
+    // Fetch the shows for the channel
+    $.ajax({
+      url: this.props.showAPIUrl,
+      dataType: 'json',
+      success: function(showData) {
+        // If this is a channel leaderboard
+        if (this.props.leaderboardContext) {
+            // Fetch the leaderboard spans for the channel
+            $.ajax({
+              url: this.props.leaderboardContext.leaderboardSpanAPIUrl,
+              dataType: 'json',
+              success: function(spanData) {
+                this.setState({shows: showData,
+                               spans: spanData});
+              }.bind(this),
+              error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+              }.bind(this)
+            });
+        } else {
+            this.setState({shows: showData});
+        }
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    var dropDownStyle = {width: "100%", textAlign: "center"};
+    var dropDownList = [];
+    this.counter = 1;
+
+    if (this.props.leaderboardContext) {
+        dropDownList.push(<li key={this.counter}><a href={this.props.baseLinkUrl}>All-time Leaderboard</a></li>);
+    }
+
+    if (this.state.spans) {
+        // Create the leaderboard span list
+        this.state.spans.map(function (span) {
+            this.counter++;
+            var startDate = getSpanFormat(span.start_date);
+            var endDate = getSpanFormat(span.end_date);
+            var spanUrl = this.props.baseLinkUrl + startDate + "/" + endDate + "/";
+            dropDownList.push(<li key={this.counter}><a href={spanUrl}>{span.name}</a></li>);
+        }, this);
+    }
+
+    if (this.state.shows) {
+        // Create the show list
+        this.state.shows.map(function (show) {
+            var showClass = "";
+            this.counter++;
+            if (this.props.showID == show.id) {
+                showClass = "disabled";
+            }
+            var showLink = this.props.baseLinkUrl + 'show/' + show.id + '/';
+            var showDate = new Date(show.created);
+            var showDateFormatted = showDate.toDateString();
+            dropDownList.push(<li key={this.counter} className={showClass}><a href={showLink}>{showDateFormatted}</a></li>);
+            return dropDownList;
+        }, this);
+    } else {
+        dropDownList.push(<Loading key="999999"
+                                   loadingBarColor="#fff" />);
+    }
+    return (
+      <ul className="dropdown-menu x-large-font" role="menu" style={dropDownStyle}>
+            {dropDownList}
+      </ul>
     );
   }
 });
 
 var BigButtonDropdown = React.createClass({
   render: function() {
-    var buttonType = this.props.buttonType;
+    var buttonGroupStyle = {width: "100%"};
     var buttonColor = this.props.buttonColor;
-    var buttonClass = "btn btn-" + buttonColor + " btn-block btn-lg dropdown-toggle xx-large-font";
-    var showsList = [];
-    var showClass = "disabled";
-    var showLink = this.props.showLeaderboardUrl;
-    showsList.push(<li className={showClass}><a href={showLink}>Show</a></li>);
+    var buttonClass = "btn btn-" + buttonColor + " btn-block btn-lg dropdown-toggle x-large-font";
+
     return (
-        <div className="btn-group" style="width: 100%">
-          <button className={buttonClass} data-toggle="dropdown" aria-expanded="false">
-            Sup&nbsp;<span className="caret "></span>
-          </button>
-          <ul className="dropdown-menu text-center x-large-font" role="menu" style="width: 100%">
-                <li><a href="/leaderboards/">All-time Leaderboard</a></li>
-                <li><a href="/leaderboards/start_date-mdY/end_date-mdY/">Span</a></li>
-                {showsList}
-          </ul>
+        <div className="row">
+            <div className="col-md-6 col-md-offset-3">
+                <div className="btn-group" style={buttonGroupStyle}>
+                  <button className={buttonClass} data-toggle="dropdown" aria-expanded="false">
+                    {this.props.currentSelection}&nbsp;<span className="caret "></span>
+                  </button>
+                  <BigButtonDropdownContents leaderboardContext={this.props.leaderboardContext}
+                                             showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
+                                             baseLinkUrl={this.props.baseLinkUrl}
+                                             showID={this.props.showID} />
+                </div>
+            </div>
         </div>
     );
   }
@@ -218,7 +302,7 @@ var MedalRows = React.createClass({
         var medalID = this.props.medals[i];
         medalList.push(<Medal key={i}
                               medalID={medalID}
-                              medalListUrl={this.props.medalListUrl} />);
+                              userAccountContext={this.props.userAccountContext} />);
         var currentNum = i+1;
         // Push the row and reset the current medal list every 5 medals
         if (currentNum % 5 == 0) {
@@ -242,7 +326,7 @@ var UserStatsTableBody = React.createClass({
   },
   componentDidMount: function() {
     $.ajax({
-      url: this.props.userStatsUrl,
+      url: this.props.userAccountContext.userStatsAPIUrl,
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
@@ -253,28 +337,29 @@ var UserStatsTableBody = React.createClass({
     });
   },
   render: function() {
+    if (!this.state.data){
+        return (<tbody><tr><td><Loading /></td></tr></tbody>);
+    }
     // Decide the stat column color
     var columnColor = "info";
     // Define classes
-    var tdClasses = 'table-column ' + columnColor;
-    if (!this.state.data){
-        return (<tbody></tbody>);
-    }
+    var tdClasses = 'table-column large-font ' + columnColor;
+    var trClasses = 'spacing';
     // Create the user stats
     var statsList = [];
     var medalShare;
-    if (this.props.userProfileID == this.props.requestUserID) {
-        var imgSrc = this.props.imageBaseUrl + "facebook_share.png";
+    if (this.props.userAccountContext.userProfileID == this.props.userAccountContext.requestUserID) {
+        var imgSrc = this.props.userAccountContext.imageBaseUrl + "facebook_share.png";
         medalShare = <img className="facebook-share" src={imgSrc} />;
     }
-    statsList.push(<tr key="1"><td className={tdClasses}>Username: {this.state.data.username}</td></tr>);
-    statsList.push(<tr key="2"><td className={tdClasses}>Suggestions: {this.state.data.suggestions}</td></tr>);
-    statsList.push(<tr key="3"><td className={tdClasses}>Suggestion Wins: {this.state.data.wins}</td></tr>);
-    statsList.push(<tr key="4"><td className={tdClasses}>Points: {this.state.data.points}</td></tr>);
-    statsList.push(<tr key="5"><td>
+    statsList.push(<tr key="1" className={trClasses}><td className={tdClasses}>Username: {this.state.data.username}</td></tr>);
+    statsList.push(<tr key="2" className={trClasses}><td className={tdClasses}>Suggestions: {this.state.data.suggestions}</td></tr>);
+    statsList.push(<tr key="3" className={trClasses}><td className={tdClasses}>Suggestion Wins: {this.state.data.wins}</td></tr>);
+    statsList.push(<tr key="4" className={trClasses}><td className={tdClasses}>Points: {this.state.data.points}</td></tr>);
+    statsList.push(<tr key="5" className={trClasses}><td>
                     Medals:<br/>
                     <MedalRows medals={this.state.data.medals}
-                               medalListUrl={this.props.medalListUrl} />
+                               userAccountContext={this.props.userAccountContext} />
                     {medalShare}
                  </td></tr>);
 
@@ -288,11 +373,11 @@ var UserStatsTableBody = React.createClass({
 
 var UserShowStats = React.createClass({
   getInitialState: function() {
-    return {data: []};
+    return {data: undefined};
   },
   componentDidMount: function() {
     // Get the leaderboard stats for the user
-    var showStatsUrl = this.props.showListUrl + this.props.showStats.show + "/";
+    var showStatsUrl = this.props.userAccountContext.showListUrl + this.props.showStats.show + "/";
     $.ajax({
       url: showStatsUrl,
       dataType: 'json',
@@ -305,6 +390,9 @@ var UserShowStats = React.createClass({
     });
   },
   render: function() {
+    if (!this.state.data){
+        return (<Loading />);
+    }
     var showDate = new Date(this.state.data.created);
     var showDateFormatted = showDate.toDateString();
     return (
@@ -314,9 +402,7 @@ var UserShowStats = React.createClass({
              tableClasses="table-condensed black-font"
              contentType="user-show-stats"
              showStats={this.props.showStats}
-             suggestionListUrl={this.props.suggestionListUrl}
-             imageBaseUrl={this.props.imageBaseUrl}
-             userProfileID={this.props.userProfileID}/>
+             userAccountContext={this.props.userAccountContext} />
     );
   }
 });
@@ -329,7 +415,7 @@ var UserShowStatsPanelBody = React.createClass({
         var showID = this.props.showStats.show;
         var showLink = "/" + this.props.showStats.channel_name + "/leaderboards/show/" + showID + "/";
         var recapLink = "/" + this.props.showStats.channel_name + "/recaps/show/" + showID + "/";
-        var starImgSrc = this.props.imageBaseUrl + "star-sprite.png";
+        var starImgSrc = this.props.userAccountContext.imageBaseUrl + "star-sprite.png";
         statElements.push(<div key="1" className="row"><div className="col-md-12">Points Earned: {this.props.showStats.points}</div></div>);
         statElements.push(<div key="2" className="row"><div className="col-md-12">Winning Suggestions: {this.props.showStats.wins}</div></div>);
         statElements.push(<div key="3" className="row"><div className="col-md-12"><a href={showLink}>Show Leaderboard</a></div></div>);
@@ -338,13 +424,9 @@ var UserShowStatsPanelBody = React.createClass({
         statElements.push(<Table key="6"
                                  tableClasses="table-condensed black-font"
                                  contentType="user-show-stats-table"
-                                 userStatsUrl={this.props.userStatsUrl}
-                                 imageBaseUrl={this.props.imageBaseUrl}
-                                 userProfileID={this.props.userProfileID}
-                                 requestUserID={this.props.requestUserID}
+                                 userAccountContext={this.props.userAccountContext}
                                  showID={showID}
-                                 showStats={this.props.showStats}
-                                 suggestionListUrl={this.props.suggestionListUrl} />);
+                                 showStats={this.props.showStats} />);
         statElements.push(<div key="7" className="row"><div className="col-md-12"><img src={starImgSrc} /> = Winning Suggestion</div></div>);
         statElements.push(<div key="8" className="row"><div className="col-md-12"><span className="label label-info">&nbsp;&nbsp;</span> = Appeared in Voting</div></div>);
         statElements.push(<div key="9" className="row"><div className="col-md-12"><span className="label label-default light-gray-bg">&nbsp;&nbsp;</span> = Not Voted on</div></div>);
@@ -358,11 +440,11 @@ var UserShowStatsPanelBody = React.createClass({
 
 var UserShowStatsTableBody = React.createClass({
   getInitialState: function() {
-    return {data: []};
+    return {data: undefined};
   },
   componentDidMount: function() {
     // Get the suggestions for the user
-    var userSuggestionsUrl = this.props.suggestionListUrl + "?user_id=" + this.props.userProfileID + "&show_id=" + this.props.showID;
+    var userSuggestionsUrl = this.props.userAccountContext.suggestionListAPIUrl + "?user_id=" + this.props.userAccountContext.userProfileID + "&show_id=" + this.props.showID;
     $.ajax({
       url: userSuggestionsUrl,
       dataType: 'json',
@@ -375,6 +457,9 @@ var UserShowStatsTableBody = React.createClass({
     });
   },
   render: function() {
+    if (!this.state.data){
+        return (<tbody><tr><td><Loading /></td></tr></tbody>);
+    }
     var showID = this.props.showID;
     var suggestionList = [];
     this.counter = 0;
@@ -385,7 +470,7 @@ var UserShowStatsTableBody = React.createClass({
         // Used a different class if the suggestion won
         if (suggestion.used === true) {
             suggestionClass = "success";
-            var imgSrc = this.props.imageBaseUrl + "star-sprite.png";
+            var imgSrc = this.props.userAccountContext.imageBaseUrl + "star-sprite.png";
             starIMG =  <img src={imgSrc} />;
         } else if (suggestion.voted_on === true) {
             suggestionClass = "info";
@@ -542,9 +627,9 @@ var UserStats = React.createClass({
   },
   componentDidMount: function() {
     // Get the leaderboard stats for the user
-    var leaderboardStatsUrl = this.props.leaderboardStatsUrl;
+    var leaderboardStatsAPIUrl = this.props.userAccountContext.leaderboardStatsAPIUrl;
     $.ajax({
-      url: leaderboardStatsUrl,
+      url: leaderboardStatsAPIUrl,
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
@@ -563,11 +648,8 @@ var UserStats = React.createClass({
         this.state.data.map(function (showStats) {
           this.counter++;
           showList.push(<UserShowStats key={this.counter}
-                                       showStats={showStats}
-                                       showListUrl={this.props.showListUrl}
-                                       suggestionListUrl={this.props.suggestionListUrl}
-                                       imageBaseUrl={this.props.imageBaseUrl}
-                                       userProfileID={this.props.userProfileID} />);
+                                       userAccountContext={this.props.userAccountContext}
+                                       showStats={showStats} />);
           return showList;
         }, this);
     }
@@ -579,25 +661,24 @@ var UserStats = React.createClass({
              panelBodyClasses="large-font black-font"
              tableClasses="table-condensed black-font"
              contentType="user-stats-table"
-             suggestionListUrl={this.props.suggestionListUrl}
-             imageBaseUrl={this.props.imageBaseUrl}
-             medalListUrl={this.props.medalListUrl}
-             userProfileID={this.props.userProfileID}
-             requestUserID={this.props.requestUserID}
-             userStatsUrl={this.props.userStatsUrl} />
+             userAccountContext={this.props.userAccountContext} />
       {showList}</div>
     );
   }
 });
 
-var Leaderboards = React.createClass({
+var Leaderboard = React.createClass({
   getInitialState: function() {
     return {data: []};
   },
   componentDidMount: function() {
-    if (this.props.contentType == "channel-leaderboard") {
-        // Get the leaderboard url for the whole channel
-        var leaderboardUrl = this.props.channelLeaderboardUrl;
+    var leaderboardUrl;
+    if (this.props.leaderboardContext.contentType == "channel-leaderboard") {
+        // Get the api leaderboard url for the whole channel
+        leaderboardUrl = this.props.leaderboardContext.channelLeaderboardAPIUrl;
+    } else if (this.props.leaderboardContext.contentType == "show-leaderboard") {
+        // Get the api leaderboard url for the show
+        leaderboardUrl = this.props.leaderboardContext.channelLeaderboardAPIUrl;
     }
     $.ajax({
       url: leaderboardUrl,
@@ -612,14 +693,24 @@ var Leaderboards = React.createClass({
   },
   render: function() {
     var recapButton = [];
-    if (this.props.showID) {
-        recapButton.push(<br />);
-        recapButton.push(<BigButton buttonText="View Show Recap" buttonColor="danger" />);
+    var showID = this.props.leaderboardContext.showID;
+
+    if (showID) {
+        recapButton.push(<BigButtonDropdown key="1"
+                                            buttonColor="primary"
+                                            leaderboardContext={this.props.leaderboardContext}
+                                            showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
+                                            baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+                                            showID={this.props.leaderboardContext.showID}
+                                            currentSelection={this.props.leaderboardContext.currentSelection} />);
+        recapButton.push(<br key="2" />);
+        recapButton.push(<BigButton key="3"
+                                    buttonText="View Show Recap"
+                                    buttonColor="danger"
+                                    buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
     }
     return (
-      <div className="row"><div className="col-md-6 col-md-offset-3">
-          {recapButton}
-      </div></div>
+      <div>{recapButton}</div>
     );
   }
 });
@@ -627,25 +718,33 @@ var Leaderboards = React.createClass({
 var RootComponent = React.createClass({
   render: function() {
     var rootType = getElementValueOrNull("rootType");
-    var showListUrl = getElementValueOrNull("showListUrl");
-    var suggestionListUrl = getElementValueOrNull("suggestionListUrl");
-    var imageBaseUrl = getElementValueOrNull("imageBaseUrl");
-    var medalListUrl = getElementValueOrNull("medalListUrl");
-    var userProfileID = getElementValueOrNull("userProfileID");
-    var requestUserID = getElementValueOrNull("requestUserID");
-    var leaderboardStatsUrl = getElementValueOrNull("leaderboardStatsUrl");
-    var userStatsUrl = getElementValueOrNull("userStatsUrl");
     var rootComponents = [];
     if (rootType == "user-account") {
-        rootComponents.push(<UserStats key="1"
-                                       showListUrl={showListUrl}
-                                       suggestionListUrl={suggestionListUrl}
-                                       imageBaseUrl={imageBaseUrl}
-                                       medalListUrl={medalListUrl}
-                                       userProfileID={userProfileID}
-                                       requestUserID={requestUserID}
-                                       leaderboardStatsUrl={leaderboardStatsUrl}
-                                       userStatsUrl={userStatsUrl} />);
+        var userAccountContext = {
+            showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
+            suggestionListAPIUrl: getElementValueOrNull("suggestionListAPIUrl"),
+            imageBaseUrl: getElementValueOrNull("imageBaseUrl"),
+            medalListAPIUrl: getElementValueOrNull("medalListAPIUrl"),
+            userProfileID: getElementValueOrNull("userProfileID"),
+            requestUserID: getElementValueOrNull("requestUserID"),
+            leaderboardStatsAPIUrl: getElementValueOrNull("leaderboardStatsAPIUrl"),
+            userStatsAPIUrl: getElementValueOrNull("userStatsAPIUrl")
+        };
+        rootComponents.push(<UserStats key="1" userAccountContext={userAccountContext} />);
+    } else if (rootType == "leaderboard") {
+        var leaderboardContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelLeaderboardAPIUrl: getElementValueOrNull("channelLeaderboardAPIUrl"),
+            channelShowRecapUrl: getElementValueOrNull("channelShowRecapUrl"),
+            leaderboardSpanAPIUrl: getElementValueOrNull("leaderboardSpanAPIUrl"),
+            medalListAPIUrl: getElementValueOrNull("medalListAPIUrl"),
+            channelLeaderboardUrl: getElementValueOrNull("channelLeaderboardUrl"),
+            contentType: getElementValueOrNull("contentType"),
+            showID: getElementValueOrNull("showID"),
+            currentSelection: getElementValueOrNull("currentSelection"),
+            showListAPIUrl: getElementValueOrNull("showListAPIUrl")
+        };
+        rootComponents.push(<Leaderboard key="1" leaderboardContext={leaderboardContext} />);
     }
 
     return (

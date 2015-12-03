@@ -1,4 +1,4 @@
-from leaderboards.models import LeaderboardEntry, Medal
+from leaderboards.models import LeaderboardSpan, Medal
 from rest_framework import serializers
 
 
@@ -26,6 +26,15 @@ class LeaderboardSerializer(serializers.Serializer):
     class Meta:
         fields = ('user_id', 'username',
                   'points', 'wins', 'suggestions', 'medals',)
+
+
+class LeaderboardSpanSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LeaderboardSpan
+        fields = ('id', 'channel', 'name',
+                  'start_date', 'end_date',
+                  'created')
 
 
 class MedalSerializer(serializers.ModelSerializer):

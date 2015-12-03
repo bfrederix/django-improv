@@ -1,9 +1,9 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from leaderboards.models import LeaderboardEntry, Medal
+from leaderboards.models import LeaderboardEntry, Medal, LeaderboardSpan
 from leaderboards.serializers import (LeaderboardEntrySerializer, MedalSerializer,
-                                      LeaderboardSerializer)
+                                      LeaderboardSerializer, LeaderboardSpanSerializer)
 from leaderboards import service as leaderboards_service
 from shows import service as shows_service
 from utilities.api import APIObject
@@ -95,9 +95,26 @@ class LeaderboardViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
+class LeaderboardSpanViewSet(viewsets.ViewSet):
+    """
+    API endpoint that allows leaderboard spans to be viewed
+    """
+
+    def list(self, request):
+        """
+        This view should return a list of all leaderboard spans
+        """
+        queryset = LeaderboardSpan.objects.all()
+        channel_id = self.request.query_params.get('channel_id')
+        if channel_id:
+            queryset.filter(channel=channel_id)
+        serializer = LeaderboardSpanSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
 class MedalViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows voteprov users to be viewed or edited.
+    API endpoint that allows medals to be viewed
     """
     model = Medal
     serializer_class = MedalSerializer

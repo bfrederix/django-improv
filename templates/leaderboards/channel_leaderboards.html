@@ -2,26 +2,34 @@
 
 {% block user-account-selected %}class="active"{% endblock %}
 
-{% block title %}Improvote: {% if channel %}{{channel.display_name}}'s{% if show %} {{ show.created|date:"D d M Y" }}{% endif %}{% endif %} Leaderboard{% endblock %}
+{% block title %}Improvote: {{channel.display_name}}'s{% if show %} {{ show.created|date:"D d M Y" }}{% endif %} Leaderboard{% endblock %}
 
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>
-        <script type="text/babel">
-              {% include "embedded_utils/react_components.html" %}
-              ReactDOM.render(
-                <Leaderboards contentType="{% if channel %}{% if show %}show-{% else %}channel-{% endif %}{% else %}all-{% endif %}leaderboard"
-                              {% if channel %}
-                                  channelID="{{channel.id}}"
-                                  channelLeaderboardUrl="{% url "leaderboard-list" %}?channel_id={{channel.id}}"
-                                  channelRecapsUrl="{% url "channel_recaps" channel.name %}"
-                              {% endif %}
-                              {% if show %}
-                                  showID="{{show.id}}"
-                                  showListUrl="{% url "show-list" %}"
-                              {% endif %}/>,
-                document.getElementById('container-fluid')
-              );
-        </script>
+    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+
+    <input type="hidden" id="rootType" name="rootType" value="leaderboard" readonly>
+    <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
+    <input type="hidden" id="channelLeaderboardAPIUrl" name="channelLeaderboardAPIUrl"
+           value="{% url "leaderboard-list" %}?channel_id={{channel.id}}" readonly>
+    <input type="hidden" id="showListAPIUrl" name="showListAPIUrl"
+               value="{% url "show-list" %}" readonly>
+    <input type="hidden" id="leaderboardSpanAPIUrl" name="leaderboardSpanAPIUrl"
+               value="{% url "leaderboard-span-list" %}?channel_id={{channel.id}}" readonly>
+    <input type="hidden" id="medalListAPIUrl" name="medalListAPIUrl"
+               value="{% url "medal-list" %}" readonly>
+    <input type="hidden" id="channelLeaderboardUrl" name="channelLeaderboardUrl"
+               value="{% url "channel_leaderboards" channel.name %}" readonly>
+    {% if show %}
+        <input type="hidden" id="contentType" name="contentType" value="show-leaderboard" readonly>
+        <input type="hidden" id="currentSelection" name="currentSelection" value="{{show.created|date:"l N jS, Y"}}" readonly>
+        <input type="hidden" id="channelShowRecapUrl" name="channelShowRecapUrl"
+               value="{% url "channel_show_recaps" channel.name show.id %}" readonly>
+        <input type="hidden" id="showID" name="showID" value="{{show.id}}" readonly>
+    {% else %}
+        <input type="hidden" id="contentType" name="contentType" value="channel-leaderboard" readonly>
+        <input type="hidden" id="currentSelection" name="currentSelection" value="All-time Leaderboard" readonly>
+    {% endif %}
 
 {% endblock %}
 

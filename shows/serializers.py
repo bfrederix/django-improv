@@ -3,11 +3,19 @@ from rest_framework import serializers
 from shows.models import Show
 
 
-class ShowSerializer(serializers.ModelSerializer):
+class ShowSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    channel_id = serializers.IntegerField()
+    channel_name = serializers.CharField()
+    timezone = serializers.CharField()
+    created = serializers.DateTimeField()
+    locked = serializers.BooleanField()
+    winners_photo_link = serializers.CharField(required=False)
+    embedded_youtube = serializers.CharField(required=False)
 
     class Meta:
-        model = Show
-        fields = ('id', 'channel', 'timezone', 'created',
+        fields = ('id', 'channel_id', 'channel_name',
+                  'timezone', 'created',
                   #'current_vote_type', 'current_vote_init',
                   'locked', 'winners_photo_link', 'embedded_youtube')
 

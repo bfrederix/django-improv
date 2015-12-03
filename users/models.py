@@ -18,7 +18,7 @@ class UserProfile(models.Model):
     improvote_email_opt_in = models.BooleanField(blank=False, default=False)
     channels_email_opt_in = models.BooleanField(blank=False, default=False)
 
-    created = models.DateTimeField(auto_now_add=True, blank=False)
+    created = models.DateTimeField(blank=False)
 
     def __unicode__(self):
         return self.strip_username

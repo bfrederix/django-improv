@@ -9,8 +9,9 @@ class Player(models.Model):
     name = models.CharField(blank=False, max_length=100)
     photo_url = models.CharField(blank=False, max_length=500)
     star = models.BooleanField(default=False, blank=True)
+    active = models.BooleanField(default=True, blank=False)
 
-    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
         return self.name

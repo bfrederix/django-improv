@@ -50,7 +50,7 @@ class LeaderboardSpan(models.Model):
     start_date = models.DateField(blank=True)
     end_date = models.DateField(blank=True)
 
-    created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created = models.DateTimeField(blank=True, null=True)
 
     def __unicode__(self):
         return self.name

@@ -38,6 +38,11 @@ router.register(r'leaderboard',
                 leaderboards_api_views.LeaderboardViewSet,
                 'leaderboard')
 
+# Leaderboard Spans
+router.register(r'leaderboard_span',
+                leaderboards_api_views.LeaderboardSpanViewSet,
+                'leaderboard-span')
+
 # Medals
 router.register(r'medal',
                 leaderboards_api_views.MedalViewSet,

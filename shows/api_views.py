@@ -7,6 +7,20 @@ from shows import service as shows_service
 from utilities.api import APIObject
 
 
+class ShowAPIObject(APIObject):
+    field_list = ['id',
+                  'timezone',
+                  'created',
+                  'locked',
+                  'winners_photo_link',
+                  'embedded_youtube']
+
+    def __init__(self, show, **kwargs):
+        super(ShowAPIObject, self).__init__(show, **kwargs)
+        self.channel_id = show.channel.id
+        self.channel_name = show.channel.name
+
+
 class SuggestionAPIObject(APIObject):
     field_list = ['id',
                   'created',
@@ -20,18 +34,36 @@ class SuggestionAPIObject(APIObject):
         self.user_id = suggestion.user.id
 
 
-class ShowViewSet(viewsets.ModelViewSet):
+class ShowViewSet(viewsets.ViewSet):
     """
-    API endpoint that allows voteprov users to be viewed or edited.
+    API endpoint that allows shows to be viewed
     """
-    model = Show
-    serializer_class = ShowSerializer
-    queryset = Show.objects.all()
+
+    def retrieve(self, request, pk=None):
+        show = shows_service.show_or_404(pk)
+        show_api_obj = ShowAPIObject(show)
+        serializer = ShowSerializer(show_api_obj)
+        return Response(serializer.data)
+
+    def list(self, request):
+        kwargs = {}
+        channel_id = self.request.query_params.get('channel_id')
+        order_by_date = self.request.query_params.get('order_by_date')
+        # Filtering
+        if channel_id:
+            kwargs['channel'] = channel_id
+        queryset = Show.objects.filter(**kwargs)
+        # Ordering
+        if order_by_date:
+            queryset.order_by('-created')
+        updated_shows = [ShowAPIObject(item) for item in queryset]
+        serializer = ShowSerializer(updated_shows, many=True)
+        return Response(serializer.data)
 
 
 class SuggestionViewSet(viewsets.ViewSet):
     """
-    API endpoint that allows voteprov users to be viewed or edited.
+    API endpoint that allows suggestions to be viewed
     """
 
     def retrieve(self, request, pk=None):

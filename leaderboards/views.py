@@ -11,22 +11,11 @@ class ChannelLeaderboardsView(View):
     def get(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channel_or_404(channel_name)
-        is_channel_admin = check_is_channel_admin(channel, getattr(request.user, 'id'))
-
-        return render(request,
-                      self.template_name,
-                      {'channel': channel,
-                       'is_channel_admin': is_channel_admin})
-
-
-class ChannelShowLeaderboardView(View):
-    template_name = 'leaderboards/channel_leaderboards.html'
-
-    def get(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channel_or_404(channel_name)
         show_id = kwargs.get('show_id')
-        show = show_or_404(show_id)
+        if show_id:
+            show = show_or_404(show_id)
+        else:
+            show = None
         is_channel_admin = check_is_channel_admin(channel, getattr(request.user, 'id'))
 
         return render(request,

@@ -24,7 +24,7 @@ class SuggestionPool(models.Model):
     description = models.TextField(blank=False)
     max_user_suggestions = models.IntegerField(default=5, blank=False)
 
-    created = models.DateTimeField(auto_now_add=True, blank=False)
+    created = models.DateTimeField(blank=False)
 
     def __unicode__(self):
         return self.name
@@ -82,7 +82,7 @@ class Show(models.Model):
     vote_options = models.IntegerField(default=3, blank=False)
     timezone = models.CharField(default='America/Denver', blank=False, max_length=100)
 
-    created = models.DateTimeField(auto_now_add=True, blank=False)
+    created = models.DateTimeField(blank=False)
     archived = models.BooleanField(default=False, blank=False)
 
     # Changes during live show
@@ -144,7 +144,7 @@ class Suggestion(models.Model):
     session_id = models.CharField(blank=False, max_length=255)
     user = models.ForeignKey(User, blank=True, null=True)
 
-    created = models.DateTimeField(auto_now_add=True, blank=False)
+    created = models.DateTimeField(blank=False)
 
     def __unicode__(self):
         return self.value
