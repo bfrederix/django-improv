@@ -55,7 +55,7 @@ class ShowViewSet(viewsets.ViewSet):
         queryset = Show.objects.filter(**kwargs)
         # Ordering
         if order_by_date:
-            queryset.order_by('-created')
+            queryset = queryset.order_by('-created')
         updated_shows = [ShowAPIObject(item) for item in queryset]
         serializer = ShowSerializer(updated_shows, many=True)
         return Response(serializer.data)

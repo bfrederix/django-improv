@@ -1,11 +1,13 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 
+from leaderboards import LEADERBOARD_MAX_PER_PAGE
 from leaderboards.models import LeaderboardEntry, Medal, LeaderboardSpan
 from leaderboards.serializers import (LeaderboardEntrySerializer, MedalSerializer,
                                       LeaderboardSerializer, LeaderboardSpanSerializer)
 from leaderboards import service as leaderboards_service
 from shows import service as shows_service
+from users import service as users_service
 from utilities.api import APIObject
 
 
@@ -54,11 +56,12 @@ class LeaderboardViewSet(viewsets.ViewSet):
     API endpoint for show, channel, or combined leaderboards
     """
 
-    def fetch_leaderboard_list(self, queryset, show_id):
+    def fetch_leaderboard_list(self, queryset, show_id, page):
         user_dict = {}
         for entry in queryset:
             user_dict.setdefault(entry.user_id, {})
-            user_dict[entry.user_id].setdefault('username', entry.user.username)
+            user_profile = users_service.fetch_user_profile(entry.user.id)
+            user_dict[entry.user_id].setdefault('username', user_profile.safe_username)
             user_dict[entry.user_id].setdefault('points', 0)
             user_dict[entry.user_id].setdefault('wins', 0)
             if show_id:
@@ -79,18 +82,31 @@ class LeaderboardViewSet(viewsets.ViewSet):
             user_data.update(value_dict)
             leaderboard_list.append(user_data)
         # Sort the list by points
-        return sorted(leaderboard_list, key=lambda k: k['points'], reverse=True)
+        leaderboard_list = sorted(leaderboard_list, key=lambda k: k['points'], reverse=True)
+
+        offset = LEADERBOARD_MAX_PER_PAGE * (page - 1)
+
+        # Start from the page offset
+        try:
+            return leaderboard_list[offset:offset+LEADERBOARD_MAX_PER_PAGE]
+        except IndexError:
+            try:
+                return leaderboard_list[offset:]
+            except IndexError:
+                return leaderboard_list
 
 
     def list(self, request):
         queryset = LeaderboardEntry.objects.all()
+
         channel_id = self.request.query_params.get('channel_id')
         show_id = self.request.query_params.get('show_id')
+        page = int(self.request.query_params.get('page', 1))
         if channel_id:
             queryset = queryset.filter(channel=channel_id)
         if show_id:
             queryset = queryset.filter(show=show_id)
-        leaderboard_list = self.fetch_leaderboard_list(queryset, show_id)
+        leaderboard_list = self.fetch_leaderboard_list(queryset, show_id, page)
         serializer = LeaderboardSerializer(leaderboard_list, many=True)
         return Response(serializer.data)
 

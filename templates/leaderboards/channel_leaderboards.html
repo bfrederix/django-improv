@@ -1,6 +1,6 @@
 {% extends "channels/channel_base.html" %}
 
-{% block user-account-selected %}class="active"{% endblock %}
+{% block leaderboards-selected %}active{% endblock %}
 
 {% block title %}Improvote: {{channel.display_name}}'s{% if show %} {{ show.created|date:"D d M Y" }}{% endif %} Leaderboard{% endblock %}
 
@@ -10,16 +10,22 @@
 
     <input type="hidden" id="rootType" name="rootType" value="leaderboard" readonly>
     <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
+    <input type="hidden" id="channelName" name="channelName" value="{{channel.name}}" readonly>
+    <input type="hidden" id="page" name="page" value="{{page}}" readonly>
+    <input type="hidden" id="maxPerPage" name="maxPerPage" value="{{max_per_page}}" readonly>
+    <input type="hidden" id="maxPages" name="maxPages" value="{{max_pages}}" readonly>
     <input type="hidden" id="channelLeaderboardAPIUrl" name="channelLeaderboardAPIUrl"
-           value="{% url "leaderboard-list" %}?channel_id={{channel.id}}" readonly>
+           value="{% url "leaderboard-list" %}?channel_id={{channel.id}}&page={{page}}" readonly>
     <input type="hidden" id="showListAPIUrl" name="showListAPIUrl"
-               value="{% url "show-list" %}" readonly>
+               value="{% url "show-list" %}?order_by_date=True" readonly>
     <input type="hidden" id="leaderboardSpanAPIUrl" name="leaderboardSpanAPIUrl"
                value="{% url "leaderboard-span-list" %}?channel_id={{channel.id}}" readonly>
     <input type="hidden" id="medalListAPIUrl" name="medalListAPIUrl"
                value="{% url "medal-list" %}" readonly>
     <input type="hidden" id="channelLeaderboardUrl" name="channelLeaderboardUrl"
                value="{% url "channel_leaderboards" channel.name %}" readonly>
+    <input type="hidden" id="usersUrl" name="usersUrl"
+               value="/users/" readonly>
     {% if show %}
         <input type="hidden" id="contentType" name="contentType" value="show-leaderboard" readonly>
         <input type="hidden" id="currentSelection" name="currentSelection" value="{{show.created|date:"l N jS, Y"}}" readonly>
@@ -29,6 +35,9 @@
     {% else %}
         <input type="hidden" id="contentType" name="contentType" value="channel-leaderboard" readonly>
         <input type="hidden" id="currentSelection" name="currentSelection" value="All-time Leaderboard" readonly>
+    {% endif %}
+    {% if is_channel_admin %}
+        <input type="hidden" id="isAdmin" name="isAdmin" value="True" readonly>
     {% endif %}
 
 {% endblock %}

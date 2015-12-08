@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 
-from channels.models import ChannelAdmin, Channel
+from channels.models import ChannelAdmin, Channel, ChannelUser
 
 
 def channel_or_404(channel_name):
@@ -20,3 +20,6 @@ def check_is_channel_admin(channel_name, user_id):
         return False
     else:
         return True
+
+def channel_user_count(channel_id):
+    return ChannelUser.objects.filter(channel=channel_id).count()

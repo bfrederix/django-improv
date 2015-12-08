@@ -31,11 +31,67 @@ function getElementValueOrNull(elementID){
     }
 }
 
+function showDateFormat(stringDate) {
+    return moment.utc(stringDate).format("ddd. MMM. Do, YYYY @hA");
+}
+
 function getSpanFormat(spanDate){
     var date = new Date(spanDate);
     var month = date.getMonth() + 1
     return month + "" + date.getDate() + date.getFullYear();
 }
+
+function PageLink(i, char, current){
+  var character = character || String(i);
+  if (i !== current) {
+      return (
+        <li key={char}>
+          <a href={"?page="+i}>{char}</a>
+        </li>
+      );
+  } else {
+      return (
+        <li key={char} className="disabled"><a href="#">{char}</a></li>
+      );
+  }
+}
+
+var Pagination = React.createClass({
+  render: function() {
+      var pages = parseInt(this.props.maxPages) + 1;
+      var current = parseInt(this.props.currentPage);
+      var links = [];
+      var pageList = [];
+
+      // leading arrows
+      if (current > 1) {
+        links.push([1, "<<"]);
+        links.push([current - 1, "<"]);
+      }
+
+      for (var i=current-3; i<current+4; i++) {
+        if (i > 0 && i < pages) {
+          links.push([i, i]);
+        }
+      }
+
+      // tailing arrows
+      if (current < pages) {
+        links.push([current + 1, ">"]);
+        links.push([pages - 1, ">>"]);
+      }
+
+      links.map(function(x){
+          pageList.push(PageLink(x[0], x[1], current));
+      }, current);
+
+      return (
+        <ul className="pagination large-font">
+            {pageList}
+        </ul>
+    );
+  }
+});
 
 var Panel = React.createClass({
   render: function() {
@@ -82,9 +138,8 @@ var PanelBody = React.createClass({
     // Decide what content to show in the panel body
     var bodyContent;
     if (this.props.contentType == "user-stats-table") {
-        bodyContent = <Table tableClasses={this.props.tableClasses}
-                             contentType={this.props.contentType}
-                             userAccountContext={this.props.userAccountContext} />;
+        bodyContent = <UserStatsTableBody tableClasses={this.props.tableClasses}
+                                          userAccountContext={this.props.userAccountContext} />;
     } else if (this.props.contentType == "user-show-stats") {
         bodyContent = <UserShowStatsPanelBody showStats={this.props.showStats}
                                               userAccountContext={this.props.userAccountContext} />;
@@ -93,29 +148,6 @@ var PanelBody = React.createClass({
       <div className={panelBodyClasses}>
         {bodyContent}
       </div>
-    );
-  }
-});
-
-var Table = React.createClass({
-  render: function() {
-    var ptableClasses = this.props.tableClasses;
-    var table = "table";
-    var tableClasses = 'table ' + table + ' ' + ptableClasses;
-    // Decide what table to show
-    var tableContents = [];
-    if (this.props.contentType == "user-stats-table") {
-        tableContents.push(<UserStatsTableBody key="1"
-                                               userAccountContext={this.props.userAccountContext} />);
-    } else if (this.props.contentType == "user-show-stats-table") {
-        tableContents.push(<UserShowStatsTableBody key="1"
-                                                   showID={this.props.showID}
-                                                   userAccountContext={this.props.userAccountContext} />);
-    }
-    return (
-      <table className={tableClasses}>
-        {tableContents}
-      </table>
     );
   }
 });
@@ -228,7 +260,11 @@ var BigButtonDropdownContents = React.createClass({
     this.counter = 1;
 
     if (this.props.leaderboardContext) {
-        dropDownList.push(<li key={this.counter}><a href={this.props.baseLinkUrl}>All-time Leaderboard</a></li>);
+        var allClass = "";
+        if (!this.props.showID && !this.props.spanID) {
+            var allClass = "disabled";
+        }
+        dropDownList.push(<li key={this.counter} className={allClass}><a href={this.props.baseLinkUrl}>All-time Leaderboard</a></li>);
     }
 
     if (this.state.spans) {
@@ -251,8 +287,7 @@ var BigButtonDropdownContents = React.createClass({
                 showClass = "disabled";
             }
             var showLink = this.props.baseLinkUrl + 'show/' + show.id + '/';
-            var showDate = new Date(show.created);
-            var showDateFormatted = showDate.toDateString();
+            var showDateFormatted = showDateFormat(show.created);
             dropDownList.push(<li key={this.counter} className={showClass}><a href={showLink}>{showDateFormatted}</a></li>);
             return dropDownList;
         }, this);
@@ -292,6 +327,26 @@ var BigButtonDropdown = React.createClass({
   }
 });
 
+var MedalButtonForm = React.createClass({
+  render: function() {
+    // CHECK TO SEE IF MEDALS HAVE ALREADY BEEN AWARDED!!!!!!!!
+    var medalActionLink = this.props.baseLinkUrl + 'show/' + this.props.showID + '/';
+    return (
+        <form className="form-inline" role="form" action={medalActionLink} method="post">
+            <br/>
+            <div className="row">
+                <div className="col-md-6 col-md-offset-3">
+                    <div className="form-group text-center">
+                        <input type="hidden" name="award_medals" value="True"></input>
+                        <input type="submit" className="btn btn-warning btn-block btn-lg x-large-font" value="&nbsp;Award Medals&nbsp;"></input>
+                    </div>
+                </div>
+            </div>
+        </form>
+    );
+  }
+});
+
 var MedalRows = React.createClass({
   render: function() {
     var arrayLength = this.props.medals.length;
@@ -306,16 +361,16 @@ var MedalRows = React.createClass({
         var currentNum = i+1;
         // Push the row and reset the current medal list every 5 medals
         if (currentNum % 5 == 0) {
-            rowList.push(<div key={currentNum} className="row">{medalList}</div>);
+            rowList.push(<span key={currentNum} className="row">{medalList}</span>);
             medalList = [];
         }
     }
     // If there are any remaining medals, form a remainder row
     if (medalList) {
-        rowList.push(<div key="1" className="row">{medalList}</div>);
+        rowList.push(<span key="1" className="row">{medalList}</span>);
     }
     return (
-        <div>{rowList}</div>
+        <span>{rowList}</span>
     );
   }
 });
@@ -338,7 +393,11 @@ var UserStatsTableBody = React.createClass({
   },
   render: function() {
     if (!this.state.data){
-        return (<tbody><tr><td><Loading /></td></tr></tbody>);
+        return (<div className="table-responsive">
+                    <table className="table table-condensed black-font">
+                        <tbody><tr><td><Loading /></td></tr></tbody>
+                    </table>
+                </div>);
     }
     // Decide the stat column color
     var columnColor = "info";
@@ -364,9 +423,13 @@ var UserStatsTableBody = React.createClass({
                  </td></tr>);
 
     return (
-      <tbody>
-        {statsList}
-      </tbody>
+        <div className="table-responsive">
+            <table className="table table-condensed black-font">
+                <tbody>
+                    {statsList}
+                </tbody>
+            </table>
+        </div>
     );
   }
 });
@@ -377,7 +440,7 @@ var UserShowStats = React.createClass({
   },
   componentDidMount: function() {
     // Get the leaderboard stats for the user
-    var showStatsUrl = this.props.userAccountContext.showListUrl + this.props.showStats.show + "/";
+    var showStatsUrl = this.props.userAccountContext.showListAPIUrl + this.props.showStats.show + "/";
     $.ajax({
       url: showStatsUrl,
       dataType: 'json',
@@ -393,8 +456,7 @@ var UserShowStats = React.createClass({
     if (!this.state.data){
         return (<Loading />);
     }
-    var showDate = new Date(this.state.data.created);
-    var showDateFormatted = showDate.toDateString();
+    var showDateFormatted = showDateFormat(this.state.data.created);
     return (
       <Panel panelWidth="6" panelOffset="3" panelColor="primary"
              panelHeadingContent={showDateFormatted} panelHeadingClasses="x-large-font"
@@ -421,12 +483,10 @@ var UserShowStatsPanelBody = React.createClass({
         statElements.push(<div key="3" className="row"><div className="col-md-12"><a href={showLink}>Show Leaderboard</a></div></div>);
         statElements.push(<div key="4" className="row"><div className="col-md-12"><a href={recapLink}>Show Recap</a></div></div>);
         statElements.push(<div key="5" className="row"><div className="col-md-12">Suggestions:</div></div>);
-        statElements.push(<Table key="6"
-                                 tableClasses="table-condensed black-font"
-                                 contentType="user-show-stats-table"
-                                 userAccountContext={this.props.userAccountContext}
-                                 showID={showID}
-                                 showStats={this.props.showStats} />);
+        statElements.push(<UserShowStatsTableBody key="6"
+                                                  userAccountContext={this.props.userAccountContext}
+                                                  showID={showID}
+                                                  showStats={this.props.showStats} />);
         statElements.push(<div key="7" className="row"><div className="col-md-12"><img src={starImgSrc} /> = Winning Suggestion</div></div>);
         statElements.push(<div key="8" className="row"><div className="col-md-12"><span className="label label-info">&nbsp;&nbsp;</span> = Appeared in Voting</div></div>);
         statElements.push(<div key="9" className="row"><div className="col-md-12"><span className="label label-default light-gray-bg">&nbsp;&nbsp;</span> = Not Voted on</div></div>);
@@ -434,6 +494,71 @@ var UserShowStatsPanelBody = React.createClass({
 
     return (
         <div>{statElements}</div>
+    );
+  }
+});
+
+var ChannelLeaderboardTable = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.leaderboardContext.channelLeaderboardAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data){
+        return (<div className="table-responsive">
+                    <table className="table table-condensed black-font">
+                        <tbody><tr><td>
+                            <Loading loadingBarColor="#fff"/>
+                        </td></tr></tbody>
+                    </table>
+                </div>);
+    }
+    var tableList = [];
+    this.counter = 0;
+    this.startCount = this.props.leaderboardContext.maxPerPage * (this.props.leaderboardContext.page - 1);
+
+    // Create the suggestion list
+    this.state.data.map(function (leaderboardUser) {
+        this.counter++;
+        var rank = this.counter + this.startCount;
+        var userUrl = this.props.leaderboardContext.usersUrl + leaderboardUser.user_id + "/?channel_name=" + this.props.leaderboardContext.channelName;
+        tableList.push(<tr key={this.counter}>
+                            <td>{rank}</td>
+                            <td><a href={userUrl}>{leaderboardUser.username}</a></td>
+                            <td>{leaderboardUser.points}</td>
+                            <td>{leaderboardUser.wins}</td>
+                       </tr>);
+        return tableList;
+    }, this);
+    return (
+        <div className="table-responsive">
+            <table className="table table-condensed large-font">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Points</th>
+                        <th>Winning Suggestions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tableList}
+                </tbody>
+            </table>
+            <Pagination maxPages={this.props.leaderboardContext.maxPages}
+                        currentPage={this.props.leaderboardContext.page} />
+        </div>
     );
   }
 });
@@ -458,7 +583,11 @@ var UserShowStatsTableBody = React.createClass({
   },
   render: function() {
     if (!this.state.data){
-        return (<tbody><tr><td><Loading /></td></tr></tbody>);
+        return (<div className="table-responsive">
+                    <table className="table table-condensed black-font">
+                        <tbody><tr><td><Loading /></td></tr></tbody>
+                    </table>
+                </div>);
     }
     var showID = this.props.showID;
     var suggestionList = [];
@@ -488,7 +617,11 @@ var UserShowStatsTableBody = React.createClass({
         return suggestionList;
     }, this);
     return (
-        <tbody>{suggestionList}</tbody>
+        <div className="table-responsive">
+            <table className="table table-condensed black-font">
+                <tbody>{suggestionList}</tbody>
+            </table>
+        </div>
     );
   }
 });
@@ -708,7 +841,31 @@ var Leaderboard = React.createClass({
                                     buttonText="View Show Recap"
                                     buttonColor="danger"
                                     buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
+        // If this is a channel admin user and we haven't awarded medals
+        if (!this.props.leaderboardContext.isAdmin) {
+            recapButton.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+                                                      showID={this.props.leaderboardContext.showID}/>);
+        }
+        recapButton.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
+                             <ShowLeaderboardTable leaderboardContext={this.props.leaderboardContext}
+                                                      showID={this.props.leaderboardContext.showID} />
+                         </div></div>);
     }
+    else if (this.props.leaderboardContext.channelID) {
+        recapButton.push(<BigButtonDropdown key="1"
+                                            buttonColor="primary"
+                                            leaderboardContext={this.props.leaderboardContext}
+                                            showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
+                                            baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+                                            currentSelection={this.props.leaderboardContext.currentSelection} />);
+        recapButton.push(<div key="2" className="row"><div className="col-md-10 col-md-offset-1">
+                                 <br/>
+                                 <ChannelLeaderboardTable leaderboardContext={this.props.leaderboardContext} />
+                             </div></div>);
+    } else {
+
+    }
+
     return (
       <div>{recapButton}</div>
     );
@@ -734,15 +891,21 @@ var RootComponent = React.createClass({
     } else if (rootType == "leaderboard") {
         var leaderboardContext = {
             channelID: getElementValueOrNull("channelID"),
+            channelName: getElementValueOrNull("channelName"),
+            page: getElementValueOrNull("page"),
+            maxPerPage: getElementValueOrNull("maxPerPage"),
+            maxPages: getElementValueOrNull("maxPages"),
             channelLeaderboardAPIUrl: getElementValueOrNull("channelLeaderboardAPIUrl"),
             channelShowRecapUrl: getElementValueOrNull("channelShowRecapUrl"),
             leaderboardSpanAPIUrl: getElementValueOrNull("leaderboardSpanAPIUrl"),
             medalListAPIUrl: getElementValueOrNull("medalListAPIUrl"),
             channelLeaderboardUrl: getElementValueOrNull("channelLeaderboardUrl"),
+            usersUrl: getElementValueOrNull("usersUrl"),
             contentType: getElementValueOrNull("contentType"),
             showID: getElementValueOrNull("showID"),
             currentSelection: getElementValueOrNull("currentSelection"),
-            showListAPIUrl: getElementValueOrNull("showListAPIUrl")
+            showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
+            isAdmin: getElementValueOrNull("isAdmin")
         };
         rootComponents.push(<Leaderboard key="1" leaderboardContext={leaderboardContext} />);
     }
