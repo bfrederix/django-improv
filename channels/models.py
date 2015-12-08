@@ -37,7 +37,9 @@ class ChannelUser(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     user = models.ForeignKey(User)
-
+    points = models.IntegerField(default=0, blank=True, null=True)
+    suggestion_wins = models.IntegerField(default=0, blank=True, null=True)
+    show_wins = models.IntegerField(default=0, blank=True, null=True)
 
 class ChannelAdmin(models.Model):
     id = BoundedBigAutoField(primary_key=True)

@@ -26,6 +26,8 @@ from shows.models import (SuggestionPool, VoteType, Show, ShowVoteType,
                           VoteOptions, OptionList, VotedItem)
 from users.models import UserProfile, UserChannelEmailOptIn
 
+from channels.service import update_channel_user
+
 
 MODEL_NAME_REGEX = '[\w\_]+[\d]{4}\_[\d]{2}\_[\d]{2}\_([\w]+)-'
 
@@ -207,6 +209,7 @@ class Command(BaseCommand):
                                     self.stdout.write("Duplicate Leaderboard Entry")
                             else:
                                 counter['LeaderboardEntry'] += 1
+                                update_channel_user(channel.id, user_profile.user.id)
                                 self.stdout.write(str(counter['LeaderboardEntry']))
                             if 'medals' in entity:
                                 for medal in entity['medals']:

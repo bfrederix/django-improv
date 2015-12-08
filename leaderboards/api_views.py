@@ -35,7 +35,6 @@ class LeaderboardEntryViewSet(viewsets.ViewSet):
         channel_id = self.request.query_params.get('channel_id')
         show_id = self.request.query_params.get('show_id')
         order_by_show_date = self.request.query_params.get('order_by_show_date')
-        order_by_points = self.request.query_params.get('order_by_points')
         if user_id:
             kwargs['user'] = user_id
         if channel_id:
@@ -45,8 +44,6 @@ class LeaderboardEntryViewSet(viewsets.ViewSet):
         queryset = LeaderboardEntry.objects.filter(**kwargs)
         if order_by_show_date is not None:
             queryset = queryset.order_by('-show_date')
-        if order_by_points is not None:
-            queryset = queryset.order_by('-points')
         leaderboard_entry_list = [LeaderboardEntryAPIObject(item) for item in queryset]
         serializer = LeaderboardEntrySerializer(leaderboard_entry_list, many=True)
         return Response(serializer.data)

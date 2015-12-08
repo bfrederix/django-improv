@@ -4,8 +4,5 @@ from channels import views
 
 urlpatterns = [
     url(r'^$', views.ChannelHomeView.as_view(), name="channel_home"),
-    #url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/leaderboards/$', views.ChannelLeaderboardsView.as_view(), name="channel_leaderboards"),
-    #url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/leaderboards/$', views.ChannelLeaderboardsView.as_view(), name="channel_leaderboards"),
-    #url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/leaderboards/(?P<show>\d+)/$', views.ChannelLeaderboardsView.as_view()),
-    #url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/leaderboards/(\d{8})/(\d{8})/$', views.ChannelLeaderboardsView.as_view()),
+    url(r'^user_update/(?P<user_id>[0-9]+)/$', views.channel_user_update, name="channel_user_update"),
 ]
