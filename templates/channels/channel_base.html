@@ -63,7 +63,7 @@
                             <li><a href="/medals/"><strong>Medals</strong></a></li>
                         </ul>
                     </li>
-                    <li class="{% block recap-selected %}{% endblock %}"><a href="{% url "channel_recaps" channel.name %}">Show Recaps</a></li>
+                    <li class="{% block recaps-selected %}{% endblock %}"><a href="{% url "channel_recaps" channel.name %}">Show Recaps</a></li>
     				{% if request.user.is_authenticated %}
     				    <li {% block user-account-selected %}{% endblock %}><a href="{% url "user_account" request.user.id %}?channel_name={{channel.name}}">My Account</a></li>
     				{% endif %}

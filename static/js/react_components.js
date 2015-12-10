@@ -317,7 +317,7 @@ var BigButtonDropdown = React.createClass({
                     {this.props.currentSelection}&nbsp;<span className="caret "></span>
                   </button>
                   <BigButtonDropdownContents leaderboardContext={this.props.leaderboardContext}
-                                             showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
+                                             showAPIUrl={this.props.showAPIUrl}
                                              baseLinkUrl={this.props.baseLinkUrl}
                                              showID={this.props.showID} />
                 </div>
@@ -407,20 +407,24 @@ var UserStatsTableBody = React.createClass({
     // Create the user stats
     var statsList = [];
     var medalShare;
+    // Share medals on Facebook
     if (this.props.userAccountContext.userProfileID == this.props.userAccountContext.requestUserID) {
-        var imgSrc = this.props.userAccountContext.imageBaseUrl + "facebook_share.png";
-        medalShare = <img className="facebook-share" src={imgSrc} />;
+        // var imgSrc = this.props.userAccountContext.imageBaseUrl + "facebook_share.png";
+        // medalShare = <img className="facebook-share" src={imgSrc} />;
     }
     statsList.push(<tr key="1" className={trClasses}><td className={tdClasses}>Username: {this.state.data.username}</td></tr>);
     statsList.push(<tr key="2" className={trClasses}><td className={tdClasses}>Suggestions: {this.state.data.suggestions}</td></tr>);
     statsList.push(<tr key="3" className={trClasses}><td className={tdClasses}>Suggestion Wins: {this.state.data.wins}</td></tr>);
     statsList.push(<tr key="4" className={trClasses}><td className={tdClasses}>Points: {this.state.data.points}</td></tr>);
-    statsList.push(<tr key="5" className={trClasses}><td>
+    // If they have medals
+    if (this.state.data.medals.length) {
+        statsList.push(<tr key="5" className={trClasses}><td>
                     Medals:<br/>
                     <MedalRows medals={this.state.data.medals}
                                userAccountContext={this.props.userAccountContext} />
                     {medalShare}
                  </td></tr>);
+    }
 
     return (
         <div className="table-responsive">
@@ -903,49 +907,99 @@ var Leaderboard = React.createClass({
     });
   },
   render: function() {
-    var recapButton = [];
+    var leaderboardComponents = [];
     var showID = this.props.leaderboardContext.showID;
 
     if (showID) {
-        recapButton.push(<BigButtonDropdown key="1"
+        leaderboardComponents.push(<BigButtonDropdown key="1"
                                             buttonColor="primary"
                                             leaderboardContext={this.props.leaderboardContext}
                                             showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
                                             baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
                                             showID={this.props.leaderboardContext.showID}
                                             currentSelection={this.props.leaderboardContext.currentSelection} />);
-        recapButton.push(<br key="2" />);
-        recapButton.push(<BigButton key="3"
+        leaderboardComponents.push(<br key="2" />);
+        leaderboardComponents.push(<BigButton key="3"
                                     buttonText="View Show Recap"
                                     buttonColor="danger"
                                     buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
         // If this is a channel admin user and we haven't awarded medals
         if (!this.props.leaderboardContext.isAdmin) {
-            recapButton.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+            leaderboardComponents.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
                                                       showID={this.props.leaderboardContext.showID}/>);
         }
-        recapButton.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
+        leaderboardComponents.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
                              <ShowLeaderboardTable leaderboardContext={this.props.leaderboardContext}
                                                       showID={this.props.leaderboardContext.showID} />
                          </div></div>);
     }
     else if (this.props.leaderboardContext.channelID) {
-        recapButton.push(<BigButtonDropdown key="1"
+        leaderboardComponents.push(<BigButtonDropdown key="1"
                                             buttonColor="primary"
                                             leaderboardContext={this.props.leaderboardContext}
                                             showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
                                             baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
                                             currentSelection={this.props.leaderboardContext.currentSelection} />);
-        recapButton.push(<div key="2" className="row"><div className="col-md-10 col-md-offset-1">
+        leaderboardComponents.push(<div key="2" className="row"><div className="col-md-10 col-md-offset-1">
                                  <br/>
                                  <ChannelLeaderboardTable leaderboardContext={this.props.leaderboardContext} />
                              </div></div>);
-    } else {
-
     }
 
     return (
-      <div>{recapButton}</div>
+      <div>{leaderboardComponents}</div>
+    );
+  }
+});
+
+var Recap = React.createClass({
+  getInitialState: function() {
+    return {data: []};
+  },
+  componentDidMount: function() {
+    // If a show has been selected
+    if (this.props.recapContext.showID) {
+        $.ajax({
+          url: this.props.recapContext.showAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  render: function() {
+    var recapComponents = [];
+    var showID = this.props.recapContext.showID;
+
+    if (showID) {
+        recapComponents.push(<BigButtonDropdown key="1"
+                                                buttonColor="primary"
+                                                showAPIUrl={this.props.recapContext.showListAPIUrl}
+                                                baseLinkUrl={this.props.recapContext.channelRecapsUrl}
+                                                showID={this.props.recapContext.showID}
+                                                currentSelection={this.props.recapContext.currentSelection} />);
+        recapComponents.push(<br key="2" />);
+        recapComponents.push(<BigButton key="3"
+                                        buttonText="View Show Leaderboard"
+                                        buttonColor="danger"
+                                        buttonLink={this.props.recapContext.channelShowLeaderboardUrl} />);
+        // Recap panels
+
+    }
+    else {
+        recapComponents.push(<BigButtonDropdown key="1"
+                                                buttonColor="primary"
+                                                showAPIUrl={this.props.recapContext.showListAPIUrl}
+                                                baseLinkUrl={this.props.recapContext.channelRecapsUrl}
+                                                currentSelection={this.props.recapContext.currentSelection} />);
+    }
+
+    return (
+      <div>{recapComponents}</div>
     );
   }
 });
@@ -987,6 +1041,19 @@ var RootComponent = React.createClass({
             isAdmin: getElementValueOrNull("isAdmin")
         };
         rootComponents.push(<Leaderboard key="1" leaderboardContext={leaderboardContext} />);
+    } else if (rootType == "recap") {
+        var recapContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelName: getElementValueOrNull("channelName"),
+            showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
+            channelRecapsUrl: getElementValueOrNull("channelRecapsUrl"),
+            currentSelection: getElementValueOrNull("currentSelection"),
+            channelShowLeaderboardUrl: getElementValueOrNull("channelShowLeaderboardUrl"),
+            usersUrl: getElementValueOrNull("usersUrl"),
+            showAPIUrl: getElementValueOrNull("showAPIUrl"),
+            showID: getElementValueOrNull("showID"),
+        };
+        rootComponents.push(<Recap key="1" recapContext={recapContext} />);
     }
 
     return (
