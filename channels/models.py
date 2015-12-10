@@ -40,6 +40,7 @@ class ChannelUser(models.Model):
     points = models.IntegerField(default=0, blank=True, null=True)
     suggestion_wins = models.IntegerField(default=0, blank=True, null=True)
     show_wins = models.IntegerField(default=0, blank=True, null=True)
+    email_opt_in = models.BooleanField(blank=False, default=False)
 
 class ChannelAdmin(models.Model):
     id = BoundedBigAutoField(primary_key=True)

@@ -3,8 +3,11 @@ from django.shortcuts import get_object_or_404
 from channels.models import ChannelAdmin, Channel, ChannelUser
 from leaderboards import service as leaderboards_service
 
-def channel_or_404(channel_name):
-    return get_object_or_404(Channel, name=channel_name)
+def channel_or_404(channel_key, channel_id=False):
+    if channel_id:
+        return get_object_or_404(Channel, id=channel_key)
+    else:
+        return get_object_or_404(Channel, name=channel_key)
 
 
 def check_is_channel_admin(channel_name, user_id):
@@ -43,3 +46,10 @@ def update_channel_user(channel_id, user_id):
     for key, value in cu_update.items():
         setattr(channel_user, key, value)
     channel_user.save()
+
+
+def fetch_channel_users(channel_id, leaderboard_sort=False):
+    channel_users = ChannelUser.objects.filter(channel=channel_id)
+    if leaderboard_sort:
+        channel_users = channel_users.order_by('-suggestion_wins', '-points')
+    return channel_users

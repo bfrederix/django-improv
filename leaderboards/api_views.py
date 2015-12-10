@@ -6,15 +6,14 @@ from leaderboards.models import LeaderboardEntry, Medal, LeaderboardSpan
 from leaderboards.serializers import (LeaderboardEntrySerializer, MedalSerializer,
                                       LeaderboardSerializer, LeaderboardSpanSerializer)
 from leaderboards import service as leaderboards_service
-from shows import service as shows_service
 from users import service as users_service
+from channels import service as channels_service
 from utilities.api import APIObject
 
 
 class LeaderboardEntryAPIObject(APIObject):
     field_list = ['id',
                   'user_id',
-                  'username',
                   'points',
                   'wins']
 
@@ -22,6 +21,24 @@ class LeaderboardEntryAPIObject(APIObject):
         super(LeaderboardEntryAPIObject, self).__init__(leaderboard_entry, **kwargs)
         self.show = leaderboard_entry.show.id
         self.channel_name = leaderboard_entry.channel.name
+        user_profile = users_service.fetch_user_profile(leaderboard_entry.user.id)
+        self.username = user_profile.safe_username
+        self.medals = [lem.medal.id for lem in leaderboards_service.fetch_medals_by_leaderboard_entry(leaderboard_entry)]
+
+
+
+class LeaderboardAPIObject(APIObject):
+    field_list = ['id',
+                  'points',
+                  'suggestion_wins',
+                  'show_wins']
+
+    def __init__(self, channel_user, **kwargs):
+        super(LeaderboardAPIObject, self).__init__(channel_user, **kwargs)
+        self.channel_name = channel_user.channel.name
+        user_profile = users_service.fetch_user_profile(channel_user.user.id)
+        self.user_id = channel_user.user.id
+        self.username = user_profile.safe_username
 
 
 class LeaderboardEntryViewSet(viewsets.ViewSet):
@@ -44,6 +61,8 @@ class LeaderboardEntryViewSet(viewsets.ViewSet):
         queryset = LeaderboardEntry.objects.filter(**kwargs)
         if order_by_show_date is not None:
             queryset = queryset.order_by('-show_date')
+        if show_id:
+            queryset = queryset.order_by('-wins', '-points')
         leaderboard_entry_list = [LeaderboardEntryAPIObject(item) for item in queryset]
         serializer = LeaderboardEntrySerializer(leaderboard_entry_list, many=True)
         return Response(serializer.data)
@@ -53,57 +72,22 @@ class LeaderboardViewSet(viewsets.ViewSet):
     API endpoint for show, channel, or combined leaderboards
     """
 
-    def fetch_leaderboard_list(self, queryset, show_id, page):
-        user_dict = {}
-        for entry in queryset:
-            user_dict.setdefault(entry.user_id, {})
-            user_profile = users_service.fetch_user_profile(entry.user.id)
-            user_dict[entry.user_id].setdefault('username', user_profile.safe_username)
-            user_dict[entry.user_id].setdefault('points', 0)
-            user_dict[entry.user_id].setdefault('wins', 0)
-            if show_id:
-                user_dict[entry.user_id].setdefault('suggestions', 0)
-                user_dict[entry.user_id].setdefault('medals', [])
-                medal_ids = [lem.medal.id for lem in leaderboards_service.fetch_medals_by_leaderboard_entry(entry.id)]
-                user_dict[entry.user_id]['medals'] = medal_ids
-                user_dict[entry.user_id]['suggestions'] = shows_service.fetch_suggestion_count_by_user(
-                                                            entry.user_id,
-                                                            show_id=show_id)
-            # Add the wins, points, medals, and suggestions for the user from this particular show
-            user_dict[entry.user_id]['points'] += entry.points
-            user_dict[entry.user_id]['wins'] += entry.wins
-        leaderboard_list = []
-        # Turn that dictionary into a list of dictionaries
-        for user_id, value_dict in user_dict.items():
-            user_data = {'user_id': user_id}
-            user_data.update(value_dict)
-            leaderboard_list.append(user_data)
-        # Sort the list by points
-        leaderboard_list = sorted(leaderboard_list, key=lambda k: k['points'], reverse=True)
-
+    def list(self, request):
+        channel_id = self.request.query_params.get('channel_id')
+        page = int(self.request.query_params.get('page', 1))
         offset = LEADERBOARD_MAX_PER_PAGE * (page - 1)
-
+        channel = channels_service.channel_or_404(channel_id, channel_id=True)
+        queryset = channels_service.fetch_channel_users(channel.id,
+                                                        leaderboard_sort=True)
         # Start from the page offset
         try:
-            return leaderboard_list[offset:offset+LEADERBOARD_MAX_PER_PAGE]
+            queryset = queryset[offset:offset+LEADERBOARD_MAX_PER_PAGE]
         except IndexError:
             try:
-                return leaderboard_list[offset:]
+                queryset = queryset[offset:]
             except IndexError:
-                return leaderboard_list
-
-
-    def list(self, request):
-        queryset = LeaderboardEntry.objects.all()
-
-        channel_id = self.request.query_params.get('channel_id')
-        show_id = self.request.query_params.get('show_id')
-        page = int(self.request.query_params.get('page', 1))
-        if channel_id:
-            queryset = queryset.filter(channel=channel_id)
-        if show_id:
-            queryset = queryset.filter(show=show_id)
-        leaderboard_list = self.fetch_leaderboard_list(queryset, show_id, page)
+                pass
+        leaderboard_list = [LeaderboardAPIObject(item) for item in queryset]
         serializer = LeaderboardSerializer(leaderboard_list, many=True)
         return Response(serializer.data)
 

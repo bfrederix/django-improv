@@ -24,7 +24,7 @@ from shows.models import (SuggestionPool, VoteType, Show, ShowVoteType,
                           ShowPlayer, ShowPlayerPool, Suggestion,
                           PreshowVote, LiveVote, ShowInterval,
                           VoteOptions, OptionList, VotedItem)
-from users.models import UserProfile, UserChannelEmailOptIn
+from users.models import UserProfile
 
 from channels.service import update_channel_user
 
@@ -166,9 +166,6 @@ class Command(BaseCommand):
                                     improvote_email_opt_in=True,
                                     channels_email_opt_in=True,
                                     created=entity['created'].replace(tzinfo=pytz.utc))
-                                # User email opt-in
-                                UserChannelEmailOptIn.objects.get_or_create(channel=channel,
-                                                                            user=user)
                                 # Adding a user to a channel
                                 ChannelUser.objects.get_or_create(channel=channel,
                                                                   user=user)
@@ -467,9 +464,10 @@ class Command(BaseCommand):
                             except ObjectDoesNotExist:
                                 pass
                             else:
-                                uc = UserChannelEmailOptIn.objects.get(user=up.user)
-                                uc.opt_in = False
-                                uc.save()
+                                cu = ChannelUser.objects.get(channel=channel,
+                                                             user=up.user)
+                                cu.email_opt_in = False
+                                cu.save()
                             counter['EmailOptOut'] += 1
                             self.stdout.write(str(counter['EmailOptOut']))
 

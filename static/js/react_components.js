@@ -158,7 +158,7 @@ var Medal = React.createClass({
   },
   componentDidMount: function() {
     // Get the medal data for the given key
-    var medalUrl = this.props.userAccountContext.medalListAPIUrl + this.props.medalID + "/";
+    var medalUrl = this.props.medalListAPIUrl + this.props.medalID + "/";
     $.ajax({
       url: medalUrl,
       dataType: 'json',
@@ -357,7 +357,7 @@ var MedalRows = React.createClass({
         var medalID = this.props.medals[i];
         medalList.push(<Medal key={i}
                               medalID={medalID}
-                              userAccountContext={this.props.userAccountContext} />);
+                              medalListAPIUrl={this.props.userAccountContext.medalListAPIUrl} />);
         var currentNum = i+1;
         // Push the row and reset the current medal list every 5 medals
         if (currentNum % 5 == 0) {
@@ -536,8 +536,9 @@ var ChannelLeaderboardTable = React.createClass({
         tableList.push(<tr key={this.counter}>
                             <td>{rank}</td>
                             <td><a href={userUrl}>{leaderboardUser.username}</a></td>
+                            <td>{leaderboardUser.suggestion_wins}</td>
                             <td>{leaderboardUser.points}</td>
-                            <td>{leaderboardUser.wins}</td>
+                            <td>{leaderboardUser.show_wins}</td>
                        </tr>);
         return tableList;
     }, this);
@@ -548,8 +549,9 @@ var ChannelLeaderboardTable = React.createClass({
                     <tr>
                         <th>Rank</th>
                         <th>Username</th>
+                        <th>Suggestion Wins</th>
                         <th>Points</th>
-                        <th>Winning Suggestions</th>
+                        <th>Show Wins</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -562,6 +564,82 @@ var ChannelLeaderboardTable = React.createClass({
     );
   }
 });
+
+
+var ShowLeaderboardTable = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.leaderboardContext.leaderboardEntryAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data){
+        return (<div className="table-responsive">
+                    <table className="table table-condensed black-font">
+                        <tbody><tr><td>
+                            <Loading loadingBarColor="#fff"/>
+                        </td></tr></tbody>
+                    </table>
+                </div>);
+    }
+    var tableList = [];
+    this.counter = 0;
+    this.startCount = this.props.leaderboardContext.maxPerPage * (this.props.leaderboardContext.page - 1);
+
+    // Create the suggestion list
+    this.state.data.map(function (leaderboardUser) {
+        this.counter++;
+        var rank = this.counter + this.startCount;
+        var userUrl = this.props.leaderboardContext.usersUrl + leaderboardUser.user_id + "/?channel_name=" + this.props.leaderboardContext.channelName;
+        var medalList = [];
+        // Go through all the medal keys
+        for (var i = 0; i < leaderboardUser.medals.length; i++) {
+            var medalID = leaderboardUser.medals[i];
+            medalList.push(<Medal key={i}
+                                  medalID={medalID}
+                                  medalListAPIUrl={this.props.leaderboardContext.medalListAPIUrl} />);
+        }
+        tableList.push(<tr key={this.counter}>
+                            <td>{rank}</td>
+                            <td><a href={userUrl}>{leaderboardUser.username}</a></td>
+                            <td>{leaderboardUser.wins}</td>
+                            <td>{leaderboardUser.points}</td>
+                            <td>{medalList}</td>
+                       </tr>);
+        return tableList;
+    }, this);
+    return (
+        <div className="table-responsive">
+            <br/>
+            <table className="table table-condensed large-font">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Suggestion Wins</th>
+                        <th>Points</th>
+                        <th>Medals</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tableList}
+                </tbody>
+            </table>
+        </div>
+    );
+  }
+});
+
 
 var UserShowStatsTableBody = React.createClass({
   getInitialState: function() {
@@ -897,6 +975,7 @@ var RootComponent = React.createClass({
             maxPages: getElementValueOrNull("maxPages"),
             channelLeaderboardAPIUrl: getElementValueOrNull("channelLeaderboardAPIUrl"),
             channelShowRecapUrl: getElementValueOrNull("channelShowRecapUrl"),
+            leaderboardEntryAPIUrl: getElementValueOrNull("leaderboardEntryAPIUrl"),
             leaderboardSpanAPIUrl: getElementValueOrNull("leaderboardSpanAPIUrl"),
             medalListAPIUrl: getElementValueOrNull("medalListAPIUrl"),
             channelLeaderboardUrl: getElementValueOrNull("channelLeaderboardUrl"),

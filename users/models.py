@@ -35,11 +35,3 @@ class UserProfile(models.Model):
             return self.username.split('@')[0]
         except IndexError:
             return self.username
-
-
-class UserChannelEmailOptIn(models.Model):
-    id = BoundedBigAutoField(primary_key=True)
-    channel = FlexibleForeignKey("channels.Channel", blank=False)
-    # Django user
-    user = models.ForeignKey(User)
-    opt_in = models.BooleanField(blank=False, default=False)
