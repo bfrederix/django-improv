@@ -98,20 +98,28 @@ var Panel = React.createClass({
     var panelWidth = "col-md-"+this.props.panelWidth;
     var panelOffset = "col-md-offset-"+this.props.panelOffset;
     var colClasses = 'col ' + panelWidth + ' ' + panelOffset;
-    var panelC = "panel";
-    var panelColor = "panel-"+ this.props.panelColor;
-    var panelClasses = 'panel ' + panelC + ' ' + panelColor;
+    var panelClasses = 'panel panel-' + this.props.panelColor;
+    var panelComponents = [];
+    if (this.props.panelHeadingContent) {
+        panelComponents.push(<PanelHeader key="1"
+                                          panelHeadingClasses={this.props.panelHeadingClasses}
+                                          panelHeadingContent={this.props.panelHeadingContent} />);
+    }
+    if (this.props.bodyContent) {
+        panelComponents.push(<PanelBody key="2"
+                                        panelBodyClasses={this.props.panelBodyClasses}
+                                        bodyContent={this.props.bodyContent} />);
+    }
+    if (this.props.footerContent) {
+        panelComponents.push(<PanelFooter key="3"
+                                          panelFooterClasses={this.props.panelFooterClasses}
+                                          footerContent={this.props.footerContent} />);
+    }
     return (
       <div className="row">
         <div className={colClasses}>
           <div className={panelClasses}>
-              <PanelHeader panelHeadingClasses={this.props.panelHeadingClasses}
-                           panelHeadingContent={this.props.panelHeadingContent} />
-              <PanelBody panelBodyClasses={this.props.panelBodyClasses}
-                         tableClasses={this.props.tableClasses}
-                         contentType={this.props.contentType}
-                         showStats={this.props.showStats}
-                         userAccountContext={this.props.userAccountContext} />
+            {panelComponents}
           </div>
         </div>
       </div>
@@ -121,9 +129,7 @@ var Panel = React.createClass({
 
 var PanelHeader = React.createClass({
   render: function() {
-    var ppanelHeadingClasses = this.props.panelHeadingClasses;
-    var panelHeading = "panel-heading";
-    var panelHeaderClasses = 'panel-header ' + panelHeading + ' ' + ppanelHeadingClasses;
+    var panelHeaderClasses = 'panel-heading ' + this.props.panelHeadingClasses;
     return (
       <div className={panelHeaderClasses}>{this.props.panelHeadingContent}</div>
     );
@@ -132,21 +138,21 @@ var PanelHeader = React.createClass({
 
 var PanelBody = React.createClass({
   render: function() {
-    var ppanelBodyClasses = this.props.panelBodyClasses;
-    var panelBody = "panel-body";
-    var panelBodyClasses = 'panel-body ' + panelBody + ' ' + ppanelBodyClasses;
-    // Decide what content to show in the panel body
-    var bodyContent;
-    if (this.props.contentType == "user-stats-table") {
-        bodyContent = <UserStatsTableBody tableClasses={this.props.tableClasses}
-                                          userAccountContext={this.props.userAccountContext} />;
-    } else if (this.props.contentType == "user-show-stats") {
-        bodyContent = <UserShowStatsPanelBody showStats={this.props.showStats}
-                                              userAccountContext={this.props.userAccountContext} />;
-    }
+    var panelBodyClasses = 'panel-body ' + this.props.panelBodyClasses;
     return (
       <div className={panelBodyClasses}>
-        {bodyContent}
+        {this.props.bodyContent}
+      </div>
+    );
+  }
+});
+
+var PanelFooter = React.createClass({
+  render: function() {
+    var panelFooterClasses = 'panel-footer ' + this.props.panelFooterClasses;
+    return (
+      <div className={panelFooterClasses}>
+        {this.props.footerContent}
       </div>
     );
   }
@@ -461,14 +467,14 @@ var UserShowStats = React.createClass({
         return (<Loading />);
     }
     var showDateFormatted = showDateFormat(this.state.data.created);
+    var bodyContent = <UserShowStatsPanelBody showStats={this.props.showStats}
+                                              userAccountContext={this.props.userAccountContext} />;
     return (
       <Panel panelWidth="6" panelOffset="3" panelColor="primary"
              panelHeadingContent={showDateFormatted} panelHeadingClasses="x-large-font"
              panelBodyClasses="large-font black-font"
              tableClasses="table-condensed black-font"
-             contentType="user-show-stats"
-             showStats={this.props.showStats}
-             userAccountContext={this.props.userAccountContext} />
+             bodyContent={bodyContent} />
     );
   }
 });
@@ -708,6 +714,94 @@ var UserShowStatsTableBody = React.createClass({
   }
 });
 
+var ShowRecapPanels = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.recapContext.showRecapAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data){
+        return (<div>
+                    <Loading loadingBarColor="#fff"/>
+                </div>);
+    }
+    var panelList = [];
+    var starImgSrc = this.props.recapContext.imageBaseUrl + "star-sprite.png";
+    this.counter = 0;
+    panelList.push(<br key="br-1" />);
+    // Create the suggestion list
+    this.state.data.map(function (recapItem) {
+        this.counter++;
+        var bodyContent = [];
+        var footerContent = [];
+        if (recapItem.player) {
+            bodyContent.push(<div key="1" className="text-center recap-adjusted-img">
+                                 <img src="/static/img/players/freddy.jpg" className="img-responsive img-thumbnail" />
+                             </div>);
+        }
+        if (recapItem.options) {
+            footerContent = [];
+
+            var suggestionList = []
+            for (var i = 0; i < recapItem.options.length; i++) {
+                var suggestion = recapItem.options[i];
+                var buttonClass = "btn-primary";
+                var starImage = "";
+                var user;
+                if (recapItem.winning_suggestion == suggestion.suggestion_id) {
+                    buttonClass = "btn-danger";
+                    starImage = <img src={starImgSrc} />;
+                }
+                if (suggestion.user_id) {
+                    var userUrl = this.props.recapContext.usersUrl + suggestion.user_id + "/?channel_name=" + this.props.recapContext.channelName;
+                    user = <a href={userUrl} className="recap-user-link">{suggestion.username}</a>;
+                }
+                else {
+                    user = "Anonymous";
+                }
+                var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option";
+                var suggestionCount = i + 1;
+                suggestionList.push(<div key={i} id={suggestion.id} className={suggestionClass}>
+                                         {suggestionCount}. {suggestion.suggestion}{starImage}
+                                         <br/>
+                                         Submitted by: {user}
+                                    </div>)
+            }
+            footerContent.push(<div key="1" className="row">
+                                   <div className="col-sm-12">
+                                       {suggestionList}
+                                   </div>
+                               </div>)
+        }
+
+        var brCounter = this.counter + 'br';
+        panelList.push(<Panel key={this.counter}
+                              panelWidth="6" panelOffset="3" panelColor="success"
+                              panelHeadingContent={recapItem.vote_type} panelHeadingClasses="x-large-font"
+                              panelBodyClasses="large-font black-font"
+                              bodyContent={bodyContent}
+                              panelFooterClasses="black-background"
+                              footerContent={footerContent} />);
+        return panelList;
+    }, this);
+
+    return (
+        <div>{panelList}</div>
+    );
+  }
+});
+
 var ShowDisplay = React.createClass({
   getInitialState: function() {
     // Hide the nav bar
@@ -868,15 +962,17 @@ var UserStats = React.createClass({
           return showList;
         }, this);
     }
+    var bodyContent = [];
+    bodyContent.push(<UserStatsTableBody key="1"
+                                         tableClasses="table-condensed black-font"
+                                         userAccountContext={this.props.userAccountContext} />);
     return (
       <div className="row">
       <br/>
       <Panel panelWidth="6" panelOffset="3" panelColor="danger"
              panelHeadingContent="User Account" panelHeadingClasses="x-large-font"
              panelBodyClasses="large-font black-font"
-             tableClasses="table-condensed black-font"
-             contentType="user-stats-table"
-             userAccountContext={this.props.userAccountContext} />
+             bodyContent={bodyContent} />
       {showList}</div>
     );
   }
@@ -988,7 +1084,8 @@ var Recap = React.createClass({
                                         buttonColor="danger"
                                         buttonLink={this.props.recapContext.channelShowLeaderboardUrl} />);
         // Recap panels
-
+        recapComponents.push(<ShowRecapPanels key="4"
+                                              recapContext={this.props.recapContext} />)
     }
     else {
         recapComponents.push(<BigButtonDropdown key="1"
@@ -1045,10 +1142,12 @@ var RootComponent = React.createClass({
         var recapContext = {
             channelID: getElementValueOrNull("channelID"),
             channelName: getElementValueOrNull("channelName"),
+            imageBaseUrl: getElementValueOrNull("imageBaseUrl"),
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
             channelRecapsUrl: getElementValueOrNull("channelRecapsUrl"),
             currentSelection: getElementValueOrNull("currentSelection"),
             channelShowLeaderboardUrl: getElementValueOrNull("channelShowLeaderboardUrl"),
+            showRecapAPIUrl: getElementValueOrNull("showRecapAPIUrl"),
             usersUrl: getElementValueOrNull("usersUrl"),
             showAPIUrl: getElementValueOrNull("showAPIUrl"),
             showID: getElementValueOrNull("showID"),

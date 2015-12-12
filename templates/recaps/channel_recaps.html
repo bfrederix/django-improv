@@ -11,6 +11,7 @@
     <input type="hidden" id="rootType" name="rootType" value="recap" readonly>
     <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
     <input type="hidden" id="channelName" name="channelName" value="{{channel.name}}" readonly>
+    <input type="hidden" id="imageBaseUrl" name="imageBaseUrl" value="{{IMAGE_URL}}" readonly>
     <input type="hidden" id="showListAPIUrl" name="showListAPIUrl"
                value="{% url "show-list" %}?order_by_date=True" readonly>
     <input type="hidden" id="channelRecapsUrl" name="channelRecapsUrl"
@@ -19,6 +20,8 @@
         <input type="hidden" id="currentSelection" name="currentSelection" value="{{show.created|date:"l N jS, Y"}}" readonly>
         <input type="hidden" id="channelShowLeaderboardUrl" name="channelShowLeaderboardUrl"
                value="{% url "channel_show_leaderboards" channel.name show.id %}" readonly>
+        <input type="hidden" id="showRecapAPIUrl" name="showRecapAPIUrl"
+               value="{% url "recap-detail" show.id %}" readonly>
         <input type="hidden" id="usersUrl" name="usersUrl"
                value="/users/" readonly>
         <input type="hidden" id="showAPIUrl" name="showAPIUrl"

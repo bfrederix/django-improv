@@ -55,7 +55,7 @@ class UserAccountView(View):
                       {'user_account_page': True,
                        'form': form,
                        'form2': form2,
-                       'user_profile': user_profile,
+                       'page_user_profile': user_profile,
                        'channel': channel})
 
     def form_invalid(self, **kwargs):

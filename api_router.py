@@ -5,6 +5,7 @@ from users import api_views as users_api_views
 from shows import api_views as shows_api_views
 from channels import api_views as channels_api_views
 from leaderboards import api_views as leaderboards_api_views
+from recaps import api_views as recaps_api_views
 
 
 router = routers.DefaultRouter()
@@ -37,6 +38,11 @@ router.register(r'leaderboard_entry',
 router.register(r'leaderboard',
                 leaderboards_api_views.LeaderboardViewSet,
                 'leaderboard')
+
+# Recaps
+router.register(r'recap',
+                recaps_api_views.RecapViewSet,
+                'recap')
 
 # Leaderboard Spans
 router.register(r'leaderboard_span',

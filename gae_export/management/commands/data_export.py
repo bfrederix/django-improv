@@ -23,7 +23,7 @@ from players.models import Player
 from shows.models import (SuggestionPool, VoteType, Show, ShowVoteType,
                           ShowPlayer, ShowPlayerPool, Suggestion,
                           PreshowVote, LiveVote, ShowInterval,
-                          VoteOptions, OptionList, VotedItem)
+                          VoteOptions, OptionSuggestion, VotedItem)
 from users.models import UserProfile
 
 from channels.service import update_channel_user
@@ -106,7 +106,7 @@ class Command(BaseCommand):
                    'VoteOptions': 0,
                    'VotedItem': 0,
                    'EmailOptOut': 0,
-                   'OptionList': 0,
+                   'OptionSuggestion': 0,
                    'ShowVoteType': 0,
                    'ShowPlayer': 0,
                    'ShowPlayerPool': 0,
@@ -432,7 +432,7 @@ class Command(BaseCommand):
                             self.stdout.write(str(counter['VoteOptions']))
                             for option in entity['option_list']:
                                 try:
-                                    OptionList.objects.get_or_create(
+                                    OptionSuggestion.objects.get_or_create(
                                           vote_option_id=entity.key().id(),
                                           suggestion_id=option.id())
                                 except IntegrityError, e:
@@ -440,8 +440,8 @@ class Command(BaseCommand):
                                        not 'not present in table "shows_voteoptions"' in str(e) and \
                                        not 'duplicate' in str(e):
                                         raise IntegrityError(e)
-                                counter['OptionList'] += 1
-                                self.stdout.write(str(counter['OptionList']))
+                                counter['OptionSuggestion'] += 1
+                                self.stdout.write(str(counter['OptionSuggestion']))
                         if model_name == 'VotedItem' and model_to_import == 'VotedItem':
                             try:
                                 VotedItem.objects.get_or_create(

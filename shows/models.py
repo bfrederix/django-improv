@@ -203,8 +203,7 @@ class VoteOptions(models.Model):
     # Perhaps fetch all suggestions by vote option here
 
 
-# Doing this as a Many to Many so I can use BigInts
-class OptionList(models.Model):
+class OptionSuggestion(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     suggestion = FlexibleForeignKey("Suggestion", blank=False)
     vote_option = FlexibleForeignKey("VoteOptions", blank=False)

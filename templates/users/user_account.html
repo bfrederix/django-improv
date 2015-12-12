@@ -2,7 +2,7 @@
 
 {% block user-account-selected %}class="active"{% endblock %}
 
-{% block title %}{{user_profile.username}}'s User Account{% endblock %}
+{% block title %}{{page_user_profile.safe_username}}'s User Account{% endblock %}
 
 {% block content %}
     <section><div id="container-fluid" class="container-fluid"></div></section>
@@ -16,12 +16,12 @@
     <input type="hidden" id="imageBaseUrl" name="imageBaseUrl" value="{{IMAGE_URL}}" readonly>
     <input type="hidden" id="medalListAPIUrl" name="medalListAPIUrl"
            value="{% url "medal-list" %}" readonly>
-    {% if user_profile %}
-        <input type="hidden" id="userProfileID" name="userProfileID" value="{{user_profile.user_id}}" readonly>
+    {% if page_user_profile %}
+        <input type="hidden" id="userProfileID" name="userProfileID" value="{{page_user_profile.user_id}}" readonly>
         <input type="hidden" id="leaderboardStatsAPIUrl" name="leaderboardStatsAPIUrl"
-               value="{% url "leaderboard-entry-list" %}?user_id={{user_profile.user_id}}&order_by_show_date=True" readonly>
+               value="{% url "leaderboard-entry-list" %}?user_id={{page_user_profile.user_id}}&order_by_show_date=True" readonly>
         <input type="hidden" id="userStatsAPIUrl" name="userStatsAPIUrl"
-               value="{% url "user-detail" user_profile.user_id %}" readonly>
+               value="{% url "user-detail" page_user_profile.user_id %}" readonly>
     {% endif %}
     {% if request.user.is_authenticated %}
         <input type="hidden" id="requestUserID" name="requestUserID" value="{{request.user.id}}" readonly>
