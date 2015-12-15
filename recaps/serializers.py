@@ -14,7 +14,7 @@ class OptionSuggestionSerializer(serializers.Serializer):
 
 
 class RecapSerializer(serializers.Serializer):
-    options = OptionSuggestionSerializer(many=True, read_only=True, required=False)
+    options_id = serializers.IntegerField()
     vote_type = serializers.CharField()
     player = serializers.IntegerField(required=False)
     winning_suggestion = serializers.IntegerField(required=False)

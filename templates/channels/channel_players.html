@@ -1,0 +1,29 @@
+{% extends "channels/channel_base.html" %}
+
+{% block admin-selected %} active{% endblock %}
+{% block add-player-selected %}class="active"{% endblock %}
+
+{% block title %}Improvote: {{channel.display_name}}'s Add/Edit Players{% endblock %}
+
+{% block content %}
+    <div id="container-fluid" class="container-fluid"></div>
+    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+
+    <input type="hidden" id="rootType" name="rootType" value="add_player" readonly>
+    <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
+    <input type="hidden" id="channelName" name="channelName" value="{{channel.name}}" readonly>
+	<input type="hidden" id="playerAPIUrl" name="playerAPIUrl"
+           value="{% url "player-list" %}" readonly>
+    <input type="hidden" id="playerListAPIUrl" name="playerListAPIUrl"
+           value="{% url "player-list" %}?channel_id={{channel.id}}&sort_by_active=True" readonly>
+    <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
+               value="{% url "channel_players" channel.name %}" readonly>
+	{% if action %}
+		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
+	{% endif %}
+
+{% endblock %}
+
+{% block add_react %}
+    {% include "embedded_utils/react_src.html" %}
+{% endblock %}

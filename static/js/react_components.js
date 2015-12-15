@@ -93,6 +93,49 @@ var Pagination = React.createClass({
   }
 });
 
+var Label = React.createClass({
+  render: function() {
+    var labelClasses = "label label-" + this.props.labelColor;
+    if (this.props.extraClasses) {
+        labelClasses = labelClasses + " " + this.props.extraClasses;
+    }
+    return (
+        <span className={labelClasses}>{this.props.labelContents}</span>
+    );
+  }
+});
+
+var Form = React.createClass({
+  render: function() {
+    var formClass = "form-" + this.props.formStyle;
+    return (
+      <form className={formClass} role="form" action={this.props.formSubmitUrl} method="post">
+        {this.props.formContents}
+      </form>
+    );
+  }
+});
+
+var FormGroup = React.createClass({
+  render: function() {
+    var labelClasses = "col-md-" + this.props.labelSize + " control-label";
+    var inputSize = "col-md-" + this.props.inputSize;
+    var helpBlock;
+    if (this.props.helpBlock) {
+        helpBlock = <span className="help-block">{this.props.helpBlock}</span>;
+    }
+    return (
+        <div className="form-group">
+            <label className={labelClasses}>{this.props.labelContents}</label>
+            <div className={inputSize}>
+                {this.props.input}
+                {helpBlock}
+            </div>
+        </div>
+    );
+  }
+});
+
 var Panel = React.createClass({
   render: function() {
     var panelWidth = "col-md-"+this.props.panelWidth;
@@ -498,8 +541,8 @@ var UserShowStatsPanelBody = React.createClass({
                                                   showID={showID}
                                                   showStats={this.props.showStats} />);
         statElements.push(<div key="7" className="row"><div className="col-md-12"><img src={starImgSrc} /> = Winning Suggestion</div></div>);
-        statElements.push(<div key="8" className="row"><div className="col-md-12"><span className="label label-info">&nbsp;&nbsp;</span> = Appeared in Voting</div></div>);
-        statElements.push(<div key="9" className="row"><div className="col-md-12"><span className="label label-default light-gray-bg">&nbsp;&nbsp;</span> = Not Voted on</div></div>);
+        statElements.push(<div key="8" className="row"><div className="col-md-12"><Label labelColor="info" labelContents="&nbsp;&nbsp;" /> = Appeared in Voting</div></div>);
+        statElements.push(<div key="9" className="row"><div className="col-md-12"><Label labelColor="info" extraClasses="light-gray-bg" labelContents="&nbsp;&nbsp;" /> = Not Voted on</div></div>);
     }
 
     return (
@@ -694,14 +737,14 @@ var UserShowStatsTableBody = React.createClass({
         } else {
             suggestionClass = "active";
         }
+        var suggestionUrl = "/" + this.props.showStats.channel_name + "/recaps/show/" + showID + "/#" + suggestion.id;
         // If the suggestion was voted on during the show
-        if (suggestion.voted_on === true) {
-            suggestionDisplay = <a href={suggestionUrl}>{suggestion.value}{starIMG}</a>;
+        if (suggestion.used === true) {
+            suggestionDisplay = <td className={suggestionClass}>{suggestion.value}{starIMG}</td>;
         } else {
-            suggestionDisplay = suggestion.value;
+            suggestionDisplay = <td className={suggestionClass}>{suggestion.value}</td>;
         }
-        var suggestionUrl = "/recap/" + showID + "/#" + suggestion.id;
-        suggestionList.push(<tr key={this.counter}><td className={suggestionClass}>{suggestionDisplay}</td></tr>);
+        suggestionList.push(<tr key={this.counter}>{suggestionDisplay}</tr>);
         return suggestionList;
     }, this);
     return (
@@ -709,6 +752,67 @@ var UserShowStatsTableBody = React.createClass({
             <table className="table table-condensed black-font">
                 <tbody>{suggestionList}</tbody>
             </table>
+        </div>
+    );
+  }
+});
+
+var ShowRecapPanelOptions = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    var recapOptionsUrl = this.props.recapContext.voteOptionAPIUrl + this.props.optionsID + "/";
+    $.ajax({
+      url: recapOptionsUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data){
+        return (<div>
+                    <Loading loadingBarColor="#fff"/>
+                </div>);
+    }
+    var starImgSrc = this.props.recapContext.imageBaseUrl + "star-sprite.png";
+
+    var suggestionList = []
+    for (var i = 0; i < this.state.data.length; i++) {
+        var suggestion = this.state.data[i];
+        var buttonClass = "btn-primary";
+        var starImage = "";
+        var user;
+        if (this.props.winningSuggestion == suggestion.suggestion_id) {
+            buttonClass = "btn-danger";
+            starImage = <img src={starImgSrc} />;
+        }
+        if (suggestion.user_id) {
+            var userUrl = this.props.recapContext.usersUrl + suggestion.user_id + "/?channel_name=" + this.props.recapContext.channelName;
+            user = <a href={userUrl} className="recap-user-link">{suggestion.username}</a>;
+        }
+        else {
+            user = "Anonymous";
+        }
+        var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option";
+        var suggestionCount = i + 1;
+        suggestionList.push(<div key={i} id={suggestion.id} className={suggestionClass}>
+                                 {suggestionCount}. {suggestion.suggestion}{starImage}
+                                 <br/>
+                                 Submitted by: {user}
+                            </div>)
+    }
+
+    return (
+        <div key="1" className="row">
+            <div className="col-sm-12">
+                {suggestionList}
+            </div>
         </div>
     );
   }
@@ -737,57 +841,27 @@ var ShowRecapPanels = React.createClass({
                 </div>);
     }
     var panelList = [];
-    var starImgSrc = this.props.recapContext.imageBaseUrl + "star-sprite.png";
     this.counter = 0;
     panelList.push(<br key="br-1" />);
     // Create the suggestion list
     this.state.data.map(function (recapItem) {
         this.counter++;
         var bodyContent = [];
-        var footerContent = [];
+        var footerContent;
         if (recapItem.player) {
             bodyContent.push(<div key="1" className="text-center recap-adjusted-img">
                                  <img src="/static/img/players/freddy.jpg" className="img-responsive img-thumbnail" />
                              </div>);
         }
-        if (recapItem.options) {
-            footerContent = [];
-
-            var suggestionList = []
-            for (var i = 0; i < recapItem.options.length; i++) {
-                var suggestion = recapItem.options[i];
-                var buttonClass = "btn-primary";
-                var starImage = "";
-                var user;
-                if (recapItem.winning_suggestion == suggestion.suggestion_id) {
-                    buttonClass = "btn-danger";
-                    starImage = <img src={starImgSrc} />;
-                }
-                if (suggestion.user_id) {
-                    var userUrl = this.props.recapContext.usersUrl + suggestion.user_id + "/?channel_name=" + this.props.recapContext.channelName;
-                    user = <a href={userUrl} className="recap-user-link">{suggestion.username}</a>;
-                }
-                else {
-                    user = "Anonymous";
-                }
-                var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option";
-                var suggestionCount = i + 1;
-                suggestionList.push(<div key={i} id={suggestion.id} className={suggestionClass}>
-                                         {suggestionCount}. {suggestion.suggestion}{starImage}
-                                         <br/>
-                                         Submitted by: {user}
-                                    </div>)
-            }
-            footerContent.push(<div key="1" className="row">
-                                   <div className="col-sm-12">
-                                       {suggestionList}
-                                   </div>
-                               </div>)
+        if (recapItem.options_id) {
+            footerContent = <ShowRecapPanelOptions recapContext={this.props.recapContext}
+                                                   winningSuggestion={recapItem.winning_suggestion}
+                                                   optionsID={recapItem.options_id} />;
         }
 
         var brCounter = this.counter + 'br';
         panelList.push(<Panel key={this.counter}
-                              panelWidth="6" panelOffset="3" panelColor="success"
+                              panelWidth="6" panelOffset="3" panelColor="info"
                               panelHeadingContent={recapItem.vote_type} panelHeadingClasses="x-large-font"
                               panelBodyClasses="large-font black-font"
                               bodyContent={bodyContent}
@@ -798,6 +872,46 @@ var ShowRecapPanels = React.createClass({
 
     return (
         <div>{panelList}</div>
+    );
+  }
+});
+
+var PlayerDropDownSelect = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.playerListAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    var optionList = [];
+    if (!this.state.data){
+        return (<div>
+                    <Loading loadingBarColor="#fff"/>
+                </div>);
+    }
+    this.counter = 0;
+    optionList.push(<option key="0" value="">Select a Player to Edit</option>);
+    // Create the suggestion list
+    this.state.data.map(function (player) {
+        this.counter++;
+        optionList.push(<option key={this.counter} value={player.id}>{player.name}</option>);
+        return optionList;
+    }, this);
+
+    return (
+        <select className="form-control" id="player" onChange={this.props.handleEditPlayer} defaultValue={this.props.defaultPlayer}>
+            {optionList}
+        </select>
     );
   }
 });
@@ -979,29 +1093,6 @@ var UserStats = React.createClass({
 });
 
 var Leaderboard = React.createClass({
-  getInitialState: function() {
-    return {data: []};
-  },
-  componentDidMount: function() {
-    var leaderboardUrl;
-    if (this.props.leaderboardContext.contentType == "channel-leaderboard") {
-        // Get the api leaderboard url for the whole channel
-        leaderboardUrl = this.props.leaderboardContext.channelLeaderboardAPIUrl;
-    } else if (this.props.leaderboardContext.contentType == "show-leaderboard") {
-        // Get the api leaderboard url for the show
-        leaderboardUrl = this.props.leaderboardContext.channelLeaderboardAPIUrl;
-    }
-    $.ajax({
-      url: leaderboardUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
   render: function() {
     var leaderboardComponents = [];
     var showID = this.props.leaderboardContext.showID;
@@ -1049,24 +1140,6 @@ var Leaderboard = React.createClass({
 });
 
 var Recap = React.createClass({
-  getInitialState: function() {
-    return {data: []};
-  },
-  componentDidMount: function() {
-    // If a show has been selected
-    if (this.props.recapContext.showID) {
-        $.ajax({
-          url: this.props.recapContext.showAPIUrl,
-          dataType: 'json',
-          success: function(data) {
-            this.setState({data: data});
-          }.bind(this),
-          error: function(xhr, status, err) {
-            console.error(this.props.url, status, err.toString());
-          }.bind(this)
-        });
-    }
-  },
   render: function() {
     var recapComponents = [];
     var showID = this.props.recapContext.showID;
@@ -1098,6 +1171,138 @@ var Recap = React.createClass({
     return (
       <div>{recapComponents}</div>
     );
+  }
+});
+
+var PlayerForm = React.createClass({
+  render: function() {
+    var name = "";
+    var photoUrl = "";
+    var active = true;
+    var star = false;
+    var editPlayerID;
+    if (this.props.defaults) {
+        editPlayerID = this.props.defaults.id;
+        name = this.props.defaults.name;
+        photoUrl = this.props.defaults.photo_url;
+        active = this.props.defaults.active;
+        star = this.props.defaults.star;
+    }
+    var action;
+    if (this.props.addPlayerContext.action) {
+        var labelContents = "Player " + this.props.addPlayerContext.action + " Successfully!";
+        action = <div className="row">
+                    <div className="col-md-6 col-md-offset-3">
+                        <Label labelColor="primary"
+                               extraClasses="x-large-font"
+                               labelContents={labelContents} />
+                        <br />
+                    </div>
+                 </div>;
+    }
+    var formContents = [];
+    // Player Name Input
+    var playerNameInput = <input type="text" className="form-control" name="player_name" defaultValue={name}></input>;
+    formContents.push(<FormGroup key="1"
+                                 labelSize="2"
+                                 labelContents="Player Name:"
+                                 inputSize="4"
+                                 input={playerNameInput}/>);
+    // Player Photo Input
+    var playerPhotoInput = <input type="text" className="form-control" name="photo_url" defaultValue={photoUrl}></input>;
+    formContents.push(<FormGroup key="2"
+                                 labelSize="2"
+                                 labelContents="Player Photo Url:"
+                                 inputSize="4"
+                                 input={playerPhotoInput}/>);
+    // Active Input
+    var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={active}></input>;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Player Active:"
+                                 inputSize="4"
+                                 input={activeInput}
+                                 helpBlock="Check this if the player should appear in the Create Show form" />);
+    // Star Input
+    var starInput = <input type="checkbox" name="star" value="1" defaultChecked={star}></input>;
+    formContents.push(<FormGroup key="4"
+                                 labelSize="2"
+                                 labelContents="Star Player:"
+                                 inputSize="4"
+                                 input={starInput}
+                                 helpBlock="Check this if the player should be prioritized first in shows" />);
+    // Submit Button
+    var submitButton = <button type="submit" className="btn btn-default">Create/Edit Player</button>;
+    formContents.push(<FormGroup key="5"
+                                 inputSize="2"
+                                 input={submitButton} />);
+    // Edit Player Dropdown Input
+    var playerEditInput = <PlayerDropDownSelect playerListAPIUrl={this.props.addPlayerContext.playerListAPIUrl}
+                                                handleEditPlayer={this.props.handleEditPlayer}
+                                                defaultPlayer={editPlayerID} />;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Edit Player:"
+                                 inputSize="4"
+                                 input={playerEditInput}
+                                 helpBlock="Select a player if you wish to edit them" />);
+    var bodyContent = <Form formStyle="horizontal"
+                            formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
+                            formContents={formContents} />
+    return (
+        <div>
+            {action}
+            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+                   panelHeadingContent="Create/Edit Player" panelHeadingClasses="x-large-font"
+                   panelBodyClasses="white-background"
+                   bodyContent={bodyContent} />
+        </div>
+    );
+  }
+});
+
+
+var AddPlayer = React.createClass({
+  getInitialState: function() {
+    return {data: undefined,
+            editPlayerID: undefined};
+  },
+  componentDidMount: function() {
+    // If a show has been selected
+    if (this.state.editPlayerID) {
+        var playerAPIUrl = this.props.addPlayerContext.playerAPIUrl + this.state.editPlayerID + "/";
+        $.ajax({
+          url: playerAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  handleEditPlayer: function(event) {
+      this.setState({editPlayerID: event.target.value}, function() {
+          this.componentDidMount();
+      });
+  },
+  render: function() {
+    console.log(this.state.data);
+    if (this.state.data) {
+        return (
+            <PlayerForm key={this.state.data.id}
+                        defaults={this.state.data}
+                        addPlayerContext={this.props.addPlayerContext}
+                        handleEditPlayer={this.handleEditPlayer} />
+        );
+    } else{
+        return (
+            <PlayerForm addPlayerContext={this.props.addPlayerContext}
+                        handleEditPlayer={this.handleEditPlayer} />
+        );
+    }
   }
 });
 
@@ -1144,6 +1349,7 @@ var RootComponent = React.createClass({
             channelName: getElementValueOrNull("channelName"),
             imageBaseUrl: getElementValueOrNull("imageBaseUrl"),
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
+            voteOptionAPIUrl: getElementValueOrNull("voteOptionAPIUrl"),
             channelRecapsUrl: getElementValueOrNull("channelRecapsUrl"),
             currentSelection: getElementValueOrNull("currentSelection"),
             channelShowLeaderboardUrl: getElementValueOrNull("channelShowLeaderboardUrl"),
@@ -1153,6 +1359,16 @@ var RootComponent = React.createClass({
             showID: getElementValueOrNull("showID"),
         };
         rootComponents.push(<Recap key="1" recapContext={recapContext} />);
+    } else if (rootType == "add_player") {
+        var addPlayerContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelName: getElementValueOrNull("channelName"),
+            playerAPIUrl: getElementValueOrNull("playerAPIUrl"),
+            playerListAPIUrl: getElementValueOrNull("playerListAPIUrl"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            action: getElementValueOrNull("action"),
+        };
+        rootComponents.push(<AddPlayer key="1" addPlayerContext={addPlayerContext} />);
     }
 
     return (

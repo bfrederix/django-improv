@@ -31,3 +31,19 @@ def channel_user_update(request, *args, **kwargs):
         channels_service.update_channel_user(channel.id, user_id)
         return HttpResponse("Channel User Updated", content_type='text/plain')
     return HttpResponse("Not Updated", content_type='text/plain')
+
+
+class ChannelPlayersView(View):
+    template_name = 'channels/channel_players.html'
+
+    def get(self, request, *args, **kwargs):
+        channel_name = kwargs.get('channel_name')
+        channel = channels_service.channel_or_404(channel_name)
+        is_channel_admin = channels_service.check_is_channel_admin(channel,
+                                                                   getattr(request.user, 'id'))
+        if request.method == 'POST' and is_channel_admin:
+            pass
+        return render(request,
+                      self.template_name,
+                      {'channel': channel,
+                       'is_channel_admin': is_channel_admin})

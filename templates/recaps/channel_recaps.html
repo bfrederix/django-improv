@@ -14,6 +14,8 @@
     <input type="hidden" id="imageBaseUrl" name="imageBaseUrl" value="{{IMAGE_URL}}" readonly>
     <input type="hidden" id="showListAPIUrl" name="showListAPIUrl"
                value="{% url "show-list" %}?order_by_date=True" readonly>
+    <input type="hidden" id="voteOptionAPIUrl" name="voteOptionAPIUrl"
+               value="{% url "vote-option-list" %}" readonly>
     <input type="hidden" id="channelRecapsUrl" name="channelRecapsUrl"
                    value="{% url "channel_recaps" channel.name %}" readonly>
     {% if show %}

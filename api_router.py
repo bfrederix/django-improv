@@ -1,6 +1,6 @@
 from rest_framework import routers
 
-#from players import api_views as players_api_views
+from players import api_views as players_api_views
 from users import api_views as users_api_views
 from shows import api_views as shows_api_views
 from channels import api_views as channels_api_views
@@ -24,6 +24,11 @@ router.register(r'channel',
                 channels_api_views.ChannelViewSet,
                 'channel')
 
+# Player
+router.register(r'player',
+                players_api_views.PlayerViewSet,
+                'player')
+
 # Suggestions
 router.register(r'suggestion',
                 shows_api_views.SuggestionViewSet,
@@ -43,6 +48,11 @@ router.register(r'leaderboard',
 router.register(r'recap',
                 recaps_api_views.RecapViewSet,
                 'recap')
+
+# Vote Options
+router.register(r'vote_option',
+                recaps_api_views.VoteOptionsViewSet,
+                'vote-option')
 
 # Leaderboard Spans
 router.register(r'leaderboard_span',

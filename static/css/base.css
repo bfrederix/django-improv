@@ -329,6 +329,10 @@ div.black-background{
     background-color:black;
 }
 
+div.white-background{
+    background-color:#fff;
+}
+
 .black-font {
     color: black;
 }

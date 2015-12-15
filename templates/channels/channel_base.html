@@ -78,7 +78,7 @@
     							<li {% block vote-type-selected %}{% endblock %}><a href="/vote_types/">Add/Delete Vote Types</a></li>
     							<li {% block suggestion-pool-selected %}{% endblock %}><a href="/suggestion_pools/">Add/Delete Suggestion Pools</a></li>
     							<li {% block create-medals-selected %}{% endblock %}><a href="/create_medals/">Add/Delete Medals</a></li>
-								<li {% block add-player-selected %}{% endblock %}><a href="/add_players/">Add Players</a></li>
+								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Add/Remove Players</a></li>
 								<li {% block delete-tools-selected %}{% endblock %}><a href="/delete_tools/">Delete Tools</a></li>
 								<li {% block interval-timer-selected %}{% endblock %}><a href="/interval_timer/">Interval Timer</a></li>
 								<li {% block test-js-selected %}{% endblock %}><a href="/js_test/">Test JS</a></li>
