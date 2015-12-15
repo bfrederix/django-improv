@@ -56,6 +56,17 @@ function PageLink(i, char, current){
   }
 }
 
+var CSRFProtect = React.createClass({
+  render: function() {
+      var divStyle = {display: "none"};
+      return (
+        <div style={divStyle}>
+            <input type="hidden" name="csrfmiddlewaretoken" value={this.props.csrfToken} />
+        </div>
+      );
+  }
+});
+
 var Pagination = React.createClass({
   render: function() {
       var pages = parseInt(this.props.maxPages) + 1;
@@ -109,7 +120,9 @@ var Form = React.createClass({
   render: function() {
     var formClass = "form-" + this.props.formStyle;
     return (
-      <form className={formClass} role="form" action={this.props.formSubmitUrl} method="post">
+      <form className={formClass} role="form"
+            action={this.props.formSubmitUrl} method="post"
+            encType="multipart/form-data" onSubmit={this.props.onFormSubmit}>
         {this.props.formContents}
       </form>
     );
@@ -909,7 +922,7 @@ var PlayerDropDownSelect = React.createClass({
     }, this);
 
     return (
-        <select className="form-control" id="player" onChange={this.props.handleEditPlayer} defaultValue={this.props.defaultPlayer}>
+        <select className="form-control" name="playerID" onChange={this.props.handleEditPlayer} defaultValue={this.props.defaultPlayer}>
             {optionList}
         </select>
     );
@@ -1175,6 +1188,18 @@ var Recap = React.createClass({
 });
 
 var PlayerForm = React.createClass({
+  onFormSubmit: function(event) {
+      var input = document.getElementById('inputFile');
+      // Examine the input file
+      if (input) {
+          var file = input.files[0];
+          // Make sure the file is less than 2 MB
+          if (file && file.size > 2097152) {
+              alert("Image file size must be smaller than 2MB");
+              event.preventDefault();
+          }
+      }
+  },
   render: function() {
     var name = "";
     var photoUrl = "";
@@ -1188,12 +1213,20 @@ var PlayerForm = React.createClass({
         active = this.props.defaults.active;
         star = this.props.defaults.star;
     }
-    var action;
+    var label;
+    var labelContents;
     if (this.props.addPlayerContext.action) {
-        var labelContents = "Player " + this.props.addPlayerContext.action + " Successfully!";
-        action = <div className="row">
+        labelContents = this.props.addPlayerContext.action;
+        var labelColor = "primary";
+    } else if (this.props.addPlayerContext.error) {
+        labelContents = this.props.addPlayerContext.error;
+        var labelColor = "danger";
+
+    }
+    if (labelContents) {
+        label = <div className="row">
                     <div className="col-md-6 col-md-offset-3">
-                        <Label labelColor="primary"
+                        <Label labelColor={labelColor}
                                extraClasses="x-large-font"
                                labelContents={labelContents} />
                         <br />
@@ -1209,12 +1242,13 @@ var PlayerForm = React.createClass({
                                  inputSize="4"
                                  input={playerNameInput}/>);
     // Player Photo Input
-    var playerPhotoInput = <input type="text" className="form-control" name="photo_url" defaultValue={photoUrl}></input>;
+    var playerPhotoInput = <div><br/><span className="btn btn-primary btn-file"><input id="inputFile" type="file" name="file"></input></span></div>;
     formContents.push(<FormGroup key="2"
                                  labelSize="2"
-                                 labelContents="Player Photo Url:"
+                                 labelContents="Upload Player Photo:"
                                  inputSize="4"
-                                 input={playerPhotoInput}/>);
+                                 input={playerPhotoInput}
+                                 helpBlock="Image file size must be smaller than 2MB" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={active}></input>;
     formContents.push(<FormGroup key="3"
@@ -1232,7 +1266,7 @@ var PlayerForm = React.createClass({
                                  input={starInput}
                                  helpBlock="Check this if the player should be prioritized first in shows" />);
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-default">Create/Edit Player</button>;
+    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Player</button>;
     formContents.push(<FormGroup key="5"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1246,12 +1280,22 @@ var PlayerForm = React.createClass({
                                  inputSize="4"
                                  input={playerEditInput}
                                  helpBlock="Select a player if you wish to edit them" />);
+    if (this.props.defaults) {
+        formContents.push(<div key="7" className="row">
+                            <div className="col-md-4 col-md-offset-2">
+                                <img src={photoUrl} className="img-responsive img-thumbnail" />
+                            </div>
+                          </div>);
+    }
+    // CSRF Protection
+    formContents.push(<CSRFProtect key="8" csrfToken={this.props.addPlayerContext.csrfToken} />)
     var bodyContent = <Form formStyle="horizontal"
                             formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
-                            formContents={formContents} />
+                            formContents={formContents}
+                            onFormSubmit={this.onFormSubmit} />
     return (
         <div>
-            {action}
+            {label}
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit Player" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
@@ -1289,7 +1333,6 @@ var AddPlayer = React.createClass({
       });
   },
   render: function() {
-    console.log(this.state.data);
     if (this.state.data) {
         return (
             <PlayerForm key={this.state.data.id}
@@ -1356,7 +1399,7 @@ var RootComponent = React.createClass({
             showRecapAPIUrl: getElementValueOrNull("showRecapAPIUrl"),
             usersUrl: getElementValueOrNull("usersUrl"),
             showAPIUrl: getElementValueOrNull("showAPIUrl"),
-            showID: getElementValueOrNull("showID"),
+            showID: getElementValueOrNull("showID")
         };
         rootComponents.push(<Recap key="1" recapContext={recapContext} />);
     } else if (rootType == "add_player") {
@@ -1366,7 +1409,9 @@ var RootComponent = React.createClass({
             playerAPIUrl: getElementValueOrNull("playerAPIUrl"),
             playerListAPIUrl: getElementValueOrNull("playerListAPIUrl"),
             formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
             action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
         };
         rootComponents.push(<AddPlayer key="1" addPlayerContext={addPlayerContext} />);
     }

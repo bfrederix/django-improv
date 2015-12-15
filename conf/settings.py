@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import cloudinary
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -191,3 +192,15 @@ AUDIO_PATH = '/static/audio/'
 
 # Players Path
 PLAYERS_PATH = '/static/img/players/'
+
+# Cloudinary Image hosting
+cloudinary.config(
+  cloud_name = "improvote",
+  api_key = "***REMOVED***",
+  api_secret = "***REMOVED***"
+)
+
+# Django file uploading
+FILE_UPLOAD_HANDLERS = [
+    "django.core.files.uploadhandler.MemoryFileUploadHandler",
+]

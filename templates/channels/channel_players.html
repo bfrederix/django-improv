@@ -18,8 +18,12 @@
            value="{% url "player-list" %}?channel_id={{channel.id}}&sort_by_active=True" readonly>
     <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
                value="{% url "channel_players" channel.name %}" readonly>
+    <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
 	{% if action %}
 		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
+	{% endif %}
+    {% if error %}
+		<input type="hidden" id="error" name="error" value="{{error}}" readonly>
 	{% endif %}
 
 {% endblock %}
