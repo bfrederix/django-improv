@@ -92,7 +92,7 @@ class Show(models.Model):
     locked = models.BooleanField(default=False, blank=False)
 
     # For Recap
-    winners_photo_link = models.CharField(blank=True, null=True, max_length=500)
+    photo_link = models.CharField(blank=True, null=True, max_length=500)
     embedded_youtube = models.CharField(blank=True, null=True, max_length=500)
 
     def __unicode__(self):

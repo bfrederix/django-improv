@@ -56,6 +56,8 @@ function PageLink(i, char, current){
   }
 }
 
+///////////////////// BASE COMPONENTS ///////////////////////////////
+
 var CSRFProtect = React.createClass({
   render: function() {
       var divStyle = {display: "none"};
@@ -232,9 +234,6 @@ var Medal = React.createClass({
       }.bind(this)
     });
   },
-  componentDidUpdate: function() {
-
-  },
   render: function() {
     // Create the medal URL
     var medalURL = "/medals/#" + this.state.data.name;
@@ -263,6 +262,34 @@ var Loading = React.createClass({
             <div className="rect4" style={divStyle}></div>
             <div className="rect5" style={divStyle}></div>
         </div>
+    );
+  }
+});
+
+var PlayerImage = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the medal data for the given key
+    var playerUrl = this.props.playerAPIUrl + this.props.playerID + "/";
+    $.ajax({
+      url: playerUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data){
+        return (<Loading />);
+    }
+    return (
+      <img src={this.state.data.photo_url} className="img-responsive img-thumbnail" />
     );
   }
 });
@@ -389,22 +416,21 @@ var BigButtonDropdown = React.createClass({
   }
 });
 
+///////////////////// USER ACCOUNT COMPONENTS ///////////////////////////////
+
 var MedalButtonForm = React.createClass({
   render: function() {
     // CHECK TO SEE IF MEDALS HAVE ALREADY BEEN AWARDED!!!!!!!!
     var medalActionLink = this.props.baseLinkUrl + 'show/' + this.props.showID + '/';
+    var awardMedalInput = <div>
+                            <input type="hidden" name="award_medals" value="True"></input>
+                            <input type="submit" className="btn btn-warning btn-block btn-lg x-large-font" value="Award Medals"></input>
+                          </div>;
+    var formContents = <FormGroup input={awardMedalInput} />
     return (
-        <form className="form-inline" role="form" action={medalActionLink} method="post">
-            <br/>
-            <div className="row">
-                <div className="col-md-6 col-md-offset-3">
-                    <div className="form-group text-center">
-                        <input type="hidden" name="award_medals" value="True"></input>
-                        <input type="submit" className="btn btn-warning btn-block btn-lg x-large-font" value="&nbsp;Award Medals&nbsp;"></input>
-                    </div>
-                </div>
-            </div>
-        </form>
+        <Form formStyle="inline"
+              formSubmitUrl={medalActionLink}
+              formContents={formContents} />
     );
   }
 });
@@ -863,7 +889,8 @@ var ShowRecapPanels = React.createClass({
         var footerContent;
         if (recapItem.player) {
             bodyContent.push(<div key="1" className="text-center recap-adjusted-img">
-                                 <img src="/static/img/players/freddy.jpg" className="img-responsive img-thumbnail" />
+                                 <PlayerImage playerAPIUrl={this.props.recapContext.playerAPIUrl}
+                                              playerID={recapItem.player} />
                              </div>);
         }
         if (recapItem.options_id) {
@@ -1124,9 +1151,9 @@ var Leaderboard = React.createClass({
                                     buttonColor="danger"
                                     buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
         // If this is a channel admin user and we haven't awarded medals
-        if (!this.props.leaderboardContext.isAdmin) {
+        if (this.props.leaderboardContext.isAdmin && !this.props.leaderboardContext.medalsAwarded) {
             leaderboardComponents.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
-                                                      showID={this.props.leaderboardContext.showID}/>);
+                                                        showID={this.props.leaderboardContext.showID}/>);
         }
         leaderboardComponents.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
                              <ShowLeaderboardTable leaderboardContext={this.props.leaderboardContext}
@@ -1283,7 +1310,8 @@ var PlayerForm = React.createClass({
     if (this.props.defaults) {
         formContents.push(<div key="7" className="row">
                             <div className="col-md-4 col-md-offset-2">
-                                <img src={photoUrl} className="img-responsive img-thumbnail" />
+                                <PlayerImage playerAPIUrl={this.props.addPlayerContext.playerAPIUrl}
+                                             playerID={editPlayerID}/>
                             </div>
                           </div>);
     }
@@ -1381,6 +1409,7 @@ var RootComponent = React.createClass({
             usersUrl: getElementValueOrNull("usersUrl"),
             contentType: getElementValueOrNull("contentType"),
             showID: getElementValueOrNull("showID"),
+            medalsAwarded: getElementValueOrNull("medalsAwarded"),
             currentSelection: getElementValueOrNull("currentSelection"),
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
             isAdmin: getElementValueOrNull("isAdmin")
@@ -1393,6 +1422,7 @@ var RootComponent = React.createClass({
             imageBaseUrl: getElementValueOrNull("imageBaseUrl"),
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
             voteOptionAPIUrl: getElementValueOrNull("voteOptionAPIUrl"),
+            playerAPIUrl: getElementValueOrNull("playerAPIUrl"),
             channelRecapsUrl: getElementValueOrNull("channelRecapsUrl"),
             currentSelection: getElementValueOrNull("currentSelection"),
             channelShowLeaderboardUrl: getElementValueOrNull("channelShowLeaderboardUrl"),

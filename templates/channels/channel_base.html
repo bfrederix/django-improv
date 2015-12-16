@@ -74,14 +74,10 @@
     						</a>
     						<ul class="dropdown-menu">
                                 <li {% block pre-show-selected %}{% endblock %}><a href="/pre_show/">Pre-show Instructions</a></li>
-    							<li {% block create-selected %}{% endblock %}><a href="/create_show/">Create Show</a></li>
-    							<li {% block vote-type-selected %}{% endblock %}><a href="/vote_types/">Add/Delete Vote Types</a></li>
-    							<li {% block suggestion-pool-selected %}{% endblock %}><a href="/suggestion_pools/">Add/Delete Suggestion Pools</a></li>
-    							<li {% block create-medals-selected %}{% endblock %}><a href="/create_medals/">Add/Delete Medals</a></li>
-								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Add/Remove Players</a></li>
-								<li {% block delete-tools-selected %}{% endblock %}><a href="/delete_tools/">Delete Tools</a></li>
-								<li {% block interval-timer-selected %}{% endblock %}><a href="/interval_timer/">Interval Timer</a></li>
-								<li {% block test-js-selected %}{% endblock %}><a href="/js_test/">Test JS</a></li>
+    							<li {% block create-selected %}{% endblock %}><a href="/create_show/">Create/Edit/Delete Shows</a></li>
+    							<li {% block vote-type-selected %}{% endblock %}><a href="/vote_types/">Create/Edit Vote Types</a></li>
+    							<li {% block suggestion-pool-selected %}{% endblock %}><a href="/suggestion_pools/">Create/Edit Suggestion Pools</a></li>
+								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Create/Edit Players</a></li>
 								<li {% block export-emails-selected %}{% endblock %}><a href="/export_emails/">Export e-mails</a></li>
     						</ul>
   						</li>
