@@ -7,6 +7,16 @@ from channels import service as channels_service
 from users import service as users_service
 
 
+class UserLoginView(View):
+    template_name = 'users/user_login.html'
+
+    def get(self, request, *args, **kwargs):
+        next = request.GET.get('next')
+        return render(request,
+                      self.template_name,
+                      {'next': next})
+
+
 class OptInPreferencesView(View):
     form_class = user_forms.OptInPreferenceForm
     initial = {'improvote_email_opt_in': True,

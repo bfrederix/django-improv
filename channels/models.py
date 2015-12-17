@@ -17,9 +17,9 @@ class Channel(models.Model):
     team_photo_url = models.CharField(blank=True, max_length=500)
     website = models.CharField(blank=True, max_length=500)
     facebook_page = models.CharField(blank=True, max_length=500)
-    address = FlexibleForeignKey("ChannelAddress", blank=True, null=True)
     buy_tickets_link = models.CharField(blank=True, max_length=500)
     next_show = models.DateTimeField(blank=True)
+    address = FlexibleForeignKey("ChannelAddress", blank=True, null=True)
 
     def __unicode__(self):
         return self.name

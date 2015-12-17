@@ -1,3 +1,7 @@
+///////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// UTILITY FUNCTIONS/////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
 function getURLPathArgByPosition(position) {
     // Default to getting the userID from the url
     var pathArray = window.location.pathname.split( '/' );
@@ -41,6 +45,30 @@ function getSpanFormat(spanDate){
     return month + "" + date.getDate() + date.getFullYear();
 }
 
+function limitFileSize(event, elementID) {
+    var input = document.getElementById(elementID);
+      // Examine the input file
+    if (input) {
+        var file = input.files[0];
+        // Make sure the file is less than 2 MB
+        if (file && file.size > 2097152) {
+            $('#'+elementID).parent('span').addClass('btn-danger');
+            alert("Image file sizes must be smaller than 2MB");
+            event.preventDefault();
+        }
+    }
+}
+
+function validateTextField(event, elementID) {
+    var field = document.getElementById(elementID);
+    var re = /^[\w-]+$/;
+    if (!re.test(field.value) || field.value.length === 0) {
+        $('#'+elementID).parent('div').addClass('has-error');
+        alert(elementID + ' must be a combination of letters, numbers, hyphens, or underscores');
+        event.preventDefault();
+    }
+}
+
 function PageLink(i, char, current){
   var character = character || String(i);
   if (i !== current) {
@@ -56,7 +84,9 @@ function PageLink(i, char, current){
   }
 }
 
-///////////////////// BASE COMPONENTS ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// BASE COMPONENTS /////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 var CSRFProtect = React.createClass({
   render: function() {
@@ -126,6 +156,7 @@ var Form = React.createClass({
             action={this.props.formSubmitUrl} method="post"
             encType="multipart/form-data" onSubmit={this.props.onFormSubmit}>
         {this.props.formContents}
+        <CSRFProtect csrfToken={this.props.csrfToken} />
       </form>
     );
   }
@@ -147,6 +178,31 @@ var FormGroup = React.createClass({
                 {helpBlock}
             </div>
         </div>
+    );
+  }
+});
+
+var FormLabel = React.createClass({
+  render: function() {
+    var label;
+    var labelContents;
+    if (this.props.action) {
+        labelContents = this.props.action;
+        var labelColor = "primary";
+    } else if (this.props.error) {
+        labelContents = this.props.error;
+        var labelColor = "danger";
+
+    }
+    return (
+        <div className="row">
+            <div className="col-md-6 col-md-offset-3">
+                <Label labelColor={labelColor}
+                       extraClasses="x-large-font"
+                       labelContents={labelContents} />
+                <br />
+            </div>
+         </div>
     );
   }
 });
@@ -294,6 +350,14 @@ var PlayerImage = React.createClass({
   }
 });
 
+var Image = React.createClass({
+  render: function() {
+    return (
+      <img src={this.props.image_url} className="img-responsive img-thumbnail" />
+    );
+  }
+});
+
 var BigButton = React.createClass({
   render: function() {
     var buttonClass = "btn btn-" + this.props.buttonColor + " btn-block btn-lg text-center x-large-font";
@@ -416,7 +480,339 @@ var BigButtonDropdown = React.createClass({
   }
 });
 
-///////////////////// USER ACCOUNT COMPONENTS ///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// FORM COMPONENTS /////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+var PlayerForm = React.createClass({
+  getInitialState: function() {
+    return {data: {name: "",
+                   active: true,
+                   star: false},
+            editPlayerID: undefined,
+            key: "1"};
+  },
+  componentDidMount: function() {
+    // If a show has been selected
+    if (this.state.editPlayerID) {
+        var playerAPIUrl = this.props.addPlayerContext.playerAPIUrl + this.state.editPlayerID + "/";
+        $.ajax({
+          url: playerAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data,
+                           editPlayerID: this.state.editPlayerID,
+                           key: this.state.editPlayerID});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  onFormSubmit: function(event) {
+      limitFileSize(event, 'inputFile');
+  },
+  handleEditPlayer: function(event) {
+      this.setState({editPlayerID: event.target.value}, function() {
+          this.componentDidMount();
+      });
+  },
+  render: function() {
+    var formContents = [];
+    // Player Name Input
+    var playerNameInput = <input type="text" className="form-control" name="player_name" defaultValue={this.state.data.name}></input>;
+    formContents.push(<FormGroup key="1"
+                                 labelSize="2"
+                                 labelContents="Player Name:"
+                                 inputSize="4"
+                                 input={playerNameInput}/>);
+    // Player Photo Input
+    var playerPhotoInput = <div><br/><span className="btn btn-primary btn-file"><input id="inputFile" type="file" name="file"></input></span></div>;
+    formContents.push(<FormGroup key="2"
+                                 labelSize="2"
+                                 labelContents="Upload Player Photo:"
+                                 inputSize="4"
+                                 input={playerPhotoInput}
+                                 helpBlock="Image file size must be smaller than 2MB" />);
+    // Active Input
+    var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Player Active:"
+                                 inputSize="4"
+                                 input={activeInput}
+                                 helpBlock="Check this if the player should appear in the Create Show form" />);
+    // Star Input
+    var starInput = <input type="checkbox" name="star" value="1" defaultChecked={this.state.data.star}></input>;
+    formContents.push(<FormGroup key="4"
+                                 labelSize="2"
+                                 labelContents="Star Player:"
+                                 inputSize="4"
+                                 input={starInput}
+                                 helpBlock="Check this if the player should be prioritized first in shows" />);
+    // Submit Button
+    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Player</button>;
+    formContents.push(<FormGroup key="5"
+                                 inputSize="2"
+                                 input={submitButton} />);
+    // Edit Player Dropdown Input
+    var playerEditInput = <PlayerDropDownSelect playerListAPIUrl={this.props.addPlayerContext.playerListAPIUrl}
+                                                handleEditPlayer={this.handleEditPlayer}
+                                                defaultPlayer={this.state.editPlayerID} />;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Edit Player:"
+                                 inputSize="4"
+                                 input={playerEditInput}
+                                 helpBlock="Select a player if you wish to edit them" />);
+    if (this.state.editPlayerID) {
+        formContents.push(<div key="7" className="row">
+                            <div className="col-md-4 col-md-offset-2">
+                                <PlayerImage playerAPIUrl={this.props.addPlayerContext.playerAPIUrl}
+                                             playerID={this.state.editPlayerID}/>
+                            </div>
+                          </div>);
+    }
+    var bodyContent = <Form formStyle="horizontal"
+                            formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
+                            formContents={formContents}
+                            onFormSubmit={this.onFormSubmit}
+                            csrfToken={this.props.addPlayerContext.csrfToken} />
+    return (
+        <div key={this.state.key}>
+            <FormLabel action={this.props.addPlayerContext.action}
+                       error={this.props.addPlayerContext.error} />
+            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+                   panelHeadingContent="Create/Edit Player" panelHeadingClasses="x-large-font"
+                   panelBodyClasses="white-background"
+                   bodyContent={bodyContent} />
+        </div>
+    );
+  }
+});
+
+
+var ChannelCreateEditForm = React.createClass({
+  getInitialState: function() {
+    return {data: {name: "",
+                   display_name: "",
+                   short_descripton: "",
+                   descripton: "",
+                   website: "",
+                   facebook_page: "",
+                   buy_tickets_link: "",
+                   address: {street: "",
+                             city: "",
+                             state: "",
+                             zipcode: ""}},
+            key: "1"
+    };
+  },
+  componentDidMount: function() {
+    if (this.props.channelCreateEditContext.channelID) {
+        $.ajax({
+          url: this.props.channelCreateEditContext.channelAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data,
+                           key: "2"});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  onFormSubmit: function(event) {
+      limitFileSize(event, 'logoFile');
+      limitFileSize(event, 'teamPhotoFile');
+      validateTextField(event, "name");
+      validateTextField(event, "display_name");
+  },
+  render: function() {
+    var actionText;
+    if (this.props.channelCreateEditContext.channelID) { 
+        actionText = "Edit Channel";
+     } else {
+        actionText = "Create Channel"; 
+    }
+    var formContents = [];
+    // Name Input
+    var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
+    formContents.push(<FormGroup key="1"
+                                 labelSize="2"
+                                 labelContents="*Url Name:"
+                                 inputSize="5"
+                                 input={nameInput}
+                                 helpBlock="Required: Used as the url address and can only be letters, numbers, hyphens or underscores" />);
+    // Display Name Input
+    var displayNameInput = <input type="text" id="display_name" name="display_name" defaultValue={this.state.data.display_name} className="form-control"></input>;
+    formContents.push(<FormGroup key="2"
+                                 labelSize="2"
+                                 labelContents="*Display Name:"
+                                 inputSize="5"
+                                 input={displayNameInput}
+                                 helpBlock="Required: Used as the human readable name on the site" />);
+    // Short Description Input
+    var shortDescriptionInput = <textarea type="text" name="short_descripton" maxLength="100" rows="2" defaultValue={this.state.data.short_descripton} className="form-control"></textarea>;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Short Description:"
+                                 inputSize="7"
+                                 input={shortDescriptionInput} />);
+    // Description Input
+    var DescriptionInput = <textarea type="text" name="descripton" rows="5" defaultValue={this.state.data.descripton} className="form-control"></textarea>;
+    formContents.push(<FormGroup key="4"
+                                 labelSize="2"
+                                 labelContents="Description:"
+                                 inputSize="7"
+                                 input={DescriptionInput}
+                                 helpBlock="Used on the channel's about page" />);
+    // Logo Image Input
+    var logoInput = <div><span className="btn btn-primary btn-file"><input id="logoFile" type="file" name="logoFile"></input></span><Image image_url={this.state.data.logo_url} /></div>;
+    formContents.push(<FormGroup key="5"
+                                 labelSize="2"
+                                 labelContents="Logo Image:"
+                                 inputSize="3"
+                                 input={logoInput}
+                                 helpBlock="Used during shows, must be smaller than 2MB" />);
+
+    // Team Photo Input
+    var teamPhotoInput = <div><span className="btn btn-primary btn-file"><input id="teamPhotoFile" type="file" name="teamPhotoFile"></input></span><Image image_url={this.state.data.team_photo_url} /></div>;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Team Photo:"
+                                 inputSize="3"
+                                 input={teamPhotoInput}
+                                 helpBlock="Used on the channel's about page, must be smaller than 2MB" />);
+    // Website Input
+    var websiteInput = <input type="text" name="website" defaultValue={this.state.data.website} className="form-control"></input>;
+    formContents.push(<FormGroup key="7"
+                                 labelSize="2"
+                                 labelContents="Website:"
+                                 inputSize="7"
+                                 input={websiteInput}
+                                 helpBlock="Your group's external website" />);
+    // Facebook Page Input
+    var facebookPageInput = <input type="text" name="facebook_page" defaultValue={this.state.data.facebook_page} className="form-control"></input>;
+    formContents.push(<FormGroup key="8"
+                                 labelSize="2"
+                                 labelContents="Facebook Page:"
+                                 inputSize="7"
+                                 input={facebookPageInput}
+                                 helpBlock="Your group's Facebook page" />);
+    // Buy Tickets Input
+    var buyTicketsInput = <input type="text" name="buy_tickets_link" defaultValue={this.state.data.buy_tickets_link} className="form-control"></input>;
+    formContents.push(<FormGroup key="9"
+                                 labelSize="2"
+                                 labelContents="Buy Tickets URL:"
+                                 inputSize="7"
+                                 input={buyTicketsInput}
+                                 helpBlock="The URL to buy tickets to your shows" />);
+    // ADDRESS //
+    // Street Input
+    var streetInput = <input type="text" name="street" defaultValue={this.state.data.address.street} className="form-control"></input>;
+    formContents.push(<FormGroup key="11"
+                                 labelSize="2"
+                                 labelContents="Street Address:"
+                                 inputSize="6"
+                                 input={streetInput}
+                                 helpBlock="The street address where you perform your shows, used for mapping" />);
+    // City Input
+    var cityInput = <input type="text" name="city" defaultValue={this.state.data.address.city} className="form-control"></input>;
+    formContents.push(<FormGroup key="12"
+                                 labelSize="2"
+                                 labelContents="City:"
+                                 inputSize="5"
+                                 input={cityInput} />);
+    // State Input
+    var stateInput = <input type="text" name="state" maxLength="2" defaultValue={this.state.data.address.state} className="form-control"></input>;
+    formContents.push(<FormGroup key="13"
+                                 labelSize="2"
+                                 labelContents="State:"
+                                 inputSize="2"
+                                 input={stateInput} />);
+    // Zipcode Input
+    var zipcodeInput = <input type="text" name="zipcode" defaultValue={this.state.data.address.zipcode} className="form-control"></input>;
+    formContents.push(<FormGroup key="14"
+                                 labelSize="2"
+                                 labelContents="Zipcode:"
+                                 inputSize="3"
+                                 input={zipcodeInput} />);
+
+    // Submit Button
+    var submitButton = <button type="submit" className="btn btn-danger">{actionText}</button>;
+    formContents.push(<FormGroup key="15"
+                                 inputSize="2"
+                                 input={submitButton} />);
+
+    // The entire Form
+    var bodyContent = <Form formStyle="horizontal"
+                            formSubmitUrl={this.props.channelCreateEditContext.formSubmitUrl}
+                            formContents={formContents}
+                            onFormSubmit={this.onFormSubmit}
+                            csrfToken={this.props.channelCreateEditContext.csrfToken} />
+    return (
+        <div key={this.state.key}>
+            <FormLabel action={this.props.channelCreateEditContext.action}
+                       error={this.props.channelCreateEditContext.error} />
+            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+                   panelHeadingContent={actionText} panelHeadingClasses="x-large-font"
+                   panelBodyClasses="white-background"
+                   bodyContent={bodyContent} />
+        </div>
+    );
+  }
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// PLAYER ADD/EDIT COMPONENTS /////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+var PlayerDropDownSelect = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.playerListAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    var optionList = [];
+    if (!this.state.data){
+        return (<div>
+                    <Loading loadingBarColor="#fff"/>
+                </div>);
+    }
+    this.counter = 0;
+    optionList.push(<option key="0" value="">Select a Player to Edit</option>);
+    // Create the suggestion list
+    this.state.data.map(function (player) {
+        this.counter++;
+        optionList.push(<option key={this.counter} value={player.id}>{player.name}</option>);
+        return optionList;
+    }, this);
+
+    return (
+        <select className="form-control" name="playerID" onChange={this.props.handleEditPlayer} defaultValue={this.props.defaultPlayer}>
+            {optionList}
+        </select>
+    );
+  }
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// LEADERBOARD COMPONENTS ////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 var MedalButtonForm = React.createClass({
   render: function() {
@@ -434,6 +830,200 @@ var MedalButtonForm = React.createClass({
     );
   }
 });
+
+
+var ChannelLeaderboardTable = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.leaderboardContext.channelLeaderboardAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data){
+        return (<div className="table-responsive">
+                    <table className="table table-condensed black-font">
+                        <tbody><tr><td>
+                            <Loading loadingBarColor="#fff"/>
+                        </td></tr></tbody>
+                    </table>
+                </div>);
+    }
+    var tableList = [];
+    this.counter = 0;
+    this.startCount = this.props.leaderboardContext.maxPerPage * (this.props.leaderboardContext.page - 1);
+
+    // Create the suggestion list
+    this.state.data.map(function (leaderboardUser) {
+        this.counter++;
+        var rank = this.counter + this.startCount;
+        var userUrl = this.props.leaderboardContext.usersUrl + leaderboardUser.user_id + "/?channel_name=" + this.props.leaderboardContext.channelName;
+        tableList.push(<tr key={this.counter}>
+                            <td>{rank}</td>
+                            <td><a href={userUrl}>{leaderboardUser.username}</a></td>
+                            <td>{leaderboardUser.suggestion_wins}</td>
+                            <td>{leaderboardUser.points}</td>
+                            <td>{leaderboardUser.show_wins}</td>
+                       </tr>);
+        return tableList;
+    }, this);
+    return (
+        <div className="table-responsive">
+            <table className="table table-condensed large-font">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Suggestion Wins</th>
+                        <th>Points</th>
+                        <th>Show Wins</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tableList}
+                </tbody>
+            </table>
+            <Pagination maxPages={this.props.leaderboardContext.maxPages}
+                        currentPage={this.props.leaderboardContext.page} />
+        </div>
+    );
+  }
+});
+
+
+var ShowLeaderboardTable = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.leaderboardContext.leaderboardEntryAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data){
+        return (<div className="table-responsive">
+                    <table className="table table-condensed black-font">
+                        <tbody><tr><td>
+                            <Loading loadingBarColor="#fff"/>
+                        </td></tr></tbody>
+                    </table>
+                </div>);
+    }
+    var tableList = [];
+    this.counter = 0;
+    this.startCount = this.props.leaderboardContext.maxPerPage * (this.props.leaderboardContext.page - 1);
+
+    // Create the suggestion list
+    this.state.data.map(function (leaderboardUser) {
+        this.counter++;
+        var rank = this.counter + this.startCount;
+        var userUrl = this.props.leaderboardContext.usersUrl + leaderboardUser.user_id + "/?channel_name=" + this.props.leaderboardContext.channelName;
+        var medalList = [];
+        // Go through all the medal keys
+        for (var i = 0; i < leaderboardUser.medals.length; i++) {
+            var medalID = leaderboardUser.medals[i];
+            medalList.push(<Medal key={i}
+                                  medalID={medalID}
+                                  medalListAPIUrl={this.props.leaderboardContext.medalListAPIUrl} />);
+        }
+        tableList.push(<tr key={this.counter}>
+                            <td>{rank}</td>
+                            <td><a href={userUrl}>{leaderboardUser.username}</a></td>
+                            <td>{leaderboardUser.wins}</td>
+                            <td>{leaderboardUser.points}</td>
+                            <td>{medalList}</td>
+                       </tr>);
+        return tableList;
+    }, this);
+    return (
+        <div className="table-responsive">
+            <br/>
+            <table className="table table-condensed large-font">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Suggestion Wins</th>
+                        <th>Points</th>
+                        <th>Medals</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tableList}
+                </tbody>
+            </table>
+        </div>
+    );
+  }
+});
+
+var Leaderboard = React.createClass({
+  render: function() {
+    var leaderboardComponents = [];
+    var showID = this.props.leaderboardContext.showID;
+
+    if (showID) {
+        leaderboardComponents.push(<BigButtonDropdown key="1"
+                                            buttonColor="primary"
+                                            leaderboardContext={this.props.leaderboardContext}
+                                            showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
+                                            baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+                                            showID={this.props.leaderboardContext.showID}
+                                            currentSelection={this.props.leaderboardContext.currentSelection} />);
+        leaderboardComponents.push(<br key="2" />);
+        leaderboardComponents.push(<BigButton key="3"
+                                    buttonText="View Show Recap"
+                                    buttonColor="danger"
+                                    buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
+        // If this is a channel admin user and we haven't awarded medals
+        if (this.props.leaderboardContext.isAdmin && !this.props.leaderboardContext.medalsAwarded) {
+            leaderboardComponents.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+                                                        showID={this.props.leaderboardContext.showID}/>);
+        }
+        leaderboardComponents.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
+                             <ShowLeaderboardTable leaderboardContext={this.props.leaderboardContext}
+                                                      showID={this.props.leaderboardContext.showID} />
+                         </div></div>);
+    }
+    else if (this.props.leaderboardContext.channelID) {
+        leaderboardComponents.push(<BigButtonDropdown key="1"
+                                            buttonColor="primary"
+                                            leaderboardContext={this.props.leaderboardContext}
+                                            showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
+                                            baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+                                            currentSelection={this.props.leaderboardContext.currentSelection} />);
+        leaderboardComponents.push(<div key="2" className="row"><div className="col-md-10 col-md-offset-1">
+                                 <br/>
+                                 <ChannelLeaderboardTable leaderboardContext={this.props.leaderboardContext} />
+                             </div></div>);
+    }
+
+    return (
+      <div>{leaderboardComponents}</div>
+    );
+  }
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// USER ACCOUNT COMPONENTS ////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 var MedalRows = React.createClass({
   render: function() {
@@ -590,148 +1180,6 @@ var UserShowStatsPanelBody = React.createClass({
   }
 });
 
-var ChannelLeaderboardTable = React.createClass({
-  getInitialState: function() {
-    return {data: undefined};
-  },
-  componentDidMount: function() {
-    $.ajax({
-      url: this.props.leaderboardContext.channelLeaderboardAPIUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-  render: function() {
-    if (!this.state.data){
-        return (<div className="table-responsive">
-                    <table className="table table-condensed black-font">
-                        <tbody><tr><td>
-                            <Loading loadingBarColor="#fff"/>
-                        </td></tr></tbody>
-                    </table>
-                </div>);
-    }
-    var tableList = [];
-    this.counter = 0;
-    this.startCount = this.props.leaderboardContext.maxPerPage * (this.props.leaderboardContext.page - 1);
-
-    // Create the suggestion list
-    this.state.data.map(function (leaderboardUser) {
-        this.counter++;
-        var rank = this.counter + this.startCount;
-        var userUrl = this.props.leaderboardContext.usersUrl + leaderboardUser.user_id + "/?channel_name=" + this.props.leaderboardContext.channelName;
-        tableList.push(<tr key={this.counter}>
-                            <td>{rank}</td>
-                            <td><a href={userUrl}>{leaderboardUser.username}</a></td>
-                            <td>{leaderboardUser.suggestion_wins}</td>
-                            <td>{leaderboardUser.points}</td>
-                            <td>{leaderboardUser.show_wins}</td>
-                       </tr>);
-        return tableList;
-    }, this);
-    return (
-        <div className="table-responsive">
-            <table className="table table-condensed large-font">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Username</th>
-                        <th>Suggestion Wins</th>
-                        <th>Points</th>
-                        <th>Show Wins</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {tableList}
-                </tbody>
-            </table>
-            <Pagination maxPages={this.props.leaderboardContext.maxPages}
-                        currentPage={this.props.leaderboardContext.page} />
-        </div>
-    );
-  }
-});
-
-
-var ShowLeaderboardTable = React.createClass({
-  getInitialState: function() {
-    return {data: undefined};
-  },
-  componentDidMount: function() {
-    $.ajax({
-      url: this.props.leaderboardContext.leaderboardEntryAPIUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-  render: function() {
-    if (!this.state.data){
-        return (<div className="table-responsive">
-                    <table className="table table-condensed black-font">
-                        <tbody><tr><td>
-                            <Loading loadingBarColor="#fff"/>
-                        </td></tr></tbody>
-                    </table>
-                </div>);
-    }
-    var tableList = [];
-    this.counter = 0;
-    this.startCount = this.props.leaderboardContext.maxPerPage * (this.props.leaderboardContext.page - 1);
-
-    // Create the suggestion list
-    this.state.data.map(function (leaderboardUser) {
-        this.counter++;
-        var rank = this.counter + this.startCount;
-        var userUrl = this.props.leaderboardContext.usersUrl + leaderboardUser.user_id + "/?channel_name=" + this.props.leaderboardContext.channelName;
-        var medalList = [];
-        // Go through all the medal keys
-        for (var i = 0; i < leaderboardUser.medals.length; i++) {
-            var medalID = leaderboardUser.medals[i];
-            medalList.push(<Medal key={i}
-                                  medalID={medalID}
-                                  medalListAPIUrl={this.props.leaderboardContext.medalListAPIUrl} />);
-        }
-        tableList.push(<tr key={this.counter}>
-                            <td>{rank}</td>
-                            <td><a href={userUrl}>{leaderboardUser.username}</a></td>
-                            <td>{leaderboardUser.wins}</td>
-                            <td>{leaderboardUser.points}</td>
-                            <td>{medalList}</td>
-                       </tr>);
-        return tableList;
-    }, this);
-    return (
-        <div className="table-responsive">
-            <br/>
-            <table className="table table-condensed large-font">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Username</th>
-                        <th>Suggestion Wins</th>
-                        <th>Points</th>
-                        <th>Medals</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {tableList}
-                </tbody>
-            </table>
-        </div>
-    );
-  }
-});
-
 
 var UserShowStatsTableBody = React.createClass({
   getInitialState: function() {
@@ -795,6 +1243,60 @@ var UserShowStatsTableBody = React.createClass({
     );
   }
 });
+
+
+var UserStats = React.createClass({
+  getInitialState: function() {
+    return {data: []};
+  },
+  componentDidMount: function() {
+    // Get the leaderboard stats for the user
+    var leaderboardStatsAPIUrl = this.props.userAccountContext.leaderboardStatsAPIUrl;
+    $.ajax({
+      url: leaderboardStatsAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    var showList;
+    if (this.state.data){
+        var showList = [];
+        this.counter = 0;
+        // Create the user stats
+        this.state.data.map(function (showStats) {
+          this.counter++;
+          showList.push(<UserShowStats key={this.counter}
+                                       userAccountContext={this.props.userAccountContext}
+                                       showStats={showStats} />);
+          return showList;
+        }, this);
+    }
+    var bodyContent = [];
+    bodyContent.push(<UserStatsTableBody key="1"
+                                         tableClasses="table-condensed black-font"
+                                         userAccountContext={this.props.userAccountContext} />);
+    return (
+      <div className="row">
+      <br/>
+      <Panel panelWidth="6" panelOffset="3" panelColor="danger"
+             panelHeadingContent="User Account" panelHeadingClasses="x-large-font"
+             panelBodyClasses="large-font black-font"
+             bodyContent={bodyContent} />
+      {showList}</div>
+    );
+  }
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// SHOW RECAP COMPONENTS /////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
 
 var ShowRecapPanelOptions = React.createClass({
   getInitialState: function() {
@@ -916,45 +1418,45 @@ var ShowRecapPanels = React.createClass({
   }
 });
 
-var PlayerDropDownSelect = React.createClass({
-  getInitialState: function() {
-    return {data: undefined};
-  },
-  componentDidMount: function() {
-    $.ajax({
-      url: this.props.playerListAPIUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
+
+var Recap = React.createClass({
   render: function() {
-    var optionList = [];
-    if (!this.state.data){
-        return (<div>
-                    <Loading loadingBarColor="#fff"/>
-                </div>);
+    var recapComponents = [];
+    var showID = this.props.recapContext.showID;
+
+    if (showID) {
+        recapComponents.push(<BigButtonDropdown key="1"
+                                                buttonColor="primary"
+                                                showAPIUrl={this.props.recapContext.showListAPIUrl}
+                                                baseLinkUrl={this.props.recapContext.channelRecapsUrl}
+                                                showID={this.props.recapContext.showID}
+                                                currentSelection={this.props.recapContext.currentSelection} />);
+        recapComponents.push(<br key="2" />);
+        recapComponents.push(<BigButton key="3"
+                                        buttonText="View Show Leaderboard"
+                                        buttonColor="danger"
+                                        buttonLink={this.props.recapContext.channelShowLeaderboardUrl} />);
+        // Recap panels
+        recapComponents.push(<ShowRecapPanels key="4"
+                                              recapContext={this.props.recapContext} />)
     }
-    this.counter = 0;
-    optionList.push(<option key="0" value="">Select a Player to Edit</option>);
-    // Create the suggestion list
-    this.state.data.map(function (player) {
-        this.counter++;
-        optionList.push(<option key={this.counter} value={player.id}>{player.name}</option>);
-        return optionList;
-    }, this);
+    else {
+        recapComponents.push(<BigButtonDropdown key="1"
+                                                buttonColor="primary"
+                                                showAPIUrl={this.props.recapContext.showListAPIUrl}
+                                                baseLinkUrl={this.props.recapContext.channelRecapsUrl}
+                                                currentSelection={this.props.recapContext.currentSelection} />);
+    }
 
     return (
-        <select className="form-control" name="playerID" onChange={this.props.handleEditPlayer} defaultValue={this.props.defaultPlayer}>
-            {optionList}
-        </select>
+      <div>{recapComponents}</div>
     );
   }
 });
+
+//////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// SHOW DISPLAY COMPONENTS ///////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 
 var ShowDisplay = React.createClass({
   getInitialState: function() {
@@ -1084,298 +1586,9 @@ var RemainingIntervalsButton = React.createClass({
   }
 });
 
-var UserStats = React.createClass({
-  getInitialState: function() {
-    return {data: []};
-  },
-  componentDidMount: function() {
-    // Get the leaderboard stats for the user
-    var leaderboardStatsAPIUrl = this.props.userAccountContext.leaderboardStatsAPIUrl;
-    $.ajax({
-      url: leaderboardStatsAPIUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-  render: function() {
-    var showList;
-    if (this.state.data){
-        var showList = [];
-        this.counter = 0;
-        // Create the user stats
-        this.state.data.map(function (showStats) {
-          this.counter++;
-          showList.push(<UserShowStats key={this.counter}
-                                       userAccountContext={this.props.userAccountContext}
-                                       showStats={showStats} />);
-          return showList;
-        }, this);
-    }
-    var bodyContent = [];
-    bodyContent.push(<UserStatsTableBody key="1"
-                                         tableClasses="table-condensed black-font"
-                                         userAccountContext={this.props.userAccountContext} />);
-    return (
-      <div className="row">
-      <br/>
-      <Panel panelWidth="6" panelOffset="3" panelColor="danger"
-             panelHeadingContent="User Account" panelHeadingClasses="x-large-font"
-             panelBodyClasses="large-font black-font"
-             bodyContent={bodyContent} />
-      {showList}</div>
-    );
-  }
-});
-
-var Leaderboard = React.createClass({
-  render: function() {
-    var leaderboardComponents = [];
-    var showID = this.props.leaderboardContext.showID;
-
-    if (showID) {
-        leaderboardComponents.push(<BigButtonDropdown key="1"
-                                            buttonColor="primary"
-                                            leaderboardContext={this.props.leaderboardContext}
-                                            showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
-                                            baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
-                                            showID={this.props.leaderboardContext.showID}
-                                            currentSelection={this.props.leaderboardContext.currentSelection} />);
-        leaderboardComponents.push(<br key="2" />);
-        leaderboardComponents.push(<BigButton key="3"
-                                    buttonText="View Show Recap"
-                                    buttonColor="danger"
-                                    buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
-        // If this is a channel admin user and we haven't awarded medals
-        if (this.props.leaderboardContext.isAdmin && !this.props.leaderboardContext.medalsAwarded) {
-            leaderboardComponents.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
-                                                        showID={this.props.leaderboardContext.showID}/>);
-        }
-        leaderboardComponents.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
-                             <ShowLeaderboardTable leaderboardContext={this.props.leaderboardContext}
-                                                      showID={this.props.leaderboardContext.showID} />
-                         </div></div>);
-    }
-    else if (this.props.leaderboardContext.channelID) {
-        leaderboardComponents.push(<BigButtonDropdown key="1"
-                                            buttonColor="primary"
-                                            leaderboardContext={this.props.leaderboardContext}
-                                            showAPIUrl={this.props.leaderboardContext.showListAPIUrl}
-                                            baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
-                                            currentSelection={this.props.leaderboardContext.currentSelection} />);
-        leaderboardComponents.push(<div key="2" className="row"><div className="col-md-10 col-md-offset-1">
-                                 <br/>
-                                 <ChannelLeaderboardTable leaderboardContext={this.props.leaderboardContext} />
-                             </div></div>);
-    }
-
-    return (
-      <div>{leaderboardComponents}</div>
-    );
-  }
-});
-
-var Recap = React.createClass({
-  render: function() {
-    var recapComponents = [];
-    var showID = this.props.recapContext.showID;
-
-    if (showID) {
-        recapComponents.push(<BigButtonDropdown key="1"
-                                                buttonColor="primary"
-                                                showAPIUrl={this.props.recapContext.showListAPIUrl}
-                                                baseLinkUrl={this.props.recapContext.channelRecapsUrl}
-                                                showID={this.props.recapContext.showID}
-                                                currentSelection={this.props.recapContext.currentSelection} />);
-        recapComponents.push(<br key="2" />);
-        recapComponents.push(<BigButton key="3"
-                                        buttonText="View Show Leaderboard"
-                                        buttonColor="danger"
-                                        buttonLink={this.props.recapContext.channelShowLeaderboardUrl} />);
-        // Recap panels
-        recapComponents.push(<ShowRecapPanels key="4"
-                                              recapContext={this.props.recapContext} />)
-    }
-    else {
-        recapComponents.push(<BigButtonDropdown key="1"
-                                                buttonColor="primary"
-                                                showAPIUrl={this.props.recapContext.showListAPIUrl}
-                                                baseLinkUrl={this.props.recapContext.channelRecapsUrl}
-                                                currentSelection={this.props.recapContext.currentSelection} />);
-    }
-
-    return (
-      <div>{recapComponents}</div>
-    );
-  }
-});
-
-var PlayerForm = React.createClass({
-  onFormSubmit: function(event) {
-      var input = document.getElementById('inputFile');
-      // Examine the input file
-      if (input) {
-          var file = input.files[0];
-          // Make sure the file is less than 2 MB
-          if (file && file.size > 2097152) {
-              alert("Image file size must be smaller than 2MB");
-              event.preventDefault();
-          }
-      }
-  },
-  render: function() {
-    var name = "";
-    var photoUrl = "";
-    var active = true;
-    var star = false;
-    var editPlayerID;
-    if (this.props.defaults) {
-        editPlayerID = this.props.defaults.id;
-        name = this.props.defaults.name;
-        photoUrl = this.props.defaults.photo_url;
-        active = this.props.defaults.active;
-        star = this.props.defaults.star;
-    }
-    var label;
-    var labelContents;
-    if (this.props.addPlayerContext.action) {
-        labelContents = this.props.addPlayerContext.action;
-        var labelColor = "primary";
-    } else if (this.props.addPlayerContext.error) {
-        labelContents = this.props.addPlayerContext.error;
-        var labelColor = "danger";
-
-    }
-    if (labelContents) {
-        label = <div className="row">
-                    <div className="col-md-6 col-md-offset-3">
-                        <Label labelColor={labelColor}
-                               extraClasses="x-large-font"
-                               labelContents={labelContents} />
-                        <br />
-                    </div>
-                 </div>;
-    }
-    var formContents = [];
-    // Player Name Input
-    var playerNameInput = <input type="text" className="form-control" name="player_name" defaultValue={name}></input>;
-    formContents.push(<FormGroup key="1"
-                                 labelSize="2"
-                                 labelContents="Player Name:"
-                                 inputSize="4"
-                                 input={playerNameInput}/>);
-    // Player Photo Input
-    var playerPhotoInput = <div><br/><span className="btn btn-primary btn-file"><input id="inputFile" type="file" name="file"></input></span></div>;
-    formContents.push(<FormGroup key="2"
-                                 labelSize="2"
-                                 labelContents="Upload Player Photo:"
-                                 inputSize="4"
-                                 input={playerPhotoInput}
-                                 helpBlock="Image file size must be smaller than 2MB" />);
-    // Active Input
-    var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={active}></input>;
-    formContents.push(<FormGroup key="3"
-                                 labelSize="2"
-                                 labelContents="Player Active:"
-                                 inputSize="4"
-                                 input={activeInput}
-                                 helpBlock="Check this if the player should appear in the Create Show form" />);
-    // Star Input
-    var starInput = <input type="checkbox" name="star" value="1" defaultChecked={star}></input>;
-    formContents.push(<FormGroup key="4"
-                                 labelSize="2"
-                                 labelContents="Star Player:"
-                                 inputSize="4"
-                                 input={starInput}
-                                 helpBlock="Check this if the player should be prioritized first in shows" />);
-    // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Player</button>;
-    formContents.push(<FormGroup key="5"
-                                 inputSize="2"
-                                 input={submitButton} />);
-    // Edit Player Dropdown Input
-    var playerEditInput = <PlayerDropDownSelect playerListAPIUrl={this.props.addPlayerContext.playerListAPIUrl}
-                                                handleEditPlayer={this.props.handleEditPlayer}
-                                                defaultPlayer={editPlayerID} />;
-    formContents.push(<FormGroup key="6"
-                                 labelSize="2"
-                                 labelContents="Edit Player:"
-                                 inputSize="4"
-                                 input={playerEditInput}
-                                 helpBlock="Select a player if you wish to edit them" />);
-    if (this.props.defaults) {
-        formContents.push(<div key="7" className="row">
-                            <div className="col-md-4 col-md-offset-2">
-                                <PlayerImage playerAPIUrl={this.props.addPlayerContext.playerAPIUrl}
-                                             playerID={editPlayerID}/>
-                            </div>
-                          </div>);
-    }
-    // CSRF Protection
-    formContents.push(<CSRFProtect key="8" csrfToken={this.props.addPlayerContext.csrfToken} />)
-    var bodyContent = <Form formStyle="horizontal"
-                            formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
-                            formContents={formContents}
-                            onFormSubmit={this.onFormSubmit} />
-    return (
-        <div>
-            {label}
-            <Panel panelWidth="6" panelOffset="3" panelColor="info"
-                   panelHeadingContent="Create/Edit Player" panelHeadingClasses="x-large-font"
-                   panelBodyClasses="white-background"
-                   bodyContent={bodyContent} />
-        </div>
-    );
-  }
-});
-
-
-var AddPlayer = React.createClass({
-  getInitialState: function() {
-    return {data: undefined,
-            editPlayerID: undefined};
-  },
-  componentDidMount: function() {
-    // If a show has been selected
-    if (this.state.editPlayerID) {
-        var playerAPIUrl = this.props.addPlayerContext.playerAPIUrl + this.state.editPlayerID + "/";
-        $.ajax({
-          url: playerAPIUrl,
-          dataType: 'json',
-          success: function(data) {
-            this.setState({data: data});
-          }.bind(this),
-          error: function(xhr, status, err) {
-            console.error(this.props.url, status, err.toString());
-          }.bind(this)
-        });
-    }
-  },
-  handleEditPlayer: function(event) {
-      this.setState({editPlayerID: event.target.value}, function() {
-          this.componentDidMount();
-      });
-  },
-  render: function() {
-    if (this.state.data) {
-        return (
-            <PlayerForm key={this.state.data.id}
-                        defaults={this.state.data}
-                        addPlayerContext={this.props.addPlayerContext}
-                        handleEditPlayer={this.handleEditPlayer} />
-        );
-    } else{
-        return (
-            <PlayerForm addPlayerContext={this.props.addPlayerContext}
-                        handleEditPlayer={this.handleEditPlayer} />
-        );
-    }
-  }
-});
+///////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////// ROOT COMPONENT ///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 var RootComponent = React.createClass({
   render: function() {
@@ -1443,8 +1656,21 @@ var RootComponent = React.createClass({
             action: getElementValueOrNull("action"),
             error: getElementValueOrNull("error")
         };
-        rootComponents.push(<AddPlayer key="1" addPlayerContext={addPlayerContext} />);
+        rootComponents.push(<PlayerForm key="1" addPlayerContext={addPlayerContext} />);
+    } else if (rootType == "channel-create-edit") {
+        var channelCreateEditContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelAPIUrl: getElementValueOrNull("channelAPIUrl"),
+            userID: getElementValueOrNull("userID"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
+        };
+        rootComponents.push(<ChannelCreateEditForm key="1"
+                                                   channelCreateEditContext={channelCreateEditContext} />);
     }
+
 
     return (
       <div>{rootComponents}</div>

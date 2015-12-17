@@ -1,0 +1,33 @@
+{% extends "home/base_home.html" %}
+
+{% block title %}Improvote: {% if channel %}{{channel.display_name}} Channel Edit{% else %}Channel Create{% endif %}{% endblock %}
+
+{% block content %}
+    <section><div id="container-fluid" class="container-fluid"></div></section>
+    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+
+    <input type="hidden" id="rootType" name="rootType" value="channel-create-edit" readonly>
+    <input type="hidden" id="userID" name="userID" value="{{request.user.id}}" readonly>
+    <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
+	{% if action %}
+		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
+	{% endif %}
+    {% if error %}
+		<input type="hidden" id="error" name="error" value="{{error}}" readonly>
+	{% endif %}
+    {% if channel %}
+        <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
+        <input type="hidden" id="channelAPIUrl" name="channelAPIUrl"
+           value="{% url "channel-detail" channel.id %}" readonly>
+        <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
+               value="{% url "channel_edit" channel.id %}" readonly>
+    {% else %}
+        <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
+               value="{% url "channel_create" %}" readonly>
+    {% endif %}
+
+{% endblock %}
+
+{% block add_react %}
+    {% include "embedded_utils/react_src.html" %}
+{% endblock %}

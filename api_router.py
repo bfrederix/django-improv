@@ -19,10 +19,15 @@ router.register(r'show',
                 shows_api_views.ShowViewSet,
                 'show')
 
-# Shows
+# Channels
 router.register(r'channel',
                 channels_api_views.ChannelViewSet,
                 'channel')
+
+# Channel Addresses
+router.register(r'channel_address',
+                channels_api_views.ChannelAddressViewSet,
+                'channel-address')
 
 # Player
 router.register(r'player',

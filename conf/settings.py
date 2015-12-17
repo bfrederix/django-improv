@@ -101,6 +101,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+LOGIN_URL = 'user_login'
+
+LOGIN_REDIRECT_URL = '/'
+
 # django-rest-framework settings
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
