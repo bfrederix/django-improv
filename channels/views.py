@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -6,6 +6,8 @@ from django.utils.html import escape
 
 import cloudinary.uploader
 
+from channels.models import (Channel, ChannelAddress, ChannelOwner,
+                             ChannelAdmin)
 from channels import service as channels_service
 from users import service as users_service
 from players import service as players_service
@@ -51,14 +53,67 @@ class ChannelCreateEditView(View):
                       {'channel': channel})
 
     def post(self, request, *args, **kwargs):
+        action = None
         channel_id = kwargs.get('channel_id')
         if channel_id:
             channel = channels_service.channel_or_404(channel_id, channel_id=True)
+            action = "Channel Edited Successfully!"
         else:
             channel = None
 
         error = None
-        action = None
+        next_show = request.POST.get('next_show')
+        channel_update = {"name": request.POST.get('name'),
+                          "display_name": request.POST.get('display_name'),
+                          "short_description": request.POST.get('short_description'),
+                          "description": request.POST.get('description'),
+                          "website": request.POST.get('website'),
+                          "facebook_page": request.POST.get('facebook_page'),
+                          "buy_tickets_link": request.POST.get('buy_tickets_link'),
+                          "next_show": next_show or None,
+                          "timezone": request.POST.get('timezone')}
+        address_update = {"street": request.POST.get('street'),
+                          "city": request.POST.get('city'),
+                          "state": request.POST.get('state'),
+                          "zipcode": request.POST.get('zipcode')}
+        image_update = {"logo_url": request.FILES.get('logoFile'),
+                        "team_photo_url": request.FILES.get('teamPhotoFile')}
+        if not channel:
+            channel = Channel(**channel_update)
+        else:
+            for field, value in channel_update.items():
+                setattr(channel, field, value)
+        channel.save()
+        # Update or create images in cloudinary
+        for field_name, img_file in image_update.items():
+            if img_file and not error:
+                public_id = "{0}_{1}".format(field_name, channel.id)
+                cloud_response = cloudinary.uploader.upload(img_file,
+                                                            folder="channels",
+                                                            public_id=public_id,
+                                                            invalidate=True)
+                setattr(channel, field_name, cloud_response.get('secure_url'))
+        # If there were no errors, save the channel
+        if not error:
+            # Create/Update the channel address
+            if not channel.address:
+                channel_address = ChannelAddress(**address_update)
+                channel_address.save()
+                channel.address = channel_address
+            else:
+                for field, value in address_update.items():
+                    setattr(channel.address, field, value)
+                channel.address.save()
+            channel.save()
+            # If this is a new channel
+            if not channel_id:
+                # Make the current user the owner and admin of the channel
+                ChannelOwner.objects.get_or_create(channel=channel,
+                                                   user=request.user)
+                ChannelAdmin.objects.get_or_create(channel=channel,
+                                                   user=request.user)
+                # redirect to the newly created channel
+                return redirect('channel_home', channel_name=channel.name)
 
         return render(request,
                       self.template_name,
@@ -103,7 +158,7 @@ class ChannelPlayersView(View):
             error = 'Player name required'
         # Update or create the player image in cloudinary
         uploaded_file = request.FILES.get('file')
-        # This will fail if file size is > 2097152:
+        # Files larger than 2MB won't appear in request.FILES
         if uploaded_file and not error:
             cloud_response = cloudinary.uploader.upload(uploaded_file,
                                                         folder="players",

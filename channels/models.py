@@ -9,16 +9,17 @@ class Channel(models.Model):
     name = models.CharField(blank=False, max_length=50, unique=True)
     display_name = models.CharField(blank=False, max_length=100)
     is_premium = models.BooleanField(blank=False, default=False)
-    short_description = models.CharField(blank=True, max_length=100)
-    description = models.TextField(blank=True)
-    thumbnail_url = models.CharField(blank=True, max_length=500)
-    sponsor_logo_url = models.CharField(blank=True, max_length=500)
-    logo_url = models.CharField(blank=True, max_length=500)
-    team_photo_url = models.CharField(blank=True, max_length=500)
-    website = models.CharField(blank=True, max_length=500)
-    facebook_page = models.CharField(blank=True, max_length=500)
-    buy_tickets_link = models.CharField(blank=True, max_length=500)
-    next_show = models.DateTimeField(blank=True)
+    short_description = models.CharField(blank=True, null=True, max_length=100)
+    description = models.TextField(blank=True, null=True)
+    thumbnail_url = models.CharField(blank=True, null=True, max_length=500)
+    sponsor_logo_url = models.CharField(blank=True, null=True, max_length=500)
+    logo_url = models.CharField(blank=True, null=True, max_length=500)
+    team_photo_url = models.CharField(blank=True, null=True, max_length=500)
+    website = models.CharField(blank=True, null=True, max_length=500)
+    facebook_page = models.CharField(blank=True, null=True, max_length=500)
+    buy_tickets_link = models.CharField(blank=True, null=True, max_length=500)
+    next_show = models.DateTimeField(blank=True, null=True)
+    timezone = models.CharField(blank=True, null=True, max_length=100)
     address = FlexibleForeignKey("ChannelAddress", blank=True, null=True)
 
     def __unicode__(self):
@@ -27,10 +28,10 @@ class Channel(models.Model):
 
 class ChannelAddress(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    street = models.CharField(blank=True, max_length=255)
-    city = models.CharField(blank=True, max_length=100)
-    state = models.CharField(blank=True, max_length=100)
-    zipcode = models.CharField(blank=True, max_length=100)
+    street = models.CharField(blank=True, null=True, max_length=255)
+    city = models.CharField(blank=True, null=True, max_length=100)
+    state = models.CharField(blank=True, null=True, max_length=100)
+    zipcode = models.CharField(blank=True, null=True, max_length=100)
 
 
 class ChannelUser(models.Model):

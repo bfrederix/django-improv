@@ -59,9 +59,14 @@ function limitFileSize(event, elementID) {
     }
 }
 
-function validateTextField(event, elementID) {
+function validateTextField(event, elementID, allowSpaces) {
     var field = document.getElementById(elementID);
-    var re = /^[\w-]+$/;
+    var re;
+    if (allowSpaces) {
+        re = /^[\w- ]+$/;
+    } else {
+        re = /^[\w-]+$/;
+    }
     if (!re.test(field.value) || field.value.length === 0) {
         $('#'+elementID).parent('div').addClass('has-error');
         alert(elementID + ' must be a combination of letters, numbers, hyphens, or underscores');
@@ -358,6 +363,31 @@ var Image = React.createClass({
   }
 });
 
+var TimezoneSelect = React.createClass({
+  render: function() {
+    var key;
+    var tz_name;
+    var optionList = [];
+    var timezone_names = moment.tz.names().reverse();
+    optionList.push(<option key="0" value="">Select a Timezone</option>);
+    // Go through all the medal keys
+    for (var i = 0; i < timezone_names.length; i++) {
+        key = i + 1;
+        tz_name = timezone_names[i];
+        if (!/Africa|Indian|Pacific\/|Etc|Atlantic|Antarctica|America|Asia|Arctic|Mexico|Brazil|Chile/.test(tz_name)
+            && (new RegExp('\/')).test(tz_name)) {
+            optionList.push(<option key={key} value={tz_name}>{tz_name}</option>);
+        }
+    }
+
+    return (
+        <select className="form-control" name="timezone" defaultValue={this.props.defaultTimezone}>
+            {optionList}
+        </select>
+    );
+  }
+});
+
 var BigButton = React.createClass({
   render: function() {
     var buttonClass = "btn btn-" + this.props.buttonColor + " btn-block btn-lg text-center x-large-font";
@@ -597,11 +627,13 @@ var ChannelCreateEditForm = React.createClass({
   getInitialState: function() {
     return {data: {name: "",
                    display_name: "",
-                   short_descripton: "",
-                   descripton: "",
+                   short_description: "",
+                   description: "",
                    website: "",
                    facebook_page: "",
                    buy_tickets_link: "",
+                   next_show: "",
+                   timezone: "",
                    address: {street: "",
                              city: "",
                              state: "",
@@ -628,7 +660,7 @@ var ChannelCreateEditForm = React.createClass({
       limitFileSize(event, 'logoFile');
       limitFileSize(event, 'teamPhotoFile');
       validateTextField(event, "name");
-      validateTextField(event, "display_name");
+      validateTextField(event, "display_name", true);
   },
   render: function() {
     var actionText;
@@ -655,18 +687,18 @@ var ChannelCreateEditForm = React.createClass({
                                  input={displayNameInput}
                                  helpBlock="Required: Used as the human readable name on the site" />);
     // Short Description Input
-    var shortDescriptionInput = <textarea type="text" name="short_descripton" maxLength="100" rows="2" defaultValue={this.state.data.short_descripton} className="form-control"></textarea>;
+    var shortDescriptionInput = <textarea type="text" name="short_description" maxLength="100" rows="2" defaultValue={this.state.data.short_description} className="form-control"></textarea>;
     formContents.push(<FormGroup key="3"
                                  labelSize="2"
                                  labelContents="Short Description:"
                                  inputSize="7"
                                  input={shortDescriptionInput} />);
     // Description Input
-    var DescriptionInput = <textarea type="text" name="descripton" rows="5" defaultValue={this.state.data.descripton} className="form-control"></textarea>;
+    var DescriptionInput = <textarea type="text" name="description" rows="5" defaultValue={this.state.data.description} className="form-control"></textarea>;
     formContents.push(<FormGroup key="4"
                                  labelSize="2"
                                  labelContents="Description:"
-                                 inputSize="7"
+                                 inputSize="8"
                                  input={DescriptionInput}
                                  helpBlock="Used on the channel's about page" />);
     // Logo Image Input
@@ -701,7 +733,7 @@ var ChannelCreateEditForm = React.createClass({
                                  labelContents="Facebook Page:"
                                  inputSize="7"
                                  input={facebookPageInput}
-                                 helpBlock="Your group's Facebook page" />);
+                                 helpBlock="Your group's Facebook page, 'Like Our Page' links added for premium channels" />);
     // Buy Tickets Input
     var buyTicketsInput = <input type="text" name="buy_tickets_link" defaultValue={this.state.data.buy_tickets_link} className="form-control"></input>;
     formContents.push(<FormGroup key="9"
@@ -710,10 +742,26 @@ var ChannelCreateEditForm = React.createClass({
                                  inputSize="7"
                                  input={buyTicketsInput}
                                  helpBlock="The URL to buy tickets to your shows" />);
+    // Next Show
+    var nextShowInput = <input type="datetime-local" name="next_show" className="form-control" defaultValue={this.state.data.next_show.replace('Z','')}></input>;
+    formContents.push(<FormGroup key="10"
+                                 labelSize="2"
+                                 labelContents="Next Show:"
+                                 inputSize="5"
+                                 input={nextShowInput}
+                                 helpBlock="When your next show is scheduled, appears on your channel's homepage" />);
+    // Default Timzone
+    var timezoneInput = <TimezoneSelect defaultTimezone={this.state.data.timezone} />;
+    formContents.push(<FormGroup key="11"
+                                 labelSize="2"
+                                 labelContents="Default Timezone:"
+                                 inputSize="5"
+                                 input={timezoneInput}
+                                 helpBlock="Timezone your show appears in, used for show defaults" />);
     // ADDRESS //
     // Street Input
     var streetInput = <input type="text" name="street" defaultValue={this.state.data.address.street} className="form-control"></input>;
-    formContents.push(<FormGroup key="11"
+    formContents.push(<FormGroup key="12"
                                  labelSize="2"
                                  labelContents="Street Address:"
                                  inputSize="6"
@@ -721,21 +769,21 @@ var ChannelCreateEditForm = React.createClass({
                                  helpBlock="The street address where you perform your shows, used for mapping" />);
     // City Input
     var cityInput = <input type="text" name="city" defaultValue={this.state.data.address.city} className="form-control"></input>;
-    formContents.push(<FormGroup key="12"
+    formContents.push(<FormGroup key="13"
                                  labelSize="2"
                                  labelContents="City:"
                                  inputSize="5"
                                  input={cityInput} />);
     // State Input
     var stateInput = <input type="text" name="state" maxLength="2" defaultValue={this.state.data.address.state} className="form-control"></input>;
-    formContents.push(<FormGroup key="13"
+    formContents.push(<FormGroup key="14"
                                  labelSize="2"
                                  labelContents="State:"
                                  inputSize="2"
                                  input={stateInput} />);
     // Zipcode Input
     var zipcodeInput = <input type="text" name="zipcode" defaultValue={this.state.data.address.zipcode} className="form-control"></input>;
-    formContents.push(<FormGroup key="14"
+    formContents.push(<FormGroup key="15"
                                  labelSize="2"
                                  labelContents="Zipcode:"
                                  inputSize="3"
@@ -743,7 +791,7 @@ var ChannelCreateEditForm = React.createClass({
 
     // Submit Button
     var submitButton = <button type="submit" className="btn btn-danger">{actionText}</button>;
-    formContents.push(<FormGroup key="15"
+    formContents.push(<FormGroup key="16"
                                  inputSize="2"
                                  input={submitButton} />);
 

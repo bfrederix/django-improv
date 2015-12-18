@@ -61,6 +61,8 @@ class VoteType(models.Model):
     occurs = models.CharField(choices=OCCURS_TYPE, blank=False, max_length=100)
     ordering = models.IntegerField(default=0, blank=False)
     options = models.IntegerField(default=3, blank=False)
+    vote_length = models.IntegerField(default=25, blank=False)
+    result_length = models.IntegerField(default=10, blank=False)
     randomize_amount = models.IntegerField(default=6, blank=False)
     button_color = models.CharField(default="#003D7A", blank=False, max_length=100)
 
@@ -77,10 +79,7 @@ class Show(models.Model):
     # Assigned to show on creation
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
-    vote_length = models.IntegerField(default=25, blank=False)
-    result_length = models.IntegerField(default=10, blank=False)
-    vote_options = models.IntegerField(default=3, blank=False)
-    timezone = models.CharField(default='America/Denver', blank=False, max_length=100)
+    timezone = models.CharField(default='US/Mountain', blank=False, max_length=100)
 
     created = models.DateTimeField(blank=False)
     archived = models.BooleanField(default=False, blank=False)

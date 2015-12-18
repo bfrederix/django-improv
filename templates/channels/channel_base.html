@@ -6,7 +6,7 @@
     <meta property="og:title" content="Adventure-prov" />
     <meta property="og:description" content="An improvised show that lets you decide the action with mobile voting!" />
     <meta name="Description" CONTENT="An improvised show with live mobile voting!">
-    <link rel="image_src" href="{{image_path}}adventure-prov_profile_pic.jpg" />
+    <link rel="image_src" href="{{IMAGE_URL}}adventure-prov_profile_pic.jpg" />
 	<link rel="apple-touch-icon" href="apple-touch-icon.png">
 	<link href="{{CSS_URL}}bootstrap.min.css" rel="stylesheet" media="screen">
   	<link rel="stylesheet" type="text/css" href="{{CSS_URL}}base.css">
@@ -29,7 +29,7 @@
 						<span class="icon-bar"></span>
 					</button>
 					<a href="{% url "improvote_home" %}">
-						<img class="pull-left improvote-home-icon" src="{{IMAGE_URL}}improvote-logo-icon-square.png" alt="Improvote Home">
+						<img class="pull-left improvote-home-icon" src="{{IMAGE_URL}}improvote-logo-icon-square.png" alt="Improvote Home" />
 					</a>
 					<a class="navbar-brand" href="{% url "channel_home" channel.name %}">&nbsp;{{channel.display_name}}</a>
 				</div>
@@ -54,18 +54,18 @@
                             </ul>
                         </li>
                     {% endif %}
-                    <li class="dropdown {% block leaderboards-selected %}{% endblock %}">
+                    <li class="{% block recaps-selected %}{% endblock %}"><a href="{% url "channel_recaps" channel.name %}">Show Recaps</a></li>
+					<li class="dropdown {% block leaderboards-selected %}{% endblock %} {% if not channel.is_premium %} disabled{% endif %}">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            Leaderboards <span class="caret"></span>
+                            Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /> <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="{% url "channel_leaderboards" channel.name %}"><strong>All-time Leaderboard</strong></a></li>
-                            <li><a href="/medals/"><strong>Medals</strong></a></li>
+                            <li class="{% if not channel.is_premium %}disabled{% endif %}"><a href="{% url "channel_leaderboards" channel.name %}"><strong>All-time Leaderboard</strong></a></li>
+                            <li class="{% if not channel.is_premium %}disabled{% endif %}"><a href="/medals/"><strong>Medals</strong></a></li>
                         </ul>
                     </li>
-                    <li class="{% block recaps-selected %}{% endblock %}"><a href="{% url "channel_recaps" channel.name %}">Show Recaps</a></li>
     				{% if request.user.is_authenticated %}
-    				    <li {% block user-account-selected %}{% endblock %}><a href="{% url "user_account" request.user.id %}?channel_name={{channel.name}}">My Account</a></li>
+    				    <li class="{% if not channel.is_premium %}disabled{% endif %}"><a href="{% url "user_account" request.user.id %}?channel_name={{channel.name}}">My Account <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
     				{% endif %}
 					{% if is_channel_admin %}
 						<li class="dropdown{% block admin-selected %}{% endblock %}">
@@ -79,7 +79,8 @@
     							<li {% block suggestion-pool-selected %}{% endblock %}><a href="/suggestion_pools/">Create/Edit Suggestion Pools</a></li>
 								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Create/Edit Players</a></li>
 								<li><a href="{% url "channel_edit" channel.id %}">Edit Channel</a></li>
-								<li {% block export-emails-selected %}{% endblock %}><a href="/export_emails/">Export e-mails</a></li>
+								{% if not channel.is_premium %}<li><a href="{% url "channel_edit" channel.id %}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>{% endif %}
+								<li class="{% block export-emails-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="/export_emails/">Export E-mails <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
     						</ul>
   						</li>
 					{% endif %}

@@ -20,4 +20,4 @@ class ChannelSerializer(serializers.HyperlinkedModelSerializer):
                   'short_description', 'description',
                   'thumbnail_url', 'logo_url', 'team_photo_url',
                   'website', 'facebook_page', 'address',
-                  'buy_tickets_link', 'next_show')
+                  'buy_tickets_link', 'next_show', 'timezone')
