@@ -16,11 +16,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 
 from channels.models import (Channel, ChannelAddress, ChannelAdmin,
-                             ChannelOwner, ChannelUser)
+                             ChannelOwner, ChannelUser, SuggestionPool, VoteType)
 from leaderboards.models import (Medal, LeaderboardEntry, LeaderboardSpan,
                                 LeaderboardEntryMedal)
 from players.models import Player
-from shows.models import (SuggestionPool, VoteType, Show, ShowVoteType,
+from shows.models import (Show, ShowVoteType,
                           ShowPlayer, ShowPlayerPool, Suggestion,
                           PreshowVote, LiveVote, ShowInterval,
                           VoteOptions, OptionSuggestion, VotedItem)
@@ -128,7 +128,8 @@ class Command(BaseCommand):
                                                          website="http://www.fake.com",
                                                          address=channel_address,
                                                          buy_tickets_link="http://www.fake.com",
-                                                         next_show=datetime.datetime(2017, 8, 9).replace(tzinfo=pytz.utc))
+                                                         next_show=datetime.datetime(2017, 8, 9).replace(tzinfo=pytz.utc),
+                                                         created=datetime.datetime.utcnow().replace(tzinfo=pytz.utc))
         channel_owner, created = ChannelOwner.objects.get_or_create(channel=channel,
                                                                     user=my_user)
         channel_admin, created = ChannelAdmin.objects.get_or_create(channel=channel,

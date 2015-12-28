@@ -510,118 +510,52 @@ var BigButtonDropdown = React.createClass({
   }
 });
 
-///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////// FORM COMPONENTS /////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-
-var PlayerForm = React.createClass({
+var DropDownSelect = React.createClass({
   getInitialState: function() {
-    return {data: {name: "",
-                   active: true,
-                   star: false},
-            editPlayerID: undefined,
-            key: "1"};
+    return {data: undefined};
   },
   componentDidMount: function() {
-    // If a show has been selected
-    if (this.state.editPlayerID) {
-        var playerAPIUrl = this.props.addPlayerContext.playerAPIUrl + this.state.editPlayerID + "/";
-        $.ajax({
-          url: playerAPIUrl,
-          dataType: 'json',
-          success: function(data) {
-            this.setState({data: data,
-                           editPlayerID: this.state.editPlayerID,
-                           key: this.state.editPlayerID});
-          }.bind(this),
-          error: function(xhr, status, err) {
-            console.error(this.props.url, status, err.toString());
-          }.bind(this)
-        });
-    }
-  },
-  onFormSubmit: function(event) {
-      limitFileSize(event, 'inputFile');
-  },
-  handleEditPlayer: function(event) {
-      this.setState({editPlayerID: event.target.value}, function() {
-          this.componentDidMount();
-      });
+    console.log(this.props.listAPIUrl);
+    $.ajax({
+      url: this.props.listAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
   },
   render: function() {
-    var formContents = [];
-    // Player Name Input
-    var playerNameInput = <input type="text" className="form-control" name="player_name" defaultValue={this.state.data.name}></input>;
-    formContents.push(<FormGroup key="1"
-                                 labelSize="2"
-                                 labelContents="Player Name:"
-                                 inputSize="4"
-                                 input={playerNameInput}/>);
-    // Player Photo Input
-    var playerPhotoInput = <div><br/><span className="btn btn-primary btn-file"><input id="inputFile" type="file" name="file"></input></span></div>;
-    formContents.push(<FormGroup key="2"
-                                 labelSize="2"
-                                 labelContents="Upload Player Photo:"
-                                 inputSize="4"
-                                 input={playerPhotoInput}
-                                 helpBlock="Image file size must be smaller than 2MB" />);
-    // Active Input
-    var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
-    formContents.push(<FormGroup key="3"
-                                 labelSize="2"
-                                 labelContents="Player Active:"
-                                 inputSize="4"
-                                 input={activeInput}
-                                 helpBlock="Check this if the player should appear in the Create Show form" />);
-    // Star Input
-    var starInput = <input type="checkbox" name="star" value="1" defaultChecked={this.state.data.star}></input>;
-    formContents.push(<FormGroup key="4"
-                                 labelSize="2"
-                                 labelContents="Star Player:"
-                                 inputSize="4"
-                                 input={starInput}
-                                 helpBlock="Check this if the player should be prioritized first in shows" />);
-    // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Player</button>;
-    formContents.push(<FormGroup key="5"
-                                 inputSize="2"
-                                 input={submitButton} />);
-    // Edit Player Dropdown Input
-    var playerEditInput = <PlayerDropDownSelect playerListAPIUrl={this.props.addPlayerContext.playerListAPIUrl}
-                                                handleEditPlayer={this.handleEditPlayer}
-                                                defaultPlayer={this.state.editPlayerID} />;
-    formContents.push(<FormGroup key="6"
-                                 labelSize="2"
-                                 labelContents="Edit Player:"
-                                 inputSize="4"
-                                 input={playerEditInput}
-                                 helpBlock="Select a player if you wish to edit them" />);
-    if (this.state.editPlayerID) {
-        formContents.push(<div key="7" className="row">
-                            <div className="col-md-4 col-md-offset-2">
-                                <PlayerImage playerAPIUrl={this.props.addPlayerContext.playerAPIUrl}
-                                             playerID={this.state.editPlayerID}/>
-                            </div>
-                          </div>);
+    var optionList = [];
+    if (!this.state.data){
+        return (<div>
+                    <Loading loadingBarColor="#fff"/>
+                </div>);
     }
-    var bodyContent = <Form formStyle="horizontal"
-                            formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
-                            formContents={formContents}
-                            onFormSubmit={this.onFormSubmit}
-                            csrfToken={this.props.addPlayerContext.csrfToken} />
+    this.counter = 0;
+    if (this.props.defaultText) {
+        optionList.push(<option key="0" value="">{this.props.defaultText}</option>);
+    }
+    // Create the suggestion list
+    this.state.data.map(function (item) {
+        this.counter++;
+        optionList.push(<option key={this.counter} value={item.id}>{item.name}</option>);
+        return optionList;
+    }, this);
+
     return (
-        <div key={this.state.key}>
-            <FormLabel action={this.props.addPlayerContext.action}
-                       error={this.props.addPlayerContext.error} />
-            <Panel panelWidth="6" panelOffset="3" panelColor="info"
-                   panelHeadingContent="Create/Edit Player" panelHeadingClasses="x-large-font"
-                   panelBodyClasses="white-background"
-                   bodyContent={bodyContent} />
-        </div>
+        <select className="form-control" name="selectID" onChange={this.props.selectEventHandler} defaultValue={this.props.defaultSelected}>
+            {optionList}
+        </select>
     );
   }
 });
 
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// FORM COMPONENTS /////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 var ChannelCreateEditForm = React.createClass({
   getInitialState: function() {
@@ -807,6 +741,239 @@ var ChannelCreateEditForm = React.createClass({
                        error={this.props.channelCreateEditContext.error} />
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent={actionText} panelHeadingClasses="x-large-font"
+                   panelBodyClasses="white-background"
+                   bodyContent={bodyContent} />
+        </div>
+    );
+  }
+});
+
+var PlayerForm = React.createClass({
+  getInitialState: function() {
+    return {data: {name: "",
+                   active: true,
+                   star: false},
+            editPlayerID: undefined,
+            key: "1"};
+  },
+  componentDidMount: function() {
+    // If a show has been selected
+    if (this.state.editPlayerID) {
+        var playerAPIUrl = this.props.addPlayerContext.playerAPIUrl + this.state.editPlayerID + "/";
+        $.ajax({
+          url: playerAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data,
+                           editPlayerID: this.state.editPlayerID,
+                           key: this.state.editPlayerID});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  onFormSubmit: function(event) {
+      validateTextField(event, "player_name", true);
+      limitFileSize(event, 'inputFile');
+  },
+  handleEditPlayer: function(event) {
+      this.setState({editPlayerID: event.target.value}, function() {
+          this.componentDidMount();
+      });
+  },
+  render: function() {
+    var formContents = [];
+    // Player Name Input
+    var playerNameInput = <input type="text" id="player_name" name="player_name" defaultValue={this.state.data.name} className="form-control"></input>;
+    formContents.push(<FormGroup key="1"
+                                 labelSize="2"
+                                 labelContents="Player Name*:"
+                                 inputSize="4"
+                                 input={playerNameInput}/>);
+    // Player Photo Input
+    var playerPhotoInput = <div><br/><span className="btn btn-primary btn-file"><input id="inputFile" type="file" name="file"></input></span></div>;
+    formContents.push(<FormGroup key="2"
+                                 labelSize="2"
+                                 labelContents="Upload Player Photo:"
+                                 inputSize="4"
+                                 input={playerPhotoInput}
+                                 helpBlock="Image file size must be smaller than 2MB" />);
+    // Active Input
+    var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Player Active:"
+                                 inputSize="4"
+                                 input={activeInput}
+                                 helpBlock="Check this if the player should appear in the Create Show form" />);
+    // Star Input
+    var starInput = <input type="checkbox" name="star" value="1" defaultChecked={this.state.data.star}></input>;
+    formContents.push(<FormGroup key="4"
+                                 labelSize="2"
+                                 labelContents="Star Player:"
+                                 inputSize="4"
+                                 input={starInput}
+                                 helpBlock="Check this if the player should be prioritized first in shows" />);
+    // Submit Button
+    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Player</button>;
+    formContents.push(<FormGroup key="5"
+                                 inputSize="2"
+                                 input={submitButton} />);
+    // Edit Player Dropdown Input
+    var playerEditInput = <PlayerDropDownSelect playerListAPIUrl={this.props.addPlayerContext.playerListAPIUrl}
+                                                handleEditPlayer={this.handleEditPlayer}
+                                                defaultPlayer={this.state.editPlayerID} />;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Edit Player:"
+                                 inputSize="4"
+                                 input={playerEditInput}
+                                 helpBlock="Select a player if you wish to edit them" />);
+    if (this.state.editPlayerID) {
+        formContents.push(<div key="7" className="row">
+                            <div className="col-md-4 col-md-offset-2">
+                                <PlayerImage playerAPIUrl={this.props.addPlayerContext.playerAPIUrl}
+                                             playerID={this.state.editPlayerID}/>
+                            </div>
+                          </div>);
+    }
+    var bodyContent = <Form formStyle="horizontal"
+                            formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
+                            formContents={formContents}
+                            onFormSubmit={this.onFormSubmit}
+                            csrfToken={this.props.addPlayerContext.csrfToken} />
+    return (
+        <div key={this.state.key}>
+            <FormLabel action={this.props.addPlayerContext.action}
+                       error={this.props.addPlayerContext.error} />
+            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+                   panelHeadingContent="Create/Edit Player" panelHeadingClasses="x-large-font"
+                   panelBodyClasses="white-background"
+                   bodyContent={bodyContent} />
+        </div>
+    );
+  }
+});
+
+
+var SuggestionPoolForm = React.createClass({
+  getInitialState: function() {
+    return {data: {name: "",
+                   display_name: "",
+                   description: 'Instructive text used to help guide users on what suggestions to enter',
+                   max_user_suggestions: 5,
+                   admin_only: false,
+                   active: true},
+            suggestionPoolID: undefined,
+            key: "1"};
+  },
+  componentDidMount: function() {
+    // If a show has been selected
+    if (this.state.suggestionPoolID) {
+        var suggestionPoolAPIUrl = this.props.suggestionPoolContext.suggestionPoolAPIUrl + this.state.suggestionPoolID + "/";
+        $.ajax({
+          url: suggestionPoolAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data,
+                           suggestionPoolID: this.state.suggestionPoolID,
+                           key: this.state.suggestionPoolID});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  onFormSubmit: function(event) {
+      validateTextField(event, "name");
+      validateTextField(event, "display_name", true);
+      validateTextField(event, "max_user_suggestions");
+  },
+  editEventHandler: function(event) {
+      this.setState({suggestionPoolID: event.target.value}, function() {
+          this.componentDidMount();
+      });
+  },
+  render: function() {
+    var formContents = [];
+    // Name Input
+    var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
+    formContents.push(<FormGroup key="1"
+                                 labelSize="2"
+                                 labelContents="Name*:"
+                                 inputSize="4"
+                                 input={nameInput}/>);
+    // Display Name Input
+    var displayNameInput = <input type="text" id="display_name" name="display_name" defaultValue={this.state.data.display_name} className="form-control"></input>;
+    formContents.push(<FormGroup key="2"
+                                 labelSize="2"
+                                 labelContents="Display Name*:"
+                                 inputSize="4"
+                                 input={displayNameInput}
+                                 helpBlock="Name that appears to users" />);
+    // Description Input
+    var descriptionInput = <textarea type="text" name="description" rows="5" defaultValue={this.state.data.description} className="form-control"></textarea>;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Description:"
+                                 inputSize="8"
+                                 input={descriptionInput}
+                                 helpBlock="Used to instruct users on what types of suggestions to enter" />);
+    // Max User Suggestions Input
+    var maxUserSuggestionsInput = <input type="text" id="max_user_suggestions" name="max_user_suggestions" maxLength="3" defaultValue={this.state.data.max_user_suggestions} className="form-control"></input>;
+    formContents.push(<FormGroup key="4"
+                                 labelSize="2"
+                                 labelContents="User Suggestion Limit*:"
+                                 inputSize="2"
+                                 input={maxUserSuggestionsInput}
+                                 helpBlock="How many suggestions each user can enter for this suggestion pool" />);
+    // Admin Only Input
+    var adminOnlyInput = <input type="checkbox" name="admin_only" value="1" defaultChecked={this.state.data.admin_only}></input>;
+    formContents.push(<FormGroup key="5"
+                                 labelSize="2"
+                                 labelContents="Admin Suggestions Only:"
+                                 inputSize="4"
+                                 input={adminOnlyInput}
+                                 helpBlock="Check this if only admin can enter suggestions in this pool" />);
+    // Active Input
+    var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Suggestion Pool Active:"
+                                 inputSize="4"
+                                 input={activeInput}
+                                 helpBlock="Check this if the suggestion pool should appear in the Create Show form" />);
+    // Submit Button
+    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Suggestion Pool</button>;
+    formContents.push(<FormGroup key="7"
+                                 inputSize="2"
+                                 input={submitButton} />);
+    // Edit Player Dropdown Input
+    var suggestionPoolEditInput = <DropDownSelect listAPIUrl={this.props.suggestionPoolContext.suggestionPoolListAPIUrl}
+                                                  selectEventHandler={this.editEventHandler}
+                                                  defaultSelected={this.state.suggestionPoolID}
+                                                  defaultText="Select a Suggestion Pool to Edit" />;
+    formContents.push(<FormGroup key="8"
+                                 labelSize="2"
+                                 labelContents="Edit Suggestion Pool:"
+                                 inputSize="4"
+                                 input={suggestionPoolEditInput}
+                                 helpBlock="Select a Suggestion Pool if you wish to edit it" />);
+
+    var bodyContent = <Form formStyle="horizontal"
+                            formSubmitUrl={this.props.suggestionPoolContext.formSubmitUrl}
+                            formContents={formContents}
+                            onFormSubmit={this.onFormSubmit}
+                            csrfToken={this.props.suggestionPoolContext.csrfToken} />
+    return (
+        <div key={this.state.key}>
+            <FormLabel action={this.props.suggestionPoolContext.action}
+                       error={this.props.suggestionPoolContext.error} />
+            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+                   panelHeadingContent="Create/Edit Suggestion Pool" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
                    bodyContent={bodyContent} />
         </div>
@@ -1693,18 +1860,6 @@ var RootComponent = React.createClass({
             showID: getElementValueOrNull("showID")
         };
         rootComponents.push(<Recap key="1" recapContext={recapContext} />);
-    } else if (rootType == "add_player") {
-        var addPlayerContext = {
-            channelID: getElementValueOrNull("channelID"),
-            channelName: getElementValueOrNull("channelName"),
-            playerAPIUrl: getElementValueOrNull("playerAPIUrl"),
-            playerListAPIUrl: getElementValueOrNull("playerListAPIUrl"),
-            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
-            csrfToken: getElementValueOrNull("csrfToken"),
-            action: getElementValueOrNull("action"),
-            error: getElementValueOrNull("error")
-        };
-        rootComponents.push(<PlayerForm key="1" addPlayerContext={addPlayerContext} />);
     } else if (rootType == "channel-create-edit") {
         var channelCreateEditContext = {
             channelID: getElementValueOrNull("channelID"),
@@ -1717,6 +1872,30 @@ var RootComponent = React.createClass({
         };
         rootComponents.push(<ChannelCreateEditForm key="1"
                                                    channelCreateEditContext={channelCreateEditContext} />);
+    } else if (rootType == "channel_players") {
+        var addPlayerContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelName: getElementValueOrNull("channelName"),
+            playerAPIUrl: getElementValueOrNull("playerAPIUrl"),
+            playerListAPIUrl: getElementValueOrNull("playerListAPIUrl"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
+        };
+        rootComponents.push(<PlayerForm key="1" addPlayerContext={addPlayerContext} />);
+    } else if (rootType == "channel_suggestion_pools") {
+        var suggestionPoolContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelName: getElementValueOrNull("channelName"),
+            suggestionPoolAPIUrl: getElementValueOrNull("suggestionPoolAPIUrl"),
+            suggestionPoolListAPIUrl: getElementValueOrNull("suggestionPoolListAPIUrl"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
+        };
+        rootComponents.push(<SuggestionPoolForm key="1" suggestionPoolContext={suggestionPoolContext} />);
     }
 
 

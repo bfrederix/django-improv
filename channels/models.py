@@ -4,6 +4,16 @@ from django.contrib.auth.models import User
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 
+VOTE_STYLE = [('player-options', 'Player Options'),
+              ('player-pool', 'Player Pool'),
+              ('options', 'Options'),
+              ('preshow-voted', 'Pre-show Voted'),
+              ('all-players', 'All Players'),
+              ('test', 'Test')]
+OCCURS_TYPE = [('during', 'During'),
+               ('before', 'Before')]
+
+
 class Channel(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     name = models.CharField(blank=False, max_length=50, unique=True)
@@ -21,6 +31,8 @@ class Channel(models.Model):
     next_show = models.DateTimeField(blank=True, null=True)
     timezone = models.CharField(blank=True, null=True, max_length=100)
     address = FlexibleForeignKey("ChannelAddress", blank=True, null=True)
+
+    created = models.DateTimeField(blank=False)
 
     def __unicode__(self):
         return self.name
@@ -61,3 +73,50 @@ class ChannelOwner(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     user = models.ForeignKey(User)
+
+
+class SuggestionPool(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("Channel", blank=False)
+    name = models.CharField(blank=False, max_length=100)
+    display_name = models.CharField(blank=False, max_length=100)
+    description = models.TextField(blank=False)
+    max_user_suggestions = models.IntegerField(default=5, blank=False)
+    active = models.BooleanField(default=True, blank=False)
+    admin_only = models.BooleanField(default=True, blank=False)
+
+    created = models.DateTimeField(blank=False)
+
+    def __unicode__(self):
+        return self.name
+
+
+class VoteType(models.Model):
+    # Defined at creation
+    id = BoundedBigAutoField(primary_key=True)
+    channel = FlexibleForeignKey("Channel", blank=False)
+    name = models.CharField(blank=False, max_length=100)
+    display_name = models.CharField(blank=False, max_length=100)
+    suggestion_pool = FlexibleForeignKey("SuggestionPool", blank=False)
+    preshow_voted = models.BooleanField(blank=False, default=False)
+    has_intervals = models.BooleanField(blank=False, default=False)
+    interval_uses_players = models.BooleanField(blank=False, default=False)
+    intervals = models.CommaSeparatedIntegerField(blank=True, max_length=100)
+    style = models.CharField(choices=VOTE_STYLE, blank=False, max_length=100)
+    occurs = models.CharField(choices=OCCURS_TYPE, blank=False, max_length=100)
+    ordering = models.IntegerField(default=0, blank=False)
+    options = models.IntegerField(default=3, blank=False)
+    vote_length = models.IntegerField(default=25, blank=False)
+    result_length = models.IntegerField(default=10, blank=False)
+    randomize_amount = models.IntegerField(default=6, blank=False)
+    button_color = models.CharField(default="#003D7A", blank=False, max_length=100)
+    active = models.BooleanField(default=True, blank=False)
+
+    # Dynamic
+    current_interval = models.IntegerField(blank=True, null=True)
+    current_init = models.DateTimeField(blank=True)
+
+    created = models.DateTimeField(blank=False)
+
+    def __unicode__(self):
+        return self.name

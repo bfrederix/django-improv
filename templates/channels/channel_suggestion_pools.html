@@ -1,23 +1,23 @@
 {% extends "channels/channel_base.html" %}
 
 {% block admin-selected %} active{% endblock %}
-{% block add-player-selected %}class="active"{% endblock %}
+{% block suggestion-pool-selected %}class="active"{% endblock %}
 
-{% block title %}Improvote: {{channel.display_name}}'s Add/Edit Players{% endblock %}
+{% block title %}Improvote: {{channel.display_name}}'s Add/Edit Suggestion Pools{% endblock %}
 
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>
     <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
 
-    <input type="hidden" id="rootType" name="rootType" value="channel_players" readonly>
+    <input type="hidden" id="rootType" name="rootType" value="channel_suggestion_pools" readonly>
     <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
     <input type="hidden" id="channelName" name="channelName" value="{{channel.name}}" readonly>
-	<input type="hidden" id="playerAPIUrl" name="playerAPIUrl"
-           value="{% url "player-list" %}" readonly>
-    <input type="hidden" id="playerListAPIUrl" name="playerListAPIUrl"
-           value="{% url "player-list" %}?channel_id={{channel.id}}&sort_by_active=True" readonly>
+	<input type="hidden" id="suggestionPoolAPIUrl" name="suggestionPoolAPIUrl"
+           value="{% url "suggestion-pool-list" %}" readonly>
+    <input type="hidden" id="suggestionPoolListAPIUrl" name="suggestionPoolListAPIUrl"
+           value="{% url "suggestion-pool-list" %}?channel_id={{channel.id}}&sort_by_active=True" readonly>
     <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
-               value="{% url "channel_players" channel.name %}" readonly>
+               value="{% url "channel_suggestion_pools" channel.name %}" readonly>
     <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
 	{% if action %}
 		<input type="hidden" id="action" name="action" value="{{action}}" readonly>

@@ -8,7 +8,7 @@ from players import service as players_service
 
 class PlayerViewSet(viewsets.ViewSet):
     """
-    API endpoint that allows players to be viewed or edited.
+    API endpoint that allows players to be viewed
     """
 
     def retrieve(self, request, pk=None):

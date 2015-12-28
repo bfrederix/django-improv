@@ -76,7 +76,7 @@
                                 <li {% block pre-show-selected %}{% endblock %}><a href="/pre_show/">Pre-show Instructions</a></li>
     							<li {% block create-selected %}{% endblock %}><a href="/create_show/">Create/Edit/Delete Shows</a></li>
     							<li {% block vote-type-selected %}{% endblock %}><a href="/vote_types/">Create/Edit Vote Types</a></li>
-    							<li {% block suggestion-pool-selected %}{% endblock %}><a href="/suggestion_pools/">Create/Edit Suggestion Pools</a></li>
+    							<li {% block suggestion-pool-selected %}{% endblock %}><a href="{% url "channel_suggestion_pools" channel.name %}">Create/Edit Suggestion Pools</a></li>
 								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Create/Edit Players</a></li>
 								<li><a href="{% url "channel_edit" channel.id %}">Edit Channel</a></li>
 								{% if not channel.is_premium %}<li><a href="{% url "channel_edit" channel.id %}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>{% endif %}

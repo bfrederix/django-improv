@@ -1,13 +1,16 @@
+import datetime
+
+import pytz
+import cloudinary.uploader
+
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.html import escape
 
-import cloudinary.uploader
-
 from channels.models import (Channel, ChannelAddress, ChannelOwner,
-                             ChannelAdmin)
+                             ChannelAdmin, SuggestionPool, VoteType)
 from channels import service as channels_service
 from users import service as users_service
 from players import service as players_service
@@ -107,6 +110,8 @@ class ChannelCreateEditView(View):
             channel.save()
             # If this is a new channel
             if not channel_id:
+                channel.created = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+                channel.save()
                 # Make the current user the owner and admin of the channel
                 ChannelOwner.objects.get_or_create(channel=channel,
                                                    user=request.user)
@@ -130,7 +135,8 @@ class ChannelPlayersView(View):
         channel = channels_service.channel_or_404(channel_name)
         return render(request,
                       self.template_name,
-                      {'channel': channel})
+                      {'channel': channel,
+                       'is_channel_admin': True})
 
     def post(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
@@ -153,7 +159,8 @@ class ChannelPlayersView(View):
                                                    channel,
                                                    "temp",
                                                    active=active,
-                                                   star=star)
+                                                   star=star,
+                                                   created=datetime.datetime.utcnow().replace(tzinfo=pytz.utc))
         else:
             error = 'Player name required'
         # Update or create the player image in cloudinary
@@ -173,5 +180,53 @@ class ChannelPlayersView(View):
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'is_channel_admin': True,
+                       'action': action,
+                       'error': error})
+
+
+class ChannelSuggestionPoolsView(View):
+    template_name = 'channels/channel_suggestion_pools.html'
+
+    def get(self, request, *args, **kwargs):
+        channel_name = kwargs.get('channel_name')
+        channel = channels_service.channel_or_404(channel_name)
+        return render(request,
+                      self.template_name,
+                      {'channel': channel,
+                       'is_channel_admin': True})
+
+    def post(self, request, *args, **kwargs):
+        channel_name = kwargs.get('channel_name')
+        channel = channels_service.channel_or_404(channel_name)
+        error = None
+        action = None
+        suggestion_pool_id = request.POST.get('selectID')
+        suggestion_pool_kwargs = {'channel': channel,
+                                  'name': escape(request.POST.get('name', '')),
+                                  'display_name': escape(request.POST.get('display_name', '')),
+                                  'description': escape(request.POST.get('description', '')),
+                                  'max_user_suggestions': int(request.POST.get('max_user_suggestions', 5)),
+                                  'active': bool(request.POST.get('active', False)),
+                                  'admin_only': bool(request.POST.get('admin_only', False))}
+        if suggestion_pool_id and suggestion_pool_kwargs['name']:
+            action = "Suggestion Pool Edited Successfully!"
+            suggestion_pool = channels_service.suggestion_pool_or_404(suggestion_pool_id)
+            for key, value in suggestion_pool_kwargs.items():
+                setattr(suggestion_pool, key, value)
+        elif suggestion_pool_kwargs['name']:
+            action = "Suggestion Pool Created Successfully!"
+            suggestion_pool = SuggestionPool(**suggestion_pool_kwargs)
+            suggestion_pool.created = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+        else:
+            error = 'Suggestion Pool name required'
+
+        if not error:
+            suggestion_pool.save()
+
+        return render(request,
+                      self.template_name,
+                      {'channel': channel,
+                       'is_channel_admin': True,
                        'action': action,
                        'error': error})

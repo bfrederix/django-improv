@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 
-from channels.models import ChannelAdmin, Channel, ChannelUser
+from channels.models import (ChannelAdmin, Channel, ChannelUser,
+                             SuggestionPool, VoteType)
 from leaderboards import service as leaderboards_service
 
 def channel_or_404(channel_key, channel_id=False):
@@ -8,6 +9,14 @@ def channel_or_404(channel_key, channel_id=False):
         return get_object_or_404(Channel, id=channel_key)
     else:
         return get_object_or_404(Channel, name=channel_key)
+
+
+def suggestion_pool_or_404(suggestion_pool_id):
+    return get_object_or_404(SuggestionPool, id=suggestion_pool_id)
+
+
+def vote_type_or_404(vote_type_id):
+    return get_object_or_404(VoteType, id=vote_type_id)
 
 
 def check_is_channel_admin(channel_name, user_id):

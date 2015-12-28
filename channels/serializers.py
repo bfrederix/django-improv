@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from channels.models import Channel, ChannelAddress
+from channels.models import Channel, ChannelAddress, SuggestionPool
 
 
 class ChannelAddressSerializer(serializers.ModelSerializer):
@@ -21,3 +21,12 @@ class ChannelSerializer(serializers.HyperlinkedModelSerializer):
                   'thumbnail_url', 'logo_url', 'team_photo_url',
                   'website', 'facebook_page', 'address',
                   'buy_tickets_link', 'next_show', 'timezone')
+
+
+class SuggestionPoolSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SuggestionPool
+        fields = ('id', 'channel', 'name', 'display_name',
+                  'description', 'max_user_suggestions', 'active',
+                  'admin_only', 'created')
