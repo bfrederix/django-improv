@@ -1,7 +1,8 @@
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 
 from channels.models import (ChannelAdmin, Channel, ChannelUser,
-                             SuggestionPool, VoteType)
+                             SuggestionPool, VoteType, VOTE_STYLE)
 from leaderboards import service as leaderboards_service
 
 def channel_or_404(channel_key, channel_id=False):
@@ -17,6 +18,13 @@ def suggestion_pool_or_404(suggestion_pool_id):
 
 def vote_type_or_404(vote_type_id):
     return get_object_or_404(VoteType, id=vote_type_id)
+
+
+def vote_style_or_404(vote_style_id):
+    try:
+        return VOTE_STYLE[vote_style_id]
+    except IndexError:
+        raise Http404
 
 
 def check_is_channel_admin(channel_name, user_id):

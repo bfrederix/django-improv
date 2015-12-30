@@ -10,8 +10,6 @@ VOTE_STYLE = [('player-options', 'Player Options'),
               ('preshow-voted', 'Pre-show Voted'),
               ('all-players', 'All Players'),
               ('test', 'Test')]
-OCCURS_TYPE = [('during', 'During'),
-               ('before', 'Before')]
 
 
 class Channel(models.Model):
@@ -97,13 +95,11 @@ class VoteType(models.Model):
     channel = FlexibleForeignKey("Channel", blank=False)
     name = models.CharField(blank=False, max_length=100)
     display_name = models.CharField(blank=False, max_length=100)
-    suggestion_pool = FlexibleForeignKey("SuggestionPool", blank=False)
+    suggestion_pool = FlexibleForeignKey("SuggestionPool", null=True)
     preshow_voted = models.BooleanField(blank=False, default=False)
-    has_intervals = models.BooleanField(blank=False, default=False)
-    interval_uses_players = models.BooleanField(blank=False, default=False)
     intervals = models.CommaSeparatedIntegerField(blank=True, max_length=100)
+    manual_interval_control = models.BooleanField(blank=False, default=True)
     style = models.CharField(choices=VOTE_STYLE, blank=False, max_length=100)
-    occurs = models.CharField(choices=OCCURS_TYPE, blank=False, max_length=100)
     ordering = models.IntegerField(default=0, blank=False)
     options = models.IntegerField(default=3, blank=False)
     vote_length = models.IntegerField(default=25, blank=False)

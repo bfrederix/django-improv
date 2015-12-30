@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from channels.models import Channel, ChannelAddress, SuggestionPool
+from channels.models import (Channel, ChannelAddress, SuggestionPool,
+                             VoteType)
 
 
 class ChannelAddressSerializer(serializers.ModelSerializer):
@@ -30,3 +31,23 @@ class SuggestionPoolSerializer(serializers.ModelSerializer):
         fields = ('id', 'channel', 'name', 'display_name',
                   'description', 'max_user_suggestions', 'active',
                   'admin_only', 'created')
+
+
+class VoteTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = VoteType
+        fields = ('id', 'channel', 'name', 'display_name',
+                  'suggestion_pool', 'preshow_voted',
+                  'manual_interval_control', 'intervals', 'style',
+                  'ordering', 'options', 'vote_length', 'result_length',
+                  'randomize_amount', 'button_color', 'active',
+                  'current_interval', 'current_init', 'created')
+
+
+class VoteStyleSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+
+    class Meta:
+        fields = ('id', 'name')

@@ -230,3 +230,58 @@ class ChannelSuggestionPoolsView(View):
                        'is_channel_admin': True,
                        'action': action,
                        'error': error})
+
+
+class ChannelVoteTypesView(View):
+    template_name = 'channels/channel_vote_types.html'
+
+    def get(self, request, *args, **kwargs):
+        channel_name = kwargs.get('channel_name')
+        channel = channels_service.channel_or_404(channel_name)
+        return render(request,
+                      self.template_name,
+                      {'channel': channel,
+                       'is_channel_admin': True})
+
+    def post(self, request, *args, **kwargs):
+        channel_name = kwargs.get('channel_name')
+        channel = channels_service.channel_or_404(channel_name)
+        error = None
+        action = None
+        vote_type_id = request.POST.get('selectID')
+        vote_type_kwargs = {'channel': channel,
+                            'name': escape(request.POST.get('name', '')),
+                            'display_name': escape(request.POST.get('display_name', '')),
+                            'suggestion_pool': int(request.POST.get('suggestion_pool', 0)) or None, # Set to None if 0
+                            'preshow_voted': bool(request.POST.get('preshow_voted', False)),
+                            'intervals': request.POST.get('intervals', '').strip(),
+                            'manual_interval_control': bool(request.POST.get('manual_interval_control', False)),
+                            'style': channels_service.vote_style_or_404(request.POST.get('style'))[0],
+                            'ordering': int(request.POST.get('ordering', 0)),
+                            'options': int(request.POST.get('options', 3)),
+                            'vote_length': int(request.POST.get('vote_length', 25)),
+                            'result_length': int(request.POST.get('result_length', 10)),
+                            'randomize_amount': int(request.POST.get('randomize_amount', 6)),
+                            'button_color': request.POST.get('button_color'),
+                            'active': bool(request.POST.get('active', False))}
+        if vote_type_id and vote_type_kwargs['name']:
+            action = "Vote Type Edited Successfully!"
+            vote_type = channels_service.vote_type_or_404(vote_type_id)
+            for key, value in vote_type_kwargs.items():
+                setattr(vote_type, key, value)
+        elif vote_type_kwargs['name']:
+            action = "Vote Type Created Successfully!"
+            vote_type = VoteType(**vote_type_kwargs)
+            vote_type.created = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+        else:
+            error = 'Vote Type name required'
+
+        if not error:
+            vote_type.save()
+
+        return render(request,
+                      self.template_name,
+                      {'channel': channel,
+                       'is_channel_admin': True,
+                       'action': action,
+                       'error': error})

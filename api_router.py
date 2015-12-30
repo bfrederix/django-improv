@@ -39,6 +39,16 @@ router.register(r'suggestion_pool',
                 channels_api_views.SuggestionPoolViewSet,
                 'suggestion-pool')
 
+# Vote Type
+router.register(r'vote_type',
+                channels_api_views.VoteTypeViewSet,
+                'vote-type')
+
+# Vote Styles
+router.register(r'vote_style',
+                channels_api_views.VoteStyleViewSet,
+                'vote-style')
+
 # Suggestions
 router.register(r'suggestion',
                 shows_api_views.SuggestionViewSet,

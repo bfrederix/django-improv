@@ -74,6 +74,15 @@ function validateTextField(event, elementID, allowSpaces) {
     }
 }
 
+function validateDropDown(event, elementID) {
+    var field = document.getElementById(elementID);
+    if (field.value === 0) {
+        $('#'+elementID).parent('div').addClass('has-error');
+        alert(elementID + ' is required.');
+        event.preventDefault();
+    }
+}
+
 function PageLink(i, char, current){
   var character = character || String(i);
   if (i !== current) {
@@ -172,8 +181,12 @@ var FormGroup = React.createClass({
     var labelClasses = "col-md-" + this.props.labelSize + " control-label";
     var inputSize = "col-md-" + this.props.inputSize;
     var helpBlock;
+    var docs;
+    if (this.props.docs) {
+        docs = <a href={this.props.docs}>Explained Here</a>;
+    }
     if (this.props.helpBlock) {
-        helpBlock = <span className="help-block">{this.props.helpBlock}</span>;
+        helpBlock = <span className="help-block">{this.props.helpBlock} {docs}</span>;
     }
     return (
         <div className="form-group">
@@ -515,7 +528,6 @@ var DropDownSelect = React.createClass({
     return {data: undefined};
   },
   componentDidMount: function() {
-    console.log(this.props.listAPIUrl);
     $.ajax({
       url: this.props.listAPIUrl,
       dataType: 'json',
@@ -945,13 +957,13 @@ var SuggestionPoolForm = React.createClass({
                                  labelContents="Suggestion Pool Active:"
                                  inputSize="4"
                                  input={activeInput}
-                                 helpBlock="Check this if the suggestion pool should appear in the Create Show form" />);
+                                 helpBlock="Check this if the Suggestion Pool should appear in the Create/Edit Vote Types form" />);
     // Submit Button
     var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Suggestion Pool</button>;
     formContents.push(<FormGroup key="7"
                                  inputSize="2"
                                  input={submitButton} />);
-    // Edit Player Dropdown Input
+    // Edit Suggestion Pool Dropdown Input
     var suggestionPoolEditInput = <DropDownSelect listAPIUrl={this.props.suggestionPoolContext.suggestionPoolListAPIUrl}
                                                   selectEventHandler={this.editEventHandler}
                                                   defaultSelected={this.state.suggestionPoolID}
@@ -973,7 +985,166 @@ var SuggestionPoolForm = React.createClass({
             <FormLabel action={this.props.suggestionPoolContext.action}
                        error={this.props.suggestionPoolContext.error} />
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
-                   panelHeadingContent="Create/Edit Suggestion Pool" panelHeadingClasses="x-large-font"
+                   panelHeadingContent="Create/Edit Suggestion Pools" panelHeadingClasses="x-large-font"
+                   panelBodyClasses="white-background"
+                   bodyContent={bodyContent} />
+        </div>
+    );
+  }
+});
+
+var VoteTypeForm = React.createClass({
+  getInitialState: function() {
+    return {data: {name: "",
+                   display_name: "",
+                   suggestion_pool: undefined,
+                   preshow_voted: false,
+                   intervals: "",
+                   manual_interval_control: true,
+                   interval_uses_players: false,
+                   style: undefined,
+                   ordering: 0,
+                   options: 3,
+                   vote_length: 25,
+                   result_length: 10,
+                   randomize_amount: 6,
+                   button_color: "#003D7A",
+                   active: true},
+            voteTypeID: undefined,
+            key: "1"};
+  },
+  componentDidMount: function() {
+    // If a show has been selected
+    if (this.state.voteTypeID) {
+        var voteTypeAPIUrl = this.props.voteTypeContext.voteTypeAPIUrl + this.state.voteTypeID + "/";
+        $.ajax({
+          url: voteTypeAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data,
+                           voteTypeID: this.state.voteTypeID,
+                           key: this.state.voteTypeID});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  onFormSubmit: function(event) {
+      validateTextField(event, "name");
+      validateTextField(event, "display_name", true);
+      validateDropDown(event, "style");
+      validateTextField(event, "ordering");
+      validateTextField(event, "options");
+      validateTextField(event, "vote_length");
+      validateTextField(event, "result_length");
+      validateTextField(event, "randomize_amount");
+      validateTextField(event, "button_color");
+  },
+  editEventHandler: function(event) {
+      this.setState({voteTypeID: event.target.value}, function() {
+          this.componentDidMount();
+      });
+  },
+  render: function() {
+    var formContents = [];
+    // Name Input
+    var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
+    formContents.push(<FormGroup key="1"
+                                 labelSize="2"
+                                 labelContents="Name*:"
+                                 inputSize="4"
+                                 input={nameInput}/>);
+    // Display Name Input
+    var displayNameInput = <input type="text" id="display_name" name="display_name" defaultValue={this.state.data.display_name} className="form-control"></input>;
+    formContents.push(<FormGroup key="2"
+                                 labelSize="2"
+                                 labelContents="Display Name*:"
+                                 inputSize="4"
+                                 input={displayNameInput}
+                                 helpBlock="Name that appears to users" />);
+    // Suggestion Pool Dropdown Input
+    var suggestionPoolInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.suggestionPoolListAPIUrl}
+                                              defaultSelected={this.state.data.suggestion_pool}
+                                              defaultText="Select a Suggestion Pool" />;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Suggestion Pool:"
+                                 inputSize="5"
+                                 input={suggestionPoolInput}
+                                 helpBlock="Select a Suggestion Pool if the vote type requires suggestions (active suggestion pools only)" />);
+    // Pre-show Voted Input
+    var preshowVotedInput = <input type="checkbox" name="preshow_voted" value="1" defaultChecked={this.state.data.preshow_voted}></input>;
+    formContents.push(<FormGroup key="4"
+                                 labelSize="2"
+                                 labelContents="Disallow Audience Voting:"
+                                 inputSize="5"
+                                 input={preshowVotedInput}
+                                 helpBlock="Check this if the winner should be automatically selected instead of allowing the audience to vote" />);
+    // Intervals Input
+    var intervalsInput = <input type="text" id="intervals" name="intervals" defaultValue={this.state.data.intervals} className="form-control"></input>;
+    formContents.push(<FormGroup key="5"
+                                 labelSize="2"
+                                 labelContents="Intervals:"
+                                 inputSize="6"
+                                 input={intervalsInput}
+                                 helpBlock="Used to specify minute intervals at which votes are introduced into the show. Must begin with 0. (ex. 0,3,6,8,9,10)" />);
+    // Manual Interval Control Input
+    var manualIntervalControlInput = <input type="checkbox" name="manual_interval_control" value="1" defaultChecked={this.state.data.manual_interval_control}></input>;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Manual Interval Voting Control:"
+                                 inputSize="5"
+                                 input={manualIntervalControlInput}
+                                 helpBlock='Check this if you want the "tech" to control when interval voting occurs' />);
+    // Style Dropdown Input
+    var styleInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.voteStyleAPIUrl}
+                                     defaultSelected={this.state.data.style}
+                                     defaultText="Select a Voting Style" />;
+    formContents.push(<FormGroup key="7"
+                                 labelSize="2"
+                                 labelContents="Voting Style:"
+                                 inputSize="6"
+                                 input={styleInput}
+                                 helpBlock='Select a voting style for the Vote Type.'
+                                 docs="http://improvote.readthedocs.org/en/latest/vote_types.html#vote-styles" />);
+    // Active Input
+    var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
+    formContents.push(<FormGroup key="14"
+                                 labelSize="2"
+                                 labelContents="Vote Type Active:"
+                                 inputSize="5"
+                                 input={activeInput}
+                                 helpBlock="Check this if the Vote Type should appear in the Create Show form" />);
+    // Submit Button
+    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Suggestion Pool</button>;
+    formContents.push(<FormGroup key="15"
+                                 inputSize="2"
+                                 input={submitButton} />);
+    // Edit Vote Type Dropdown Input
+    var voteTypeEditInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.voteTypeListAPIUrl}
+                                            selectEventHandler={this.editEventHandler}
+                                            defaultSelected={this.state.voteTypeID}
+                                            defaultText="Select a Vote Type to Edit" />;
+    formContents.push(<FormGroup key="16"
+                                 labelSize="2"
+                                 labelContents="Edit VoteType:"
+                                 inputSize="4"
+                                 input={voteTypeEditInput}
+                                 helpBlock="Select a Suggestion Pool if you wish to edit it" />);
+
+    var bodyContent = <Form formStyle="horizontal"
+                            formSubmitUrl={this.props.voteTypeContext.formSubmitUrl}
+                            formContents={formContents}
+                            onFormSubmit={this.onFormSubmit}
+                            csrfToken={this.props.voteTypeContext.csrfToken} />
+    return (
+        <div key={this.state.key}>
+            <FormLabel action={this.props.voteTypeContext.action}
+                       error={this.props.voteTypeContext.error} />
+            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+                   panelHeadingContent="Create/Edit Vote Types" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
                    bodyContent={bodyContent} />
         </div>
@@ -1896,6 +2067,20 @@ var RootComponent = React.createClass({
             error: getElementValueOrNull("error")
         };
         rootComponents.push(<SuggestionPoolForm key="1" suggestionPoolContext={suggestionPoolContext} />);
+    } else if (rootType == "channel_vote_types") {
+        var voteTypeContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelName: getElementValueOrNull("channelName"),
+            voteTypeAPIUrl: getElementValueOrNull("voteTypeAPIUrl"),
+            voteTypeListAPIUrl: getElementValueOrNull("voteTypeListAPIUrl"),
+            suggestionPoolListAPIUrl: getElementValueOrNull("suggestionPoolListAPIUrl"),
+            voteStyleAPIUrl: getElementValueOrNull("voteStyleAPIUrl"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
+        };
+        rootComponents.push(<VoteTypeForm key="1" voteTypeContext={voteTypeContext} />);
     }
 
 
