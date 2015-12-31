@@ -80,6 +80,7 @@ class SuggestionPool(models.Model):
     display_name = models.CharField(blank=False, max_length=100)
     description = models.TextField(blank=False)
     max_user_suggestions = models.IntegerField(default=5, blank=False)
+    require_login = models.BooleanField(blank=False, default=False)
     active = models.BooleanField(default=True, blank=False)
     admin_only = models.BooleanField(default=True, blank=False)
 
@@ -104,8 +105,8 @@ class VoteType(models.Model):
     options = models.IntegerField(default=3, blank=False)
     vote_length = models.IntegerField(default=25, blank=False)
     result_length = models.IntegerField(default=10, blank=False)
-    randomize_amount = models.IntegerField(default=6, blank=False)
     button_color = models.CharField(default="#003D7A", blank=False, max_length=100)
+    require_login = models.BooleanField(blank=False, default=False)
     active = models.BooleanField(default=True, blank=False)
 
     # Dynamic
@@ -113,6 +114,18 @@ class VoteType(models.Model):
     current_init = models.DateTimeField(blank=True)
 
     created = models.DateTimeField(blank=False)
+
+    def stripped_intervals(self):
+        if self.intervals:
+            return self.intervals.translate({ord(i):None for i in '[]L '})
+
+    def style_id(self):
+        if self.style:
+            count = 0
+            for (name, display_name) in VOTE_STYLE:
+                count += 1
+                if self.style == name:
+                    return count
 
     def __unicode__(self):
         return self.name

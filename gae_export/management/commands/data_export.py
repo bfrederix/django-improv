@@ -256,6 +256,7 @@ class Command(BaseCommand):
                                       name=entity['name'],
                                       display_name=entity['display_name'],
                                       description=entity['description'],
+                                      require_login=False,
                                       created=entity['created'].replace(tzinfo=pytz.utc))
                             except IntegrityError, e:
                                 if not 'duplicate' in str(e):
@@ -279,12 +280,12 @@ class Command(BaseCommand):
                                       display_name=entity['display_name'],
                                       suggestion_pool_id=entity['suggestion_pool'].id(),
                                       preshow_voted=entity['preshow_voted'],
+                                      require_login=False,
                                       intervals=entity.get('intervals', []),
                                       manual_interval_control=True,
                                       style=entity['style'],
                                       ordering=entity['ordering'],
                                       options=entity['options'],
-                                      randomize_amount=entity['randomize_amount'],
                                       button_color=entity['button_color'],
                                       current_interval=entity['current_interval'],
                                       current_init=entity['current_init'].replace(tzinfo=pytz.utc),

@@ -76,7 +76,8 @@ function validateTextField(event, elementID, allowSpaces) {
 
 function validateDropDown(event, elementID) {
     var field = document.getElementById(elementID);
-    if (field.value === 0) {
+    // Make sure a value has been selected
+    if (field.value === "") {
         $('#'+elementID).parent('div').addClass('has-error');
         alert(elementID + ' is required.');
         event.preventDefault();
@@ -541,10 +542,16 @@ var DropDownSelect = React.createClass({
   },
   render: function() {
     var optionList = [];
+    var selectID;
     if (!this.state.data){
         return (<div>
                     <Loading loadingBarColor="#fff"/>
                 </div>);
+    }
+    if (!this.props.selectID) {
+        selectID = "selectID";
+    } else {
+        selectID = this.props.selectID;
     }
     this.counter = 0;
     if (this.props.defaultText) {
@@ -558,7 +565,7 @@ var DropDownSelect = React.createClass({
     }, this);
 
     return (
-        <select className="form-control" name="selectID" onChange={this.props.selectEventHandler} defaultValue={this.props.defaultSelected}>
+        <select id={selectID} className="form-control" name="selectID" onChange={this.props.selectEventHandler} defaultValue={this.props.defaultSelected}>
             {optionList}
         </select>
     );
@@ -877,6 +884,7 @@ var SuggestionPoolForm = React.createClass({
                    description: 'Instructive text used to help guide users on what suggestions to enter',
                    max_user_suggestions: 5,
                    admin_only: false,
+                   require_login: false,
                    active: true},
             suggestionPoolID: undefined,
             key: "1"};
@@ -950,9 +958,17 @@ var SuggestionPoolForm = React.createClass({
                                  inputSize="4"
                                  input={adminOnlyInput}
                                  helpBlock="Check this if only admin can enter suggestions in this pool" />);
+    // Require Login Input
+    var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Require Login:"
+                                 inputSize="5"
+                                 input={requireLoginInput}
+                                 helpBlock="Check this if users are required to login to add suggestions" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
-    formContents.push(<FormGroup key="6"
+    formContents.push(<FormGroup key="7"
                                  labelSize="2"
                                  labelContents="Suggestion Pool Active:"
                                  inputSize="4"
@@ -960,7 +976,7 @@ var SuggestionPoolForm = React.createClass({
                                  helpBlock="Check this if the Suggestion Pool should appear in the Create/Edit Vote Types form" />);
     // Submit Button
     var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Suggestion Pool</button>;
-    formContents.push(<FormGroup key="7"
+    formContents.push(<FormGroup key="8"
                                  inputSize="2"
                                  input={submitButton} />);
     // Edit Suggestion Pool Dropdown Input
@@ -968,7 +984,7 @@ var SuggestionPoolForm = React.createClass({
                                                   selectEventHandler={this.editEventHandler}
                                                   defaultSelected={this.state.suggestionPoolID}
                                                   defaultText="Select a Suggestion Pool to Edit" />;
-    formContents.push(<FormGroup key="8"
+    formContents.push(<FormGroup key="9"
                                  labelSize="2"
                                  labelContents="Edit Suggestion Pool:"
                                  inputSize="4"
@@ -1001,14 +1017,13 @@ var VoteTypeForm = React.createClass({
                    preshow_voted: false,
                    intervals: "",
                    manual_interval_control: true,
-                   interval_uses_players: false,
                    style: undefined,
                    ordering: 0,
                    options: 3,
                    vote_length: 25,
                    result_length: 10,
-                   randomize_amount: 6,
-                   button_color: "#003D7A",
+                   button_color: "#1c33ff",
+                   require_login: false,
                    active: true},
             voteTypeID: undefined,
             key: "1"};
@@ -1039,8 +1054,6 @@ var VoteTypeForm = React.createClass({
       validateTextField(event, "options");
       validateTextField(event, "vote_length");
       validateTextField(event, "result_length");
-      validateTextField(event, "randomize_amount");
-      validateTextField(event, "button_color");
   },
   editEventHandler: function(event) {
       this.setState({voteTypeID: event.target.value}, function() {
@@ -1101,7 +1114,8 @@ var VoteTypeForm = React.createClass({
     // Style Dropdown Input
     var styleInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.voteStyleAPIUrl}
                                      defaultSelected={this.state.data.style}
-                                     defaultText="Select a Voting Style" />;
+                                     defaultText="Select a Voting Style"
+                                     selectID="style" />;
     formContents.push(<FormGroup key="7"
                                  labelSize="2"
                                  labelContents="Voting Style:"
@@ -1109,6 +1123,54 @@ var VoteTypeForm = React.createClass({
                                  input={styleInput}
                                  helpBlock='Select a voting style for the Vote Type.'
                                  docs="http://improvote.readthedocs.org/en/latest/vote_types.html#vote-styles" />);
+    // ordering Input
+    var orderingInput = <input type="text" id="ordering" name="ordering" maxLength="2" defaultValue={this.state.data.ordering} className="form-control"></input>;
+    formContents.push(<FormGroup key="8"
+                                 labelSize="2"
+                                 labelContents="Order:"
+                                 inputSize="4"
+                                 input={orderingInput}
+                                 helpBlock='The numeric order in which the voting types appear, either as buttons on the Show Control page, or otherwise.' />);
+    // options Input
+    var optionsInput = <input type="text" id="options" name="options" maxLength="1" defaultValue={this.state.data.options} className="form-control"></input>;
+    formContents.push(<FormGroup key="9"
+                                 labelSize="2"
+                                 labelContents="Voting Options:"
+                                 inputSize="4"
+                                 input={optionsInput}
+                                 helpBlock='The number of voting options that appear on the voting page. Make sure you choose a number that will fit on the Show Display screen' />);
+    // Vote Length Input
+    var voteLengthInput = <input type="text" id="vote_length" name="vote_length" defaultValue={this.state.data.vote_length} className="form-control"></input>;
+    formContents.push(<FormGroup key="10"
+                                 labelSize="2"
+                                 labelContents="Voting Length:"
+                                 inputSize="3"
+                                 input={voteLengthInput}
+                                 helpBlock='How many seconds the voting period lasts' />);
+    // result Length Input
+    var resultLengthInput = <input type="text" id="result_length" name="result_length" defaultValue={this.state.data.result_length} className="form-control"></input>;
+    formContents.push(<FormGroup key="11"
+                                 labelSize="2"
+                                 labelContents="Voted Result Display Length:"
+                                 inputSize="4"
+                                 input={resultLengthInput}
+                                 helpBlock='How many seconds the results of the vote stays on the screen' />);
+    // Button Color Input
+    var buttonColorInput = <input type="color" name="button_color" defaultValue={this.state.data.button_color} className="form-control"></input>;
+    formContents.push(<FormGroup key="12"
+                                 labelSize="2"
+                                 labelContents="Vote Type Color:"
+                                 inputSize="4"
+                                 input={buttonColorInput}
+                                 helpBlock='The color designated to the Vote Type buttons and such' />);
+    // Require Login Input
+    var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
+    formContents.push(<FormGroup key="13"
+                                 labelSize="2"
+                                 labelContents="Require Login:"
+                                 inputSize="5"
+                                 input={requireLoginInput}
+                                 helpBlock="Check this if users are required to login to vote" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
     formContents.push(<FormGroup key="14"

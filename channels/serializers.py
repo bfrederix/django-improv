@@ -29,11 +29,13 @@ class SuggestionPoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = SuggestionPool
         fields = ('id', 'channel', 'name', 'display_name',
-                  'description', 'max_user_suggestions', 'active',
-                  'admin_only', 'created')
+                  'description', 'max_user_suggestions', 'require_login',
+                  'active', 'admin_only', 'created')
 
 
 class VoteTypeSerializer(serializers.ModelSerializer):
+    intervals = serializers.CharField(source='stripped_intervals')
+    style = serializers.IntegerField(source='style_id')
 
     class Meta:
         model = VoteType
@@ -41,7 +43,7 @@ class VoteTypeSerializer(serializers.ModelSerializer):
                   'suggestion_pool', 'preshow_voted',
                   'manual_interval_control', 'intervals', 'style',
                   'ordering', 'options', 'vote_length', 'result_length',
-                  'randomize_amount', 'button_color', 'active',
+                  'button_color', 'require_login', 'active',
                   'current_interval', 'current_init', 'created')
 
 

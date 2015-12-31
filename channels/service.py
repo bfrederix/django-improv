@@ -21,8 +21,10 @@ def vote_type_or_404(vote_type_id):
 
 
 def vote_style_or_404(vote_style_id):
+    if not vote_style_id:
+        raise Http404
     try:
-        return VOTE_STYLE[vote_style_id]
+        return VOTE_STYLE[vote_style_id-1]
     except IndexError:
         raise Http404
 

@@ -207,6 +207,7 @@ class ChannelSuggestionPoolsView(View):
                                   'display_name': escape(request.POST.get('display_name', '')),
                                   'description': escape(request.POST.get('description', '')),
                                   'max_user_suggestions': int(request.POST.get('max_user_suggestions', 5)),
+                                  'require_login': bool(request.POST.get('require_login', False)),
                                   'active': bool(request.POST.get('active', False)),
                                   'admin_only': bool(request.POST.get('admin_only', False))}
         if suggestion_pool_id and suggestion_pool_kwargs['name']:
@@ -261,8 +262,8 @@ class ChannelVoteTypesView(View):
                             'options': int(request.POST.get('options', 3)),
                             'vote_length': int(request.POST.get('vote_length', 25)),
                             'result_length': int(request.POST.get('result_length', 10)),
-                            'randomize_amount': int(request.POST.get('randomize_amount', 6)),
                             'button_color': request.POST.get('button_color'),
+                            'require_login': bool(request.POST.get('require_login', False)),
                             'active': bool(request.POST.get('active', False))}
         if vote_type_id and vote_type_kwargs['name']:
             action = "Vote Type Edited Successfully!"
