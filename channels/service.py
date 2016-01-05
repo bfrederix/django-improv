@@ -1,9 +1,15 @@
+import logging
+
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 
 from channels.models import (ChannelAdmin, Channel, ChannelUser,
                              SuggestionPool, VoteType, VOTE_STYLE)
 from leaderboards import service as leaderboards_service
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def channel_or_404(channel_key, channel_id=False):
     if channel_id:
@@ -22,10 +28,13 @@ def vote_type_or_404(vote_type_id):
 
 def vote_style_or_404(vote_style_id):
     if not vote_style_id:
+        logger.info("Blah")
         raise Http404
     try:
         return VOTE_STYLE[vote_style_id-1]
     except IndexError:
+        logger.info('Could not find vote style: {0}, {1}'.format(vote_style_id,
+                                                                 VOTE_STYLE))
         raise Http404
 
 

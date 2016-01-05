@@ -1,28 +1,32 @@
 {% extends "channels/channel_base.html" %}
 
-{% block admin-selected %} active{% endblock %}
-{% block vote-type-selected %}class="active"{% endblock %}
+{% block add_head %}
+    <link href="{{CSS_URL}}multi-select-0.9.12/multi-select.css" media="screen" rel="stylesheet" type="text/css">
+{% endblock %}
 
-{% block title %}Improvote: {{channel.display_name}}'s Create/Edit Vote Types{% endblock %}
+{% block admin-selected %} active{% endblock %}
+{% block channel-shows-selected %}class="active"{% endblock %}
+
+{% block title %}Improvote: {{channel.display_name}}'s Create/Edit/Delete Shows{% endblock %}
 
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>
     <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
 
-    <input type="hidden" id="rootType" name="rootType" value="channel_vote_types" readonly>
+    <input type="hidden" id="rootType" name="rootType" value="channel_shows" readonly>
     <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
     <input type="hidden" id="channelName" name="channelName" value="{{channel.name}}" readonly>
     <input type="hidden" id="isPremium" name="isPremium" value="{{channel.is_premium}}" readonly>
-	<input type="hidden" id="voteTypeAPIUrl" name="voteTypeAPIUrl"
-           value="{% url "vote-type-list" %}" readonly>
+    <input type="hidden" id="showAPIUrl" name="showAPIUrl"
+           value="{% url "show-list" %}" readonly>
+    <input type="hidden" id="showListAPIUrl" name="showListAPIUrl"
+           value="{% url "show-list" %}?order_by_date=True" readonly>
     <input type="hidden" id="voteTypeListAPIUrl" name="voteTypeListAPIUrl"
-           value="{% url "vote-type-list" %}?channel_id={{channel.id}}&sort_by_active=True" readonly>
-    <input type="hidden" id="suggestionPoolListAPIUrl" name="suggestionPoolListAPIUrl"
-           value="{% url "suggestion-pool-list" %}?channel_id={{channel.id}}&active_only=True" readonly>
-    <input type="hidden" id="voteStyleAPIUrl" name="voteStyleAPIUrl"
-           value="{% url "vote-style-list" %}" readonly>
+           value="{% url "vote-type-list" %}?channel_id={{channel.id}}&active_only=True" readonly>
+    <input type="hidden" id="playerListAPIUrl" name="playerListAPIUrl"
+           value="{% url "player-list" %}?channel_id={{channel.id}}&active_only=True" readonly>
     <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
-               value="{% url "channel_vote_types" channel.name %}" readonly>
+               value="{% url "channel_shows" channel.name %}" readonly>
     <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
 	{% if action %}
 		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
@@ -35,4 +39,5 @@
 
 {% block add_react %}
     {% include "embedded_utils/react_src.html" %}
+    <script src="{{JS_URL}}multi-select-0.9.12/jquery.multi-select.js" type="text/javascript"></script>
 {% endblock %}

@@ -74,10 +74,20 @@ function validateTextField(event, elementID, allowSpaces) {
     }
 }
 
+function validateYoutubeField(event, elementID) {
+    var field = document.getElementById(elementID);
+    var re = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+    if (field.value.length !== 0 && !re.test(field.value)) {
+        $('#'+elementID).parent('div').addClass('has-error');
+        alert(elementID + ' must be a valid Youtube link');
+        event.preventDefault();
+    }
+}
+
 function validateDropDown(event, elementID) {
     var field = document.getElementById(elementID);
     // Make sure a value has been selected
-    if (field.value === "") {
+    if (field && field.value === "") {
         $('#'+elementID).parent('div').addClass('has-error');
         alert(elementID + ' is required.');
         event.preventDefault();
@@ -102,6 +112,14 @@ function PageLink(i, char, current){
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// BASE COMPONENTS /////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+var StarImage = React.createClass({
+  render: function() {
+      return (
+        <img src="/static/img/star-sprite.png" />
+      );
+  }
+});
 
 var CSRFProtect = React.createClass({
   render: function() {
@@ -182,6 +200,7 @@ var FormGroup = React.createClass({
     var labelClasses = "col-md-" + this.props.labelSize + " control-label";
     var inputSize = "col-md-" + this.props.inputSize;
     var helpBlock;
+    var starImage = "";
     var docs;
     if (this.props.docs) {
         docs = <a href={this.props.docs}>Explained Here</a>;
@@ -189,9 +208,12 @@ var FormGroup = React.createClass({
     if (this.props.helpBlock) {
         helpBlock = <span className="help-block">{this.props.helpBlock} {docs}</span>;
     }
+    if (this.props.premium === "true") {
+        starImage = <StarImage />;
+    }
     return (
         <div className="form-group">
-            <label className={labelClasses}>{this.props.labelContents}</label>
+            <label className={labelClasses}>{starImage}{this.props.labelContents}</label>
             <div className={inputSize}>
                 {this.props.input}
                 {helpBlock}
@@ -377,31 +399,6 @@ var Image = React.createClass({
   }
 });
 
-var TimezoneSelect = React.createClass({
-  render: function() {
-    var key;
-    var tz_name;
-    var optionList = [];
-    var timezone_names = moment.tz.names().reverse();
-    optionList.push(<option key="0" value="">Select a Timezone</option>);
-    // Go through all the medal keys
-    for (var i = 0; i < timezone_names.length; i++) {
-        key = i + 1;
-        tz_name = timezone_names[i];
-        if (!/Africa|Indian|Pacific\/|Etc|Atlantic|Antarctica|America|Asia|Arctic|Mexico|Brazil|Chile/.test(tz_name)
-            && (new RegExp('\/')).test(tz_name)) {
-            optionList.push(<option key={key} value={tz_name}>{tz_name}</option>);
-        }
-    }
-
-    return (
-        <select className="form-control" name="timezone" defaultValue={this.props.defaultTimezone}>
-            {optionList}
-        </select>
-    );
-  }
-});
-
 var BigButton = React.createClass({
   render: function() {
     var buttonClass = "btn btn-" + this.props.buttonColor + " btn-block btn-lg text-center x-large-font";
@@ -540,9 +537,16 @@ var DropDownSelect = React.createClass({
       }.bind(this)
     });
   },
+  componentDidUpdate: function(prev, next) {
+      // Change the select into a multi-select if required
+      if (this.props.multiple === "true") {
+          $(ReactDOM.findDOMNode(this)).multiSelect();
+      }
+  },
   render: function() {
     var optionList = [];
     var selectID;
+    var selectElement;
     if (!this.state.data){
         return (<div>
                     <Loading loadingBarColor="#fff"/>
@@ -564,13 +568,18 @@ var DropDownSelect = React.createClass({
         return optionList;
     }, this);
 
-    return (
-        <select id={selectID} className="form-control" name="selectID" onChange={this.props.selectEventHandler} defaultValue={this.props.defaultSelected}>
-            {optionList}
-        </select>
-    );
+    if (this.props.multiple === "true") {
+        return (<select multiple="multiple" name={selectID} id={selectID} className="form-control">
+                    {optionList}
+                </select>);
+    } else {
+        return (<select id={selectID} className="form-control" name={selectID} onChange={this.props.selectEventHandler} defaultValue={this.props.defaultSelected}>
+                    {optionList}
+                </select>);
+    }
   }
 });
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// FORM COMPONENTS /////////////////////////////////////
@@ -586,7 +595,6 @@ var ChannelCreateEditForm = React.createClass({
                    facebook_page: "",
                    buy_tickets_link: "",
                    next_show: "",
-                   timezone: "",
                    address: {street: "",
                              city: "",
                              state: "",
@@ -703,14 +711,6 @@ var ChannelCreateEditForm = React.createClass({
                                  inputSize="5"
                                  input={nextShowInput}
                                  helpBlock="When your next show is scheduled, appears on your channel's homepage" />);
-    // Default Timzone
-    var timezoneInput = <TimezoneSelect defaultTimezone={this.state.data.timezone} />;
-    formContents.push(<FormGroup key="11"
-                                 labelSize="2"
-                                 labelContents="Default Timezone:"
-                                 inputSize="5"
-                                 input={timezoneInput}
-                                 helpBlock="Timezone your show appears in, used for show defaults" />);
     // ADDRESS //
     // Street Input
     var streetInput = <input type="text" name="street" defaultValue={this.state.data.address.street} className="form-control"></input>;
@@ -841,9 +841,11 @@ var PlayerForm = React.createClass({
                                  inputSize="2"
                                  input={submitButton} />);
     // Edit Player Dropdown Input
-    var playerEditInput = <PlayerDropDownSelect playerListAPIUrl={this.props.addPlayerContext.playerListAPIUrl}
-                                                handleEditPlayer={this.handleEditPlayer}
-                                                defaultPlayer={this.state.editPlayerID} />;
+    var playerEditInput = <DropDownSelect listAPIUrl={this.props.addPlayerContext.playerListAPIUrl}
+                                          selectEventHandler={this.handleEditPlayer}
+                                          selectID="playerID"
+                                          defaultSelected={this.state.editPlayerID}
+                                          defaultText="Select a Player to Edit" />;
     formContents.push(<FormGroup key="6"
                                  labelSize="2"
                                  labelContents="Edit Player:"
@@ -959,13 +961,18 @@ var SuggestionPoolForm = React.createClass({
                                  input={adminOnlyInput}
                                  helpBlock="Check this if only admin can enter suggestions in this pool" />);
     // Require Login Input
-    var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
+    if (this.props.suggestionPoolContext.isPremium === "True") {
+        var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
+    } else {
+        var requireLoginInput = <input type="checkbox" name="require_login" value="1" disabled="true"></input>;
+    }
     formContents.push(<FormGroup key="6"
                                  labelSize="2"
                                  labelContents="Require Login:"
+                                 premium="true"
                                  inputSize="5"
                                  input={requireLoginInput}
-                                 helpBlock="Check this if users are required to login to add suggestions" />);
+                                 helpBlock="Check this if users are required to login to add suggestions (premium only feature)" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
     formContents.push(<FormGroup key="7"
@@ -1164,13 +1171,18 @@ var VoteTypeForm = React.createClass({
                                  input={buttonColorInput}
                                  helpBlock='The color designated to the Vote Type buttons and such' />);
     // Require Login Input
-    var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
+    if (this.props.voteTypeContext.isPremium === "True") {
+        var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
+    } else {
+        var requireLoginInput = <input type="checkbox" name="require_login" value="1" disabled="true"></input>;
+    }
     formContents.push(<FormGroup key="13"
                                  labelSize="2"
                                  labelContents="Require Login:"
+                                 premium="true"
                                  inputSize="5"
                                  input={requireLoginInput}
-                                 helpBlock="Check this if users are required to login to vote" />);
+                                 helpBlock="Check this if users are required to login to vote (premium only feature)" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
     formContents.push(<FormGroup key="14"
@@ -1214,49 +1226,120 @@ var VoteTypeForm = React.createClass({
   }
 });
 
-///////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////// PLAYER ADD/EDIT COMPONENTS /////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
 
-var PlayerDropDownSelect = React.createClass({
+var ChannelShowForm = React.createClass({
   getInitialState: function() {
-    return {data: undefined};
+    return {data: {embedded_youtube: ""},
+            showID: undefined,
+            key: "1"};
   },
   componentDidMount: function() {
-    $.ajax({
-      url: this.props.playerListAPIUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
+    // If a show has been selected
+    if (this.state.showID) {
+        var showAPIUrl = this.props.channelShowContext.showAPIUrl + this.state.showID + "/";
+        $.ajax({
+          url: showAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data,
+                           showID: this.state.showID,
+                           key: this.state.showID});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  onFormSubmit: function(event) {
+      limitFileSize(event, 'photoFile');
+      validateYoutubeField(event, "embedded_youtube");
+  },
+  editEventHandler: function(event) {
+      this.setState({showID: event.target.value}, function() {
+          this.componentDidMount();
+      });
   },
   render: function() {
-    var optionList = [];
-    if (!this.state.data){
-        return (<div>
-                    <Loading loadingBarColor="#fff"/>
-                </div>);
-    }
-    this.counter = 0;
-    optionList.push(<option key="0" value="">Select a Player to Edit</option>);
-    // Create the suggestion list
-    this.state.data.map(function (player) {
-        this.counter++;
-        optionList.push(<option key={this.counter} value={player.id}>{player.name}</option>);
-        return optionList;
-    }, this);
+    var formContents = [];
 
+    // Only change players and vote types during creation
+    if (!this.state.showID) {
+        // Players Dropdown Input
+        var playersInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.playerListAPIUrl}
+                                           selectID="players"
+                                           multiple="true" />;
+        formContents.push(<FormGroup key="1"
+                                     labelSize="2"
+                                     labelContents="Players:"
+                                     inputSize="6"
+                                     input={playersInput}
+                                     helpBlock='Select Players for the Show' />);
+        // Vote Types Dropdown Input
+        var voteTypesInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.voteTypeListAPIUrl}
+                                             selectID="vote_types"
+                                             multiple="true" />;
+        formContents.push(<FormGroup key="2"
+                                     labelSize="2"
+                                     labelContents="Vote Types:"
+                                     inputSize="6"
+                                     input={voteTypesInput}
+                                     helpBlock='Select Vote Types for the Show' />);
+    }
+
+    // Photo Link Input
+    var photoLinkInput = <div><span className="btn btn-primary btn-file"><input id="photoFile" type="file" name="photoFile"></input></span><Image image_url={this.state.data.photo_link} /></div>;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Show Photo:"
+                                 inputSize="6"
+                                 input={photoLinkInput}
+                                 helpBlock="Photo from the show (can be added later), must be smaller than 2MB" />);
+
+    // Youtube Input
+    var youtubeInput = <input type="text" id="embedded_youtube" name="embedded_youtube" defaultValue={this.state.data.embedded_youtube} className="form-control"></input>;
+    formContents.push(<FormGroup key="4"
+                                 labelSize="2"
+                                 labelContents="Youtube Url:"
+                                 inputSize="6"
+                                 input={youtubeInput}
+                                 helpBlock="Youtube video from the show (can be added later), must be a valid Youtube url" />);
+
+    // Submit Button
+    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Show</button>;
+    formContents.push(<FormGroup key="5"
+                                 inputSize="2"
+                                 input={submitButton} />);
+    // Edit Show Dropdown Input
+    var showEditInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.showListAPIUrl}
+                                        selectEventHandler={this.editEventHandler}
+                                        defaultSelected={this.state.showID}
+                                        defaultText="Select a Show to Edit" />;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Edit Show:"
+                                 inputSize="4"
+                                 input={showEditInput}
+                                 helpBlock="Select a Show if you wish to edit it" />);
+
+    var bodyContent = <Form formStyle="horizontal"
+                            formSubmitUrl={this.props.channelShowContext.formSubmitUrl}
+                            formContents={formContents}
+                            onFormSubmit={this.onFormSubmit}
+                            csrfToken={this.props.channelShowContext.csrfToken} />
     return (
-        <select className="form-control" name="playerID" onChange={this.props.handleEditPlayer} defaultValue={this.props.defaultPlayer}>
-            {optionList}
-        </select>
+        <div key={this.state.key}>
+            <FormLabel action={this.props.channelShowContext.action}
+                       error={this.props.channelShowContext.error} />
+            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+                   panelHeadingContent="Create/Edit/Delete Shows" panelHeadingClasses="x-large-font"
+                   panelBodyClasses="white-background"
+                   bodyContent={bodyContent} />
+        </div>
     );
   }
 });
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////// LEADERBOARD COMPONENTS ////////////////////////////////
@@ -1607,7 +1690,6 @@ var UserShowStatsPanelBody = React.createClass({
         var showID = this.props.showStats.show;
         var showLink = "/" + this.props.showStats.channel_name + "/leaderboards/show/" + showID + "/";
         var recapLink = "/" + this.props.showStats.channel_name + "/recaps/show/" + showID + "/";
-        var starImgSrc = this.props.userAccountContext.imageBaseUrl + "star-sprite.png";
         statElements.push(<div key="1" className="row"><div className="col-md-12">Points Earned: {this.props.showStats.points}</div></div>);
         statElements.push(<div key="2" className="row"><div className="col-md-12">Winning Suggestions: {this.props.showStats.wins}</div></div>);
         statElements.push(<div key="3" className="row"><div className="col-md-12"><a href={showLink}>Show Leaderboard</a></div></div>);
@@ -1617,7 +1699,7 @@ var UserShowStatsPanelBody = React.createClass({
                                                   userAccountContext={this.props.userAccountContext}
                                                   showID={showID}
                                                   showStats={this.props.showStats} />);
-        statElements.push(<div key="7" className="row"><div className="col-md-12"><img src={starImgSrc} /> = Winning Suggestion</div></div>);
+        statElements.push(<div key="7" className="row"><div className="col-md-12"><StarImage /> = Winning Suggestion</div></div>);
         statElements.push(<div key="8" className="row"><div className="col-md-12"><Label labelColor="info" labelContents="&nbsp;&nbsp;" /> = Appeared in Voting</div></div>);
         statElements.push(<div key="9" className="row"><div className="col-md-12"><Label labelColor="info" extraClasses="light-gray-bg" labelContents="&nbsp;&nbsp;" /> = Not Voted on</div></div>);
     }
@@ -1665,8 +1747,6 @@ var UserShowStatsTableBody = React.createClass({
         // Used a different class if the suggestion won
         if (suggestion.used === true) {
             suggestionClass = "success";
-            var imgSrc = this.props.userAccountContext.imageBaseUrl + "star-sprite.png";
-            starIMG =  <img src={imgSrc} />;
         } else if (suggestion.voted_on === true) {
             suggestionClass = "info";
         } else {
@@ -1675,7 +1755,7 @@ var UserShowStatsTableBody = React.createClass({
         var suggestionUrl = "/" + this.props.showStats.channel_name + "/recaps/show/" + showID + "/#" + suggestion.id;
         // If the suggestion was voted on during the show
         if (suggestion.used === true) {
-            suggestionDisplay = <td className={suggestionClass}>{suggestion.value}{starIMG}</td>;
+            suggestionDisplay = <td className={suggestionClass}>{suggestion.value}<StarImage /></td>;
         } else {
             suggestionDisplay = <td className={suggestionClass}>{suggestion.value}</td>;
         }
@@ -1769,7 +1849,6 @@ var ShowRecapPanelOptions = React.createClass({
                     <Loading loadingBarColor="#fff"/>
                 </div>);
     }
-    var starImgSrc = this.props.recapContext.imageBaseUrl + "star-sprite.png";
 
     var suggestionList = []
     for (var i = 0; i < this.state.data.length; i++) {
@@ -1779,7 +1858,7 @@ var ShowRecapPanelOptions = React.createClass({
         var user;
         if (this.props.winningSuggestion == suggestion.suggestion_id) {
             buttonClass = "btn-danger";
-            starImage = <img src={starImgSrc} />;
+            starImage = <StarImage />;
         }
         if (suggestion.user_id) {
             var userUrl = this.props.recapContext.usersUrl + suggestion.user_id + "/?channel_name=" + this.props.recapContext.channelName;
@@ -1947,7 +2026,7 @@ var ShowDisplay = React.createClass({
 
         } else if (state == "player-options") {
             showStateDisplay = <ShowPlayerOptionsDisplay showData={this.state.data} />;
-        } else if (state == "options" || state == "test") {
+        } else if (state == "options") {
 
         }
     }
@@ -2022,8 +2101,8 @@ var RemainingIntervalsButton = React.createClass({
     });
   },
   render: function() {
-    // Make sure the current state exists and is not a "test"
-    if (this.state.data && this.state.data.name != "test") {
+    // Make sure the current state exists and has intervals
+    if (this.state.data && this.state.data.intervals !== "") {
         var buttonStyle = {backgroundColor: this.state.data.button_color};
         return (
             <button className="btn btn-block btn-lg white-input x-large-font" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
@@ -2121,6 +2200,7 @@ var RootComponent = React.createClass({
         var suggestionPoolContext = {
             channelID: getElementValueOrNull("channelID"),
             channelName: getElementValueOrNull("channelName"),
+            isPremium: getElementValueOrNull("isPremium"),
             suggestionPoolAPIUrl: getElementValueOrNull("suggestionPoolAPIUrl"),
             suggestionPoolListAPIUrl: getElementValueOrNull("suggestionPoolListAPIUrl"),
             formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
@@ -2133,6 +2213,7 @@ var RootComponent = React.createClass({
         var voteTypeContext = {
             channelID: getElementValueOrNull("channelID"),
             channelName: getElementValueOrNull("channelName"),
+            isPremium: getElementValueOrNull("isPremium"),
             voteTypeAPIUrl: getElementValueOrNull("voteTypeAPIUrl"),
             voteTypeListAPIUrl: getElementValueOrNull("voteTypeListAPIUrl"),
             suggestionPoolListAPIUrl: getElementValueOrNull("suggestionPoolListAPIUrl"),
@@ -2143,6 +2224,21 @@ var RootComponent = React.createClass({
             error: getElementValueOrNull("error")
         };
         rootComponents.push(<VoteTypeForm key="1" voteTypeContext={voteTypeContext} />);
+    } else if (rootType == "channel_shows") {
+        var channelShowContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelName: getElementValueOrNull("channelName"),
+            isPremium: getElementValueOrNull("isPremium"),
+            showAPIUrl: getElementValueOrNull("showAPIUrl"),
+            showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
+            voteTypeListAPIUrl: getElementValueOrNull("voteTypeListAPIUrl"),
+            playerListAPIUrl: getElementValueOrNull("playerListAPIUrl"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
+        };
+        rootComponents.push(<ChannelShowForm key="1" channelShowContext={channelShowContext} />);
     }
 
 

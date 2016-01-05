@@ -5,7 +5,7 @@ from shows.models import (Show, Suggestion, PreshowVote, LiveVote,
 
 @admin.register(Show)
 class ShowAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'archived')
+    list_display = ('id', 'created')
 
 
 @admin.register(Suggestion)

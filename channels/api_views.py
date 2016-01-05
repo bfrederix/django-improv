@@ -68,9 +68,13 @@ class VoteTypeViewSet(viewsets.ViewSet):
         kwargs = {}
         channel_id = self.request.query_params.get('channel_id')
         sort_by_active = self.request.query_params.get('sort_by_active')
+        active_only = self.request.query_params.get('active_only')
         if channel_id:
             kwargs['channel'] = channel_id
         queryset = VoteType.objects.filter(**kwargs)
+        # Exclude non-active suggestion pools
+        if active_only:
+            queryset = queryset.exclude(active=False)
         if sort_by_active:
             queryset = queryset.order_by('-active', 'name')
         serializer = VoteTypeSerializer(queryset, many=True)

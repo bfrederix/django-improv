@@ -14,6 +14,7 @@ from channels.models import (Channel, ChannelAddress, ChannelOwner,
 from channels import service as channels_service
 from users import service as users_service
 from players import service as players_service
+from shows import service as shows_service
 
 
 class ChannelHomeView(View):
@@ -73,8 +74,7 @@ class ChannelCreateEditView(View):
                           "website": request.POST.get('website'),
                           "facebook_page": request.POST.get('facebook_page'),
                           "buy_tickets_link": request.POST.get('buy_tickets_link'),
-                          "next_show": next_show or None,
-                          "timezone": request.POST.get('timezone')}
+                          "next_show": next_show or None}
         address_update = {"street": request.POST.get('street'),
                           "city": request.POST.get('city'),
                           "state": request.POST.get('state'),
@@ -159,8 +159,7 @@ class ChannelPlayersView(View):
                                                    channel,
                                                    "temp",
                                                    active=active,
-                                                   star=star,
-                                                   created=datetime.datetime.utcnow().replace(tzinfo=pytz.utc))
+                                                   star=star)
         else:
             error = 'Player name required'
         # Update or create the player image in cloudinary
@@ -257,7 +256,7 @@ class ChannelVoteTypesView(View):
                             'preshow_voted': bool(request.POST.get('preshow_voted', False)),
                             'intervals': request.POST.get('intervals', '').strip(),
                             'manual_interval_control': bool(request.POST.get('manual_interval_control', False)),
-                            'style': channels_service.vote_style_or_404(request.POST.get('style'))[0],
+                            'style': channels_service.vote_style_or_404(int(request.POST.get('style')))[0],
                             'ordering': int(request.POST.get('ordering', 0)),
                             'options': int(request.POST.get('options', 3)),
                             'vote_length': int(request.POST.get('vote_length', 25)),
@@ -279,6 +278,51 @@ class ChannelVoteTypesView(View):
 
         if not error:
             vote_type.save()
+
+        return render(request,
+                      self.template_name,
+                      {'channel': channel,
+                       'is_channel_admin': True,
+                       'action': action,
+                       'error': error})
+
+
+class ChannelShowsView(View):
+    template_name = 'channels/channel_shows.html'
+
+    def get(self, request, *args, **kwargs):
+        channel_name = kwargs.get('channel_name')
+        channel = channels_service.channel_or_404(channel_name)
+        return render(request,
+                      self.template_name,
+                      {'channel': channel,
+                       'is_channel_admin': True})
+
+    def post(self, request, *args, **kwargs):
+        channel_name = kwargs.get('channel_name')
+        channel = channels_service.channel_or_404(channel_name)
+        error = None
+        action = None
+        show_id = request.POST.get('selectID')
+        if show_id:
+            show = shows_service.show_or_404(show_id)
+        else:
+            show = shows_service.create_show(channel.id, 'US/Mountain')
+        raise IOError(show_id)
+        show.embedded_youtube = shows_service.validate_youtube(
+                                    request.POST.get('embedded_youtube', ''))
+        # Update or create the show image in cloudinary
+        uploaded_file = request.FILES.get('photoFile')
+        # Files larger than 2MB won't appear in request.FILES
+        if uploaded_file and not error:
+            cloud_response = cloudinary.uploader.upload(uploaded_file,
+                                                        folder="shows",
+                                                        public_id=show.id,
+                                                        invalidate=True)
+            show.photo_link = cloud_response.get('secure_url')
+
+        if not error:
+            show.save()
 
         return render(request,
                       self.template_name,

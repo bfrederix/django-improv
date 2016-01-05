@@ -5,19 +5,19 @@ from shows.models import Show
 
 class ShowSerializer(serializers.Serializer):
     id = serializers.IntegerField()
+    name = serializers.CharField(source="formatted_date")
     channel_id = serializers.IntegerField()
     channel_name = serializers.CharField()
-    timezone = serializers.CharField()
     created = serializers.DateTimeField()
     locked = serializers.BooleanField()
-    winners_photo_link = serializers.CharField(required=False)
+    photo_link = serializers.CharField(required=False)
     embedded_youtube = serializers.CharField(required=False)
 
     class Meta:
         fields = ('id', 'channel_id', 'channel_name',
-                  'timezone', 'created',
+                  'name', 'created',
                   #'current_vote_type', 'current_vote_init',
-                  'locked', 'winners_photo_link', 'embedded_youtube')
+                  'locked', 'photo_link', 'embedded_youtube')
 
 
 class SuggestionsSerializer(serializers.Serializer):

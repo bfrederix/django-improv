@@ -306,9 +306,7 @@ class Command(BaseCommand):
                                       vote_length=entity['vote_length'],
                                       result_length=entity['result_length'],
                                       vote_options=entity['vote_options'],
-                                      timezone=entity['timezone'],
                                       created=entity['created'].replace(tzinfo=pytz.utc),
-                                      archived=entity['archived'],
                                       current_vote_type_id=entity['current_vote_type'].id(),
                                       current_vote_init=entity['current_vote_init'].replace(tzinfo=pytz.utc),
                                       locked=entity['locked'])

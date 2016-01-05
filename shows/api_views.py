@@ -9,11 +9,11 @@ from utilities.api import APIObject
 
 class ShowAPIObject(APIObject):
     field_list = ['id',
-                  'timezone',
                   'created',
                   'locked',
-                  'winners_photo_link',
-                  'embedded_youtube']
+                  'photo_link',
+                  'embedded_youtube',
+                  'formatted_date']
 
     def __init__(self, show, **kwargs):
         super(ShowAPIObject, self).__init__(show, **kwargs)

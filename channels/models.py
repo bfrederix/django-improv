@@ -9,7 +9,7 @@ VOTE_STYLE = [('player-options', 'Player Options'),
               ('options', 'Options'),
               ('preshow-voted', 'Pre-show Voted'),
               ('all-players', 'All Players'),
-              ('test', 'Test')]
+              ('repeatable', 'Repeatable Options')]
 
 
 class Channel(models.Model):
@@ -27,7 +27,6 @@ class Channel(models.Model):
     facebook_page = models.CharField(blank=True, null=True, max_length=500)
     buy_tickets_link = models.CharField(blank=True, null=True, max_length=500)
     next_show = models.DateTimeField(blank=True, null=True)
-    timezone = models.CharField(blank=True, null=True, max_length=100)
     address = FlexibleForeignKey("ChannelAddress", blank=True, null=True)
 
     created = models.DateTimeField(blank=False)

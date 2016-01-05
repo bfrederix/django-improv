@@ -3,7 +3,7 @@
 {% block admin-selected %} active{% endblock %}
 {% block suggestion-pool-selected %}class="active"{% endblock %}
 
-{% block title %}Improvote: {{channel.display_name}}'s Add/Edit Suggestion Pools{% endblock %}
+{% block title %}Improvote: {{channel.display_name}}'s Create/Edit Suggestion Pools{% endblock %}
 
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>
@@ -12,6 +12,7 @@
     <input type="hidden" id="rootType" name="rootType" value="channel_suggestion_pools" readonly>
     <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
     <input type="hidden" id="channelName" name="channelName" value="{{channel.name}}" readonly>
+    <input type="hidden" id="isPremium" name="isPremium" value="{{channel.is_premium}}" readonly>
 	<input type="hidden" id="suggestionPoolAPIUrl" name="suggestionPoolAPIUrl"
            value="{% url "suggestion-pool-list" %}" readonly>
     <input type="hidden" id="suggestionPoolListAPIUrl" name="suggestionPoolListAPIUrl"

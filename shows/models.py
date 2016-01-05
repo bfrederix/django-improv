@@ -3,15 +3,15 @@ from django.contrib.auth.models import User
 
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
+DATE_FORMAT_STR = "%a. %b. %d, %Y @%I%p"
+
 
 class Show(models.Model):
     # Assigned to show on creation
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
-    timezone = models.CharField(default='US/Mountain', blank=False, max_length=100)
 
     created = models.DateTimeField(blank=False)
-    archived = models.BooleanField(default=False, blank=False)
 
     # Changes during live show
     current_vote_type = FlexibleForeignKey("channels.VoteType", blank=True, related_name='+',
@@ -24,7 +24,10 @@ class Show(models.Model):
     embedded_youtube = models.CharField(blank=True, null=True, max_length=500)
 
     def __unicode__(self):
-        return str(self.created)
+        return self.created.strftime(DATE_FORMAT_STR)
+
+    def formatted_date(self):
+        return self.created.strftime(DATE_FORMAT_STR)
 
     # Perhaps fetch all vote types by show id here
     # vote_types =
