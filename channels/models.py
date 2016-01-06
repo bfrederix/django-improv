@@ -5,11 +5,14 @@ from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 
 VOTE_STYLE = [('player-options', 'Player Options'),
-              ('player-pool', 'Player Pool'),
               ('options', 'Options'),
               ('preshow-voted', 'Pre-show Voted'),
-              ('all-players', 'All Players'),
-              ('repeatable', 'Repeatable Options')]
+              ('repeatable', 'Repeatable Options'),
+              ('vote-type-player-survivor', 'Vote Type Player Survivor'),
+              ('show-player-survivor', 'Show Player Survivor'),
+              ('vote-type-player-selected', 'Vote Type Selected Player Pool'),
+              ('show-player-selected', 'Show Selected Player Pool'),
+              ('all-players', 'All Players')]
 
 
 class Channel(models.Model):

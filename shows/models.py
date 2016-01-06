@@ -10,6 +10,8 @@ class Show(models.Model):
     # Assigned to show on creation
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
+    # Show length in minutes
+    show_length = models.IntegerField(blank=False, default=150)
 
     created = models.DateTimeField(blank=False)
 
@@ -28,6 +30,11 @@ class Show(models.Model):
 
     def formatted_date(self):
         return self.created.strftime(DATE_FORMAT_STR)
+
+    def formatted_youtube(self):
+        if self.embedded_youtube:
+            return "https://youtu.be/{0}".format(self.embedded_youtube)
+        return ''
 
     # Perhaps fetch all vote types by show id here
     # vote_types =
@@ -59,6 +66,13 @@ class ShowPlayerPool(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     player = FlexibleForeignKey("players.Player", blank=False)
     show = FlexibleForeignKey("Show", blank=False)
+
+
+class ShowVoteTypePlayerPool(models.Model):
+    id = BoundedBigAutoField(primary_key=True)
+    player = FlexibleForeignKey("players.Player", blank=False)
+    show = FlexibleForeignKey("Show", blank=False)
+    vote_type = FlexibleForeignKey("channels.VoteType", blank=False)
 
 
 class Suggestion(models.Model):

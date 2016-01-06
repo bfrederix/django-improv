@@ -59,7 +59,7 @@ function limitFileSize(event, elementID) {
     }
 }
 
-function validateTextField(event, elementID, allowSpaces) {
+function validateTextField(event, elementID, allowSpaces, customMessage) {
     var field = document.getElementById(elementID);
     var re;
     if (allowSpaces) {
@@ -69,7 +69,11 @@ function validateTextField(event, elementID, allowSpaces) {
     }
     if (!re.test(field.value) || field.value.length === 0) {
         $('#'+elementID).parent('div').addClass('has-error');
-        alert(elementID + ' must be a combination of letters, numbers, hyphens, or underscores');
+        if (customMessage) {
+            alert(customMessage);
+        } else {
+            alert(elementID + ' must be a combination of letters, numbers, hyphens, or underscores');
+        }
         event.preventDefault();
     }
 }
@@ -258,7 +262,8 @@ var Panel = React.createClass({
     if (this.props.panelHeadingContent) {
         panelComponents.push(<PanelHeader key="1"
                                           panelHeadingClasses={this.props.panelHeadingClasses}
-                                          panelHeadingContent={this.props.panelHeadingContent} />);
+                                          panelHeadingContent={this.props.panelHeadingContent}
+                                          panelHeadingLink={this.props.panelHeadingLink} />);
     }
     if (this.props.bodyContent) {
         panelComponents.push(<PanelBody key="2"
@@ -284,9 +289,13 @@ var Panel = React.createClass({
 
 var PanelHeader = React.createClass({
   render: function() {
+    var link;
     var panelHeaderClasses = 'panel-heading ' + this.props.panelHeadingClasses;
+    if (this.props.panelHeadingLink) {
+        link = <span>(<a href={this.props.panelHeadingLink}>Read More</a>)</span>;
+    }
     return (
-      <div className={panelHeaderClasses}>{this.props.panelHeadingContent}</div>
+      <div className={panelHeaderClasses}>{this.props.panelHeadingContent} {link}</div>
     );
   }
 });
@@ -693,6 +702,7 @@ var ChannelCreateEditForm = React.createClass({
                                  labelSize="2"
                                  labelContents="Facebook Page:"
                                  inputSize="7"
+                                 premium="true"
                                  input={facebookPageInput}
                                  helpBlock="Your group's Facebook page, 'Like Our Page' links added for premium channels" />);
     // Buy Tickets Input
@@ -701,8 +711,9 @@ var ChannelCreateEditForm = React.createClass({
                                  labelSize="2"
                                  labelContents="Buy Tickets URL:"
                                  inputSize="7"
+                                 premium="true"
                                  input={buyTicketsInput}
-                                 helpBlock="The URL to buy tickets to your shows" />);
+                                 helpBlock="The URL to buy tickets to your shows, premium feature only" />);
     // Next Show
     var nextShowInput = <input type="datetime-local" name="next_show" className="form-control" defaultValue={this.state.data.next_show.replace('Z','')}></input>;
     formContents.push(<FormGroup key="10"
@@ -761,6 +772,7 @@ var ChannelCreateEditForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent={actionText} panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
+                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/channels.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -831,7 +843,7 @@ var PlayerForm = React.createClass({
     var starInput = <input type="checkbox" name="star" value="1" defaultChecked={this.state.data.star}></input>;
     formContents.push(<FormGroup key="4"
                                  labelSize="2"
-                                 labelContents="Star Player:"
+                                 labelContents="Featured Player:"
                                  inputSize="4"
                                  input={starInput}
                                  helpBlock="Check this if the player should be prioritized first in shows" />);
@@ -872,6 +884,7 @@ var PlayerForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit Player" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
+                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/players.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -943,7 +956,8 @@ var SuggestionPoolForm = React.createClass({
                                  labelContents="Description:"
                                  inputSize="8"
                                  input={descriptionInput}
-                                 helpBlock="Used to instruct users on what types of suggestions to enter" />);
+                                 helpBlock="Used to instruct users on what types of suggestions to enter"
+                                 docs="http://improvote.readthedocs.org/en/latest/suggestion_pools.html#suggestion-pool-description" />);
     // Max User Suggestions Input
     var maxUserSuggestionsInput = <input type="text" id="max_user_suggestions" name="max_user_suggestions" maxLength="3" defaultValue={this.state.data.max_user_suggestions} className="form-control"></input>;
     formContents.push(<FormGroup key="4"
@@ -1010,6 +1024,7 @@ var SuggestionPoolForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit Suggestion Pools" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
+                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/suggestion_pools.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -1220,6 +1235,7 @@ var VoteTypeForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit Vote Types" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
+                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/vote_types.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -1229,7 +1245,8 @@ var VoteTypeForm = React.createClass({
 
 var ChannelShowForm = React.createClass({
   getInitialState: function() {
-    return {data: {embedded_youtube: ""},
+    return {data: {show_length: 150,
+                   embedded_youtube: ""},
             showID: undefined,
             key: "1"};
   },
@@ -1253,6 +1270,7 @@ var ChannelShowForm = React.createClass({
   },
   onFormSubmit: function(event) {
       limitFileSize(event, 'photoFile');
+      validateTextField(event, "show_length", false, "Show length in minutes is required.");
       validateYoutubeField(event, "embedded_youtube");
   },
   editEventHandler: function(event) {
@@ -1287,9 +1305,19 @@ var ChannelShowForm = React.createClass({
                                      helpBlock='Select Vote Types for the Show' />);
     }
 
+    // Youtube Input
+    var showLengthInput = <input type="text" id="show_length" name="show_length" defaultValue={this.state.data.show_length} className="form-control"></input>;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Show Display Length (minutes)*:"
+                                 inputSize="6"
+                                 input={showLengthInput}
+                                 helpBlock="Length of the show display from creation until end in minutes (should be a large overestimate of minutes, not exact), required for knowing when the show display should end and channel functionality should return to normal."
+                                 docs="http://improvote.readthedocs.org/en/latest/shows.html#show-length" />);
+
     // Photo Link Input
     var photoLinkInput = <div><span className="btn btn-primary btn-file"><input id="photoFile" type="file" name="photoFile"></input></span><Image image_url={this.state.data.photo_link} /></div>;
-    formContents.push(<FormGroup key="3"
+    formContents.push(<FormGroup key="4"
                                  labelSize="2"
                                  labelContents="Show Photo:"
                                  inputSize="6"
@@ -1298,7 +1326,7 @@ var ChannelShowForm = React.createClass({
 
     // Youtube Input
     var youtubeInput = <input type="text" id="embedded_youtube" name="embedded_youtube" defaultValue={this.state.data.embedded_youtube} className="form-control"></input>;
-    formContents.push(<FormGroup key="4"
+    formContents.push(<FormGroup key="5"
                                  labelSize="2"
                                  labelContents="Youtube Url:"
                                  inputSize="6"
@@ -1307,7 +1335,7 @@ var ChannelShowForm = React.createClass({
 
     // Submit Button
     var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Show</button>;
-    formContents.push(<FormGroup key="5"
+    formContents.push(<FormGroup key="6"
                                  inputSize="2"
                                  input={submitButton} />);
     // Edit Show Dropdown Input
@@ -1315,7 +1343,7 @@ var ChannelShowForm = React.createClass({
                                         selectEventHandler={this.editEventHandler}
                                         defaultSelected={this.state.showID}
                                         defaultText="Select a Show to Edit" />;
-    formContents.push(<FormGroup key="6"
+    formContents.push(<FormGroup key="7"
                                  labelSize="2"
                                  labelContents="Edit Show:"
                                  inputSize="4"

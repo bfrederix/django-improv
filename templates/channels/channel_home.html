@@ -53,15 +53,15 @@
 							</a>
 						{% endif %}
 					{% else %}
-                        <a class="text-center" href="{{channel.buy_tickets_link}}">
-                            <div class="btn btn-info btn-block btn-lg home-show-btn">Buy Tickets to {{channel.display_name}}</div>
-                        </a>
-                        <br/>
                         <a class="text-center" href="{% url "channel_recaps" channel.name %}">
                             <div class="btn btn-warning btn-block btn-lg home-show-btn">Show Recaps</div>
                         </a>
                         <br />
                         {% if channel.is_premium %}
+                            <a class="text-center" href="{{channel.buy_tickets_link}}">
+                                <div class="btn btn-info btn-block btn-lg home-show-btn"><img src="{{IMAGE_URL}}star-sprite.png" /> Buy Tickets to {{channel.display_name}} <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                            </a>
+                            <br/>
                             <a class="text-center" href="{% url "channel_leaderboards" channel.name %}">
                                 <div class="btn btn-success btn-block btn-lg home-show-btn"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                             </a>

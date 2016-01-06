@@ -11,8 +11,10 @@ class ShowAPIObject(APIObject):
     field_list = ['id',
                   'created',
                   'locked',
+                  'show_length',
                   'photo_link',
                   'embedded_youtube',
+                  'formatted_youtube',
                   'formatted_date']
 
     def __init__(self, show, **kwargs):

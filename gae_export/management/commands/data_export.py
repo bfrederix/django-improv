@@ -303,8 +303,7 @@ class Command(BaseCommand):
                                 Show.objects.get_or_create(
                                       id=entity.key().id(),
                                       channel=channel,
-                                      vote_length=entity['vote_length'],
-                                      result_length=entity['result_length'],
+                                      show_length=90,
                                       vote_options=entity['vote_options'],
                                       created=entity['created'].replace(tzinfo=pytz.utc),
                                       current_vote_type_id=entity['current_vote_type'].id(),
