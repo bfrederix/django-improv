@@ -104,7 +104,7 @@ class LeaderboardSpanViewSet(viewsets.ViewSet):
         queryset = LeaderboardSpan.objects.all()
         channel_id = self.request.query_params.get('channel_id')
         if channel_id:
-            queryset.filter(channel=channel_id)
+            queryset = queryset.filter(channel=channel_id)
         serializer = LeaderboardSpanSerializer(queryset, many=True)
         return Response(serializer.data)
 

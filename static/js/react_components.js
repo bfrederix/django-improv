@@ -257,7 +257,7 @@ var Panel = React.createClass({
     var panelWidth = "col-md-"+this.props.panelWidth;
     var panelOffset = "col-md-offset-"+this.props.panelOffset;
     var colClasses = 'col ' + panelWidth + ' ' + panelOffset;
-    var panelClasses = 'panel panel-' + this.props.panelColor + ' panel-shadow';
+    var panelClasses = 'panel panel-' + this.props.panelColor + ' highlight-shadow';
     var panelComponents = [];
     if (this.props.panelHeadingContent) {
         panelComponents.push(<PanelHeader key="1"
@@ -290,7 +290,7 @@ var Panel = React.createClass({
 var PanelHeader = React.createClass({
   render: function() {
     var link;
-    var panelHeaderClasses = 'panel-heading ' + this.props.panelHeadingClasses + " panel-heading-shadow";
+    var panelHeaderClasses = 'panel-heading ' + this.props.panelHeadingClasses + " text-shadow";
     if (this.props.panelHeadingLink) {
         link = <span>(<a href={this.props.panelHeadingLink}>Read More</a>)</span>;
     }
@@ -345,7 +345,7 @@ var Medal = React.createClass({
     var medalURL = "/medals/#" + this.state.data.name;
     // Create the medal classes
     var medalClass = this.state.data.name + "-medal";
-    var medalClasses = 'medal ' + medalClass + ' pull-left';
+    var medalClasses = 'medal ' + medalClass + ' pull-left btn-shadow';
     return (
       <a href={medalURL}><div className={medalClasses}></div></a>
     );
@@ -395,7 +395,7 @@ var PlayerImage = React.createClass({
         return (<Loading loadingBarColor="#fff" />);
     }
     return (
-      <img src={this.state.data.photo_url} className="img-responsive img-thumbnail" />
+      <img src={this.state.data.photo_url} className="img-responsive img-thumbnail highlight-shadow" />
     );
   }
 });
@@ -403,14 +403,14 @@ var PlayerImage = React.createClass({
 var Image = React.createClass({
   render: function() {
     return (
-      <img src={this.props.image_url} className="img-responsive img-thumbnail" />
+      <img src={this.props.image_url} className="img-responsive img-thumbnail highlight-shadow" />
     );
   }
 });
 
 var BigButton = React.createClass({
   render: function() {
-    var buttonClass = "btn btn-" + this.props.buttonColor + " btn-block btn-lg text-center x-large-font btn-shadow";
+    var buttonClass = "btn btn-" + this.props.buttonColor + " btn-block btn-lg text-center x-large-font btn-shadow text-shadow";
     return (
         <div className="row">
             <div className="col-md-6 col-md-offset-3">
@@ -499,7 +499,7 @@ var BigButtonDropdownContents = React.createClass({
                                    loadingBarColor="#fff" />);
     }
     return (
-      <ul className="dropdown-menu x-large-font" role="menu" style={dropDownStyle}>
+      <ul className="dropdown-menu x-large-font " role="menu" style={dropDownStyle}>
             {dropDownList}
       </ul>
     );
@@ -510,7 +510,7 @@ var BigButtonDropdown = React.createClass({
   render: function() {
     var buttonGroupStyle = {width: "100%"};
     var buttonColor = this.props.buttonColor;
-    var buttonClass = "btn btn-" + buttonColor + " btn-block btn-lg dropdown-toggle x-large-font btn-shadow";
+    var buttonClass = "btn btn-" + buttonColor + " btn-block btn-lg dropdown-toggle x-large-font btn-shadow text-shadow";
 
     return (
         <div className="row">
@@ -640,6 +640,8 @@ var ChannelCreateEditForm = React.createClass({
         actionText = "Create Channel"; 
     }
     var formContents = [];
+    // Premium features key
+    formContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
     // Name Input
     var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
     formContents.push(<FormGroup key="1"
@@ -754,7 +756,7 @@ var ChannelCreateEditForm = React.createClass({
                                  input={zipcodeInput} />);
 
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">{actionText}</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">{actionText}</button>;
     formContents.push(<FormGroup key="16"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -848,7 +850,7 @@ var PlayerForm = React.createClass({
                                  input={starInput}
                                  helpBlock="Check this if the player should be prioritized first in shows" />);
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">Create/Edit Player</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Player</button>;
     formContents.push(<FormGroup key="5"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -934,6 +936,8 @@ var SuggestionPoolForm = React.createClass({
   },
   render: function() {
     var formContents = [];
+    // Premium features key
+    formContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
     // Name Input
     var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
     formContents.push(<FormGroup key="1"
@@ -986,7 +990,7 @@ var SuggestionPoolForm = React.createClass({
                                  premium="true"
                                  inputSize="5"
                                  input={requireLoginInput}
-                                 helpBlock="Check this if users are required to login to add suggestions (premium only feature)" />);
+                                 helpBlock="Check this if users are required to login to add suggestions" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
     formContents.push(<FormGroup key="7"
@@ -996,7 +1000,7 @@ var SuggestionPoolForm = React.createClass({
                                  input={activeInput}
                                  helpBlock="Check this if the Suggestion Pool should appear in the Create/Edit Vote Types form" />);
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">Create/Edit Suggestion Pool</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Suggestion Pool</button>;
     formContents.push(<FormGroup key="8"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1084,6 +1088,8 @@ var VoteTypeForm = React.createClass({
   },
   render: function() {
     var formContents = [];
+    // Premium features key
+    formContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
     // Name Input
     var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
     formContents.push(<FormGroup key="1"
@@ -1185,7 +1191,7 @@ var VoteTypeForm = React.createClass({
                                  inputSize="4"
                                  input={buttonColorInput}
                                  helpBlock='The color designated to the Vote Type buttons and such' />);
-    // Require Login Input
+    // Require Login Input (Premium or not)
     if (this.props.voteTypeContext.isPremium === "True") {
         var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
     } else {
@@ -1197,7 +1203,7 @@ var VoteTypeForm = React.createClass({
                                  premium="true"
                                  inputSize="5"
                                  input={requireLoginInput}
-                                 helpBlock="Check this if users are required to login to vote (premium only feature)" />);
+                                 helpBlock="Check this if users are required to login to vote" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
     formContents.push(<FormGroup key="14"
@@ -1207,7 +1213,7 @@ var VoteTypeForm = React.createClass({
                                  input={activeInput}
                                  helpBlock="Check this if the Vote Type should appear in the Create Show form" />);
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">Create/Edit Suggestion Pool</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Suggestion Pool</button>;
     formContents.push(<FormGroup key="15"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1280,7 +1286,8 @@ var ChannelShowForm = React.createClass({
   },
   render: function() {
     var formContents = [];
-
+    // Premium features key
+    formContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
     // Only change players and vote types during creation
     if (!this.state.showID) {
         // Players Dropdown Input
@@ -1305,7 +1312,7 @@ var ChannelShowForm = React.createClass({
                                      helpBlock='Select Vote Types for the Show' />);
     }
 
-    // Youtube Input
+    // Show Length Input
     var showLengthInput = <input type="text" id="show_length" name="show_length" defaultValue={this.state.data.show_length} className="form-control"></input>;
     formContents.push(<FormGroup key="3"
                                  labelSize="2"
@@ -1315,26 +1322,36 @@ var ChannelShowForm = React.createClass({
                                  helpBlock="Length of the show display from creation until end in minutes (should be a large overestimate of minutes, not exact), required for knowing when the show display should end and channel functionality should return to normal."
                                  docs="http://improvote.readthedocs.org/en/latest/shows.html#show-length" />);
 
-    // Photo Link Input
-    var photoLinkInput = <div><span className="btn btn-primary btn-file"><input id="photoFile" type="file" name="photoFile"></input></span><Image image_url={this.state.data.photo_link} /></div>;
+    // Photo Link Input (Premium or Not)
+    if (this.props.channelShowContext.isPremium === "True") {
+        var photoLinkInput = <div><span className="btn btn-primary btn-file"><input id="photoFile" type="file" name="photoFile"></input></span><Image image_url={this.state.data.photo_link} /></div>;
+    } else {
+        var photoLinkInput = <div><span className="btn btn-primary btn-file"><input id="photoFile" type="file" name="photoFile" disabled="true"></input></span><Image image_url={this.state.data.photo_link} /></div>;
+    }
     formContents.push(<FormGroup key="4"
                                  labelSize="2"
                                  labelContents="Show Photo:"
                                  inputSize="6"
+                                 premium="true"
                                  input={photoLinkInput}
                                  helpBlock="Photo from the show (can be added later), must be smaller than 2MB" />);
 
-    // Youtube Input
-    var youtubeInput = <input type="text" id="embedded_youtube" name="embedded_youtube" defaultValue={this.state.data.embedded_youtube} className="form-control"></input>;
+    // Youtube Input (Premium or Not)
+    if (this.props.channelShowContext.isPremium === "True") {
+        var youtubeInput = <input type="text" id="embedded_youtube" name="embedded_youtube" defaultValue={this.state.data.embedded_youtube} className="form-control"></input>;
+    } else {
+        var youtubeInput = <input type="text" id="embedded_youtube" name="embedded_youtube" disabled="true" defaultValue={this.state.data.embedded_youtube} className="form-control"></input>;
+    }
     formContents.push(<FormGroup key="5"
                                  labelSize="2"
                                  labelContents="Youtube Url:"
                                  inputSize="6"
+                                 premium="true"
                                  input={youtubeInput}
                                  helpBlock="Youtube video from the show (can be added later), must be a valid Youtube url" />);
 
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">Create/Edit Show</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Show</button>;
     formContents.push(<FormGroup key="6"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1380,7 +1397,7 @@ var MedalButtonForm = React.createClass({
     var medalActionLink = this.props.baseLinkUrl + 'show/' + this.props.showID + '/';
     var awardMedalInput = <div>
                             <input type="hidden" name="award_medals" value="True"></input>
-                            <input type="submit" className="btn btn-warning btn-block btn-lg x-large-font btn-shadow" value="Award Medals"></input>
+                            <input type="submit" className="btn btn-warning btn-block btn-lg x-large-font btn-shadow text-shadow" value="Award Medals"></input>
                           </div>;
     var formContents = <FormGroup input={awardMedalInput} />
     return (
@@ -1410,9 +1427,18 @@ var ChannelLeaderboardTable = React.createClass({
   },
   render: function() {
     if (!this.state.data){
-        return (<div className="table-responsive">
-                    <table className="table table-condensed black-font">
-                        <tbody><tr><td>
+        return (<div className="table-responsive text-shadow">
+                    <table className="table table-condensed large-font">
+                        <thead>
+                            <tr className="medium-background">
+                                <th>Rank</th>
+                                <th>Username</th>
+                                <th>Suggestion Wins</th>
+                                <th>Points</th>
+                                <th>Show Wins</th>
+                            </tr>
+                        </thead>
+                        <tbody><tr><td colSpan="5">
                             <Loading loadingBarColor="#fff"/>
                         </td></tr></tbody>
                     </table>
@@ -1427,7 +1453,7 @@ var ChannelLeaderboardTable = React.createClass({
         this.counter++;
         var rank = this.counter + this.startCount;
         var userUrl = this.props.leaderboardContext.usersUrl + leaderboardUser.user_id + "/?channel_name=" + this.props.leaderboardContext.channelName;
-        tableList.push(<tr key={this.counter}>
+        tableList.push(<tr key={this.counter} className="light-background">
                             <td>{rank}</td>
                             <td><a href={userUrl}>{leaderboardUser.username}</a></td>
                             <td>{leaderboardUser.suggestion_wins}</td>
@@ -1437,10 +1463,10 @@ var ChannelLeaderboardTable = React.createClass({
         return tableList;
     }, this);
     return (
-        <div className="table-responsive">
+        <div className="table-responsive text-shadow">
             <table className="table table-condensed large-font">
                 <thead>
-                    <tr>
+                    <tr className="medium-background">
                         <th>Rank</th>
                         <th>Username</th>
                         <th>Suggestion Wins</th>
@@ -1478,9 +1504,18 @@ var ShowLeaderboardTable = React.createClass({
   },
   render: function() {
     if (!this.state.data){
-        return (<div className="table-responsive">
-                    <table className="table table-condensed black-font">
-                        <tbody><tr><td>
+        return (<div className="table-responsive text-shadow">
+                    <table className="table table-condensed large-font">
+                        <thead>
+                            <tr className="medium-background">
+                                <th>Rank</th>
+                                <th>Username</th>
+                                <th>Suggestion Wins</th>
+                                <th>Points</th>
+                                <th>Medals</th>
+                            </tr>
+                        </thead>
+                        <tbody><tr><td colSpan="5">
                             <Loading loadingBarColor="#fff"/>
                         </td></tr></tbody>
                     </table>
@@ -1503,7 +1538,7 @@ var ShowLeaderboardTable = React.createClass({
                                   medalID={medalID}
                                   medalListAPIUrl={this.props.leaderboardContext.medalListAPIUrl} />);
         }
-        tableList.push(<tr key={this.counter}>
+        tableList.push(<tr key={this.counter} className="light-background">
                             <td>{rank}</td>
                             <td><a href={userUrl}>{leaderboardUser.username}</a></td>
                             <td>{leaderboardUser.wins}</td>
@@ -1513,11 +1548,11 @@ var ShowLeaderboardTable = React.createClass({
         return tableList;
     }, this);
     return (
-        <div className="table-responsive">
+        <div className="table-responsive text-shadow">
             <br/>
             <table className="table table-condensed large-font">
                 <thead>
-                    <tr>
+                    <tr className="medium-background">
                         <th>Rank</th>
                         <th>Username</th>
                         <th>Suggestion Wins</th>
@@ -1665,7 +1700,7 @@ var UserStatsTableBody = React.createClass({
     }
 
     return (
-        <div className="table-responsive">
+        <div className="table-responsive text-shadow">
             <table className="table table-condensed black-font">
                 <tbody>
                     {statsList}
@@ -1719,18 +1754,18 @@ var UserShowStatsPanelBody = React.createClass({
         var showID = this.props.showStats.show;
         var showLink = "/" + this.props.showStats.channel_name + "/leaderboards/show/" + showID + "/";
         var recapLink = "/" + this.props.showStats.channel_name + "/recaps/show/" + showID + "/";
-        statElements.push(<div key="1" className="row"><div className="col-md-12">Points Earned: {this.props.showStats.points}</div></div>);
-        statElements.push(<div key="2" className="row"><div className="col-md-12">Winning Suggestions: {this.props.showStats.wins}</div></div>);
+        statElements.push(<div key="1" className="row text-colorless-shadow"><div className="col-md-12">Points Earned: {this.props.showStats.points}</div></div>);
+        statElements.push(<div key="2" className="row text-colorless-shadow"><div className="col-md-12">Winning Suggestions: {this.props.showStats.wins}</div></div>);
         statElements.push(<div key="3" className="row"><div className="col-md-12"><a href={showLink}>Show Leaderboard</a></div></div>);
         statElements.push(<div key="4" className="row"><div className="col-md-12"><a href={recapLink}>Show Recap</a></div></div>);
-        statElements.push(<div key="5" className="row"><div className="col-md-12">Suggestions:</div></div>);
+        statElements.push(<div key="5" className="row text-colorless-shadow"><div className="col-md-12">Suggestions:</div></div>);
         statElements.push(<UserShowStatsTableBody key="6"
                                                   userAccountContext={this.props.userAccountContext}
                                                   showID={showID}
                                                   showStats={this.props.showStats} />);
-        statElements.push(<div key="7" className="row"><div className="col-md-12"><StarImage /> = Winning Suggestion</div></div>);
-        statElements.push(<div key="8" className="row"><div className="col-md-12"><Label labelColor="info" labelContents="&nbsp;&nbsp;" /> = Appeared in Voting</div></div>);
-        statElements.push(<div key="9" className="row"><div className="col-md-12"><Label labelColor="info" extraClasses="light-gray-bg" labelContents="&nbsp;&nbsp;" /> = Not Voted on</div></div>);
+        statElements.push(<div key="7" className="row text-colorless-shadow"><div className="col-md-12"><StarImage /> = Winning Suggestion</div></div>);
+        statElements.push(<div key="8" className="row text-colorless-shadow"><div className="col-md-12"><Label labelColor="info" labelContents="&nbsp;&nbsp;" /> = Appeared in Voting</div></div>);
+        statElements.push(<div key="9" className="row text-colorless-shadow"><div className="col-md-12"><Label labelColor="info" extraClasses="light-gray-bg" labelContents="&nbsp;&nbsp;" /> = Not Voted on</div></div>);
     }
 
     return (
@@ -1792,7 +1827,7 @@ var UserShowStatsTableBody = React.createClass({
         return suggestionList;
     }, this);
     return (
-        <div className="table-responsive">
+        <div className="table-responsive text-shadow">
             <table className="table table-condensed black-font">
                 <tbody>{suggestionList}</tbody>
             </table>
@@ -1880,7 +1915,7 @@ var ShowMedia = React.createClass({
     }
 
     if (this.state.data.photo_link) {
-        var photoBodyContent = <div className="text-center"><img src={this.state.data.photo_link} className="img-responsive img-thumbnail" /></div>;
+        var photoBodyContent = <div className="text-center"><Image image_url={this.state.data.photo_link} /></div>;
         photoPanel = <Panel key="1"
                             panelWidth="6" panelOffset="3" panelColor="warning"
                             panelHeadingContent="Recap Photo" panelHeadingClasses="x-large-font"
@@ -1951,7 +1986,7 @@ var ShowRecapPanelOptions = React.createClass({
         else {
             user = "Anonymous";
         }
-        var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option btn-shadow";
+        var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option btn-shadow text-shadow";
         var suggestionCount = i + 1;
         suggestionList.push(<div key={i} id={suggestion.id} className={suggestionClass}>
                                  {suggestionCount}. {suggestion.suggestion}{starImage}
@@ -2143,7 +2178,7 @@ var ShowDefaultDisplay = React.createClass({
         return (
             <div className="col-md-5 col-md-offset-3">
                 <a className="text-center" href={leaderboardURL}>
-                    <div className="btn btn-default btn-block btn-lg home-show-btn">Leaderboard</div>
+                    <div className="btn btn-default btn-block btn-lg btn-shadow text-shadow x-large-font">Leaderboard</div>
                 </a>
                 <br/>
                 <div className="row">
@@ -2189,7 +2224,7 @@ var RemainingIntervalsButton = React.createClass({
     if (this.state.data && this.state.data.intervals !== "") {
         var buttonStyle = {backgroundColor: this.state.data.button_color};
         return (
-            <button className="btn btn-block btn-lg white-input x-large-font btn-shadow" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
+            <button className="btn btn-block btn-lg white-input x-large-font btn-shadow text-shadow" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
         );
     } else {
         return (<div></div>);

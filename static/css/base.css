@@ -44,22 +44,6 @@ div.header-btn,div.header-btn:hover {
 	cursor:default;
 }
 
-div.home-show-btn {
-	font-size:x-large;
-	color:#ffffff;
-      color: white;
-      text-shadow: 0 1px 0 #ccc,
-                   0 2px 0 #c9c9c9,
-                   0 6px 1px rgba(0,0,0,.1),
-                   0 0 5px rgba(0,0,0,.1),
-                   0 1px 3px rgba(0,0,0,.3),
-                   0 3px 5px rgba(0,0,0,.2),
-                   0 5px 10px rgba(0,0,0,.25),
-                   0 10px 10px rgba(0,0,0,.2),
-                   0 20px 20px rgba(0,0,0,.15);
-	-webkit-box-shadow: 0 14px 11px -7px #9B9D9E
-}
-
 div.name-header {
 	background-color:#428bca;
 	font-size:large;
@@ -250,21 +234,6 @@ hr.thick-divider {
 
 .win-percentage-medal {
     background-image:url('/static/img/medals/win-percentage-icon.png');
-}
-
-.level-number {
-    position: absolute;
-    top: 15px;
-    right: 1px;
-    padding: 4px;
-    color: white;
-    text-shadow:
-    -2px -2px 0 #000,
-    2px -2px 0 #000,
-    -2px 2px 0 #000,
-    2px 2px 0 #000;
-    font-weight: bold;
-    font-size: 24px;
 }
 
 img.medal-resize {
@@ -571,21 +540,29 @@ span.slidefade {
   }
 }
 
+/* Leaderboard table color */
+tr.light-background {
+    background-color:#00A9CF;
+}
+
+tr.medium-background {
+    background-color:#6B81FA;
+}
+
 /* Fixing the nav colors of the Channel pages */
 .navbar-custom {
     background-color:#4596FF !important;
     color:#ffffff;
     background: #0e8dbc;
-      color: white;
-      text-shadow: 0 1px 0 #ccc,
-                   0 2px 0 #c9c9c9,
-                   0 6px 1px rgba(0,0,0,.1),
-                   0 0 5px rgba(0,0,0,.1),
-                   0 1px 3px rgba(0,0,0,.3),
-                   0 3px 5px rgba(0,0,0,.2),
-                   0 5px 10px rgba(0,0,0,.25),
-                   0 10px 10px rgba(0,0,0,.2),
-                   0 20px 20px rgba(0,0,0,.15);
+    text-shadow: 0 1px 0 #ccc,
+                 0 2px 0 #c9c9c9,
+                 0 6px 1px rgba(0,0,0,.1),
+                 0 0 5px rgba(0,0,0,.1),
+                 0 1px 3px rgba(0,0,0,.3),
+                 0 3px 5px rgba(0,0,0,.2),
+                 0 5px 10px rgba(0,0,0,.25),
+                 0 10px 10px rgba(0,0,0,.2),
+                 0 20px 20px rgba(0,0,0,.15);
     -webkit-box-shadow: 0 10px 10px -7px white;
 }
 
@@ -599,36 +576,47 @@ span.slidefade {
     background-color:#00A9CF;
 }
 
+/* Adding to the Home nav bar */
+nav.home-navbar-custom {
+    text-shadow: 0 1px 0 #ccc,
+                 0 2px 0 #c9c9c9,
+                 0 6px 1px rgba(0,0,0,.1),
+                 0 0 5px rgba(0,0,0,.1),
+                 0 1px 3px rgba(0,0,0,.3),
+                 0 3px 5px rgba(0,0,0,.2),
+                 0 5px 10px rgba(0,0,0,.25),
+                 0 10px 10px rgba(0,0,0,.2),
+                 0 20px 20px rgba(0,0,0,.15);
+}
+
 /* Undershadows */
-.btn-shadow {
-    color:#ffffff;
-      color: white;
-      text-shadow: 0 1px 0 #ccc,
-                   0 2px 0 #c9c9c9,
-                   0 6px 1px rgba(0,0,0,.1),
-                   0 0 5px rgba(0,0,0,.1),
-                   0 1px 3px rgba(0,0,0,.3),
-                   0 3px 5px rgba(0,0,0,.2),
-                   0 5px 10px rgba(0,0,0,.25),
-                   0 10px 10px rgba(0,0,0,.2),
-                   0 20px 20px rgba(0,0,0,.15);
+button.btn-shadow, input.btn-shadow, a.btn-shadow, div.btn-shadow {
     -webkit-box-shadow: 0 14px 11px -7px #9B9D9E
 }
 
-div.panel-shadow {
-    -webkit-box-shadow: 0 10px 12px -4px #3E38FC, 10px 0 12px -5px #3E38FC, -10px 0 10px -5px #3E38FC;
+div.highlight-shadow, img.highlight-shadow {
+    -webkit-box-shadow: 0 10px 12px -4px #7DDEFF, 10px 0 12px -5px #7DDEFF, -10px 0 10px -5px #7DDEFF;
 }
 
-div.panel-heading-shadow {
-    color:#ffffff;
-      color: white;
-      text-shadow: 0 1px 0 #ccc,
-                   0 2px 0 #c9c9c9,
-                   0 6px 1px rgba(0,0,0,.1),
-                   0 0 5px rgba(0,0,0,.1),
-                   0 1px 3px rgba(0,0,0,.3),
-                   0 3px 5px rgba(0,0,0,.2),
-                   0 5px 10px rgba(0,0,0,.25),
-                   0 10px 10px rgba(0,0,0,.2),
-                   0 20px 20px rgba(0,0,0,.15);
+div.text-shadow, ul.text-shadow, button.text-shadow, input.text-shadow, a.text-shadow, span.text-shadow, hr.text-shadow {
+    color: #ffffff;
+    text-shadow: 0 1px 0 #ccc,
+                 0 2px 0 #c9c9c9,
+                 0 6px 1px rgba(0,0,0,.1),
+                 0 0 5px rgba(0,0,0,.1),
+                 0 1px 3px rgba(0,0,0,.3),
+                 0 3px 5px rgba(0,0,0,.2),
+                 0 5px 10px rgba(0,0,0,.25),
+                 0 10px 10px rgba(0,0,0,.2),
+                 0 20px 20px rgba(0,0,0,.15);
+}
+
+div.text-colorless-shadow {
+    text-shadow: 0 2px 0 #c9c9c9,
+                 0 0 5px rgba(0,0,0,.1),
+                 0 1px 3px rgba(0,0,0,.3),
+                 0 3px 5px rgba(0,0,0,.2),
+                 0 5px 10px rgba(0,0,0,.25),
+                 0 10px 10px rgba(0,0,0,.2),
+                 0 20px 20px rgba(0,0,0,.15);
 }

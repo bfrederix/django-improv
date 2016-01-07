@@ -12,14 +12,14 @@
                         {% if channel.is_premium %}
                             {% if not request.user.is_authenticated %}
                                 <a href="{% url "social:begin" "facebook" %}?next={{request.path}}">
-                                    <div class="btn btn-primary btn-block btn-lg home-show-btn"><div class="facebook-icon-large pull-left"></div>Login with Facebook</div>
+                                    <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font"><div class="facebook-icon-large pull-left"></div>Login with Facebook</div>
                                 </a>
                                 <br/>
                             {% endif %}
 
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <div class="pull-left large-font">Like us on Facebook&nbsp;</div>
+                                    <div class="pull-left large-font text-shadow">Like us on Facebook&nbsp;</div>
                                     <div id="fbiframe" class="fb-like" data-href="{{channel.facebook_page}}" data-layout="button_count" data-action="like"></div>
                                     <br/>
                                 </div>
@@ -28,7 +28,7 @@
                             <br/>
                             {% if not request.user.is_authenticated %}
                                 <a href="{% url "social:begin" "google" %}?next={{request.path}}">
-                                    <div class="btn btn-danger btn-block btn-lg home-show-btn"><div class="google-icon-large pull-left"></div>Login with Google</div>
+                                    <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font"><div class="google-icon-large pull-left"></div>Login with Google</div>
                                 </a>
                                 <br/>
                             {% endif %}
@@ -41,32 +41,32 @@
 					{% if current_show.is_today %}
 						{% if is_channel_admin %}
                             <a class="text-center" href="/show_control/{{current_show.key.id}}/">
-								<div class="btn btn-danger btn-block btn-lg home-show-btn">Show Controller</div>
+								<div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font">Show Controller</div>
 							</a>
                             <br/>
 							<a class="text-center" href="/show/{{current_show.key.id}}/">
-								<div class="btn btn-danger btn-block btn-lg home-show-btn">Show Display</div>
+								<div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font">Show Display</div>
 							</a>
 						{% else %}
 							<a class="text-center" href="/live_vote/">
-								<div class="btn btn-danger btn-block btn-lg home-show-btn">Live Show Voting!</div>
+								<div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font">Live Show Voting!</div>
 							</a>
 						{% endif %}
 					{% else %}
                         <a class="text-center" href="{% url "channel_recaps" channel.name %}">
-                            <div class="btn btn-warning btn-block btn-lg home-show-btn">Show Recaps</div>
+                            <div class="btn btn-warning btn-block btn-lg btn-shadow text-shadow x-large-font">Show Recaps</div>
                         </a>
                         <br />
                         {% if channel.is_premium %}
                             <a class="text-center" href="{{channel.buy_tickets_link}}">
-                                <div class="btn btn-info btn-block btn-lg home-show-btn"><img src="{{IMAGE_URL}}star-sprite.png" /> Buy Tickets to {{channel.display_name}} <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                                <div class="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font"><img src="{{IMAGE_URL}}star-sprite.png" /> Buy Tickets to {{channel.display_name}} <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                             </a>
                             <br/>
                             <a class="text-center" href="{% url "channel_leaderboards" channel.name %}">
-                                <div class="btn btn-success btn-block btn-lg home-show-btn"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                                <div class="btn btn-success btn-block btn-lg btn-shadow text-shadow x-large-font"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                             </a>
                         {% else %}
-                            <div class="btn btn-success btn-block btn-lg home-show-btn disabled"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                            <div class="btn btn-success btn-block btn-lg btn-shadow text-shadow x-large-font disabled"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                         {% endif %}
                         <br/>
 					{% endif %}
