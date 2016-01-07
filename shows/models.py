@@ -33,7 +33,7 @@ class Show(models.Model):
 
     def formatted_youtube(self):
         if self.embedded_youtube:
-            return "https://youtu.be/{0}".format(self.embedded_youtube)
+            return "https://www.youtube.com/embed/{0}".format(self.embedded_youtube)
         return ''
 
     # Perhaps fetch all vote types by show id here

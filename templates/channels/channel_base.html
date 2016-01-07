@@ -104,6 +104,8 @@
 				  </ul>
 				  {% if request.user.is_authenticated %}
 				    <p class="navbar-text navbar-right">{{user_profile.username}}</p>
+				  {% else %}
+					<p class="navbar-text navbar-right">Joe</p>
 				  {% endif %}
 				</div>
 			</div>

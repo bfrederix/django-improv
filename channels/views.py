@@ -32,6 +32,21 @@ class ChannelHomeView(View):
                        'user_profile': user_profile,
                        'is_channel_admin': is_channel_admin})
 
+class ChannelHomeView(View):
+    template_name = 'channels/channel_home.html'
+
+    def get(self, request, *args, **kwargs):
+        channel_name = kwargs.get('channel_name')
+        channel = channels_service.channel_or_404(channel_name)
+        is_channel_admin = channels_service.check_is_channel_admin(channel,
+                                                                   getattr(request.user, 'id'))
+        user_profile = users_service.fetch_user_profile(getattr(request.user, 'id'))
+        return render(request,
+                      self.template_name,
+                      {'channel': channel,
+                       'user_profile': user_profile,
+                       'is_channel_admin': is_channel_admin})
+
 @csrf_exempt
 def channel_user_update(request, *args, **kwargs):
     channel_name = kwargs.get('channel_name')
@@ -307,8 +322,10 @@ class ChannelShowsView(View):
         if show_id:
             show = shows_service.show_or_404(show_id)
         else:
-            show = shows_service.create_show(channel.id, 'US/Mountain')
-        raise IOError(show_id)
+            raise IOError(request.POST.get('players'))
+            show = shows_service.create_show(channel.id,
+                                             request.POST.get('players'),
+                                             request.POST.get('vote_types'))
         show.embedded_youtube = shows_service.validate_youtube(
                                     request.POST.get('embedded_youtube', ''))
         # Update or create the show image in cloudinary

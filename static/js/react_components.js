@@ -257,7 +257,7 @@ var Panel = React.createClass({
     var panelWidth = "col-md-"+this.props.panelWidth;
     var panelOffset = "col-md-offset-"+this.props.panelOffset;
     var colClasses = 'col ' + panelWidth + ' ' + panelOffset;
-    var panelClasses = 'panel panel-' + this.props.panelColor;
+    var panelClasses = 'panel panel-' + this.props.panelColor + ' panel-shadow';
     var panelComponents = [];
     if (this.props.panelHeadingContent) {
         panelComponents.push(<PanelHeader key="1"
@@ -290,7 +290,7 @@ var Panel = React.createClass({
 var PanelHeader = React.createClass({
   render: function() {
     var link;
-    var panelHeaderClasses = 'panel-heading ' + this.props.panelHeadingClasses;
+    var panelHeaderClasses = 'panel-heading ' + this.props.panelHeadingClasses + " panel-heading-shadow";
     if (this.props.panelHeadingLink) {
         link = <span>(<a href={this.props.panelHeadingLink}>Read More</a>)</span>;
     }
@@ -392,7 +392,7 @@ var PlayerImage = React.createClass({
   },
   render: function() {
     if (!this.state.data){
-        return (<Loading />);
+        return (<Loading loadingBarColor="#fff" />);
     }
     return (
       <img src={this.state.data.photo_url} className="img-responsive img-thumbnail" />
@@ -410,7 +410,7 @@ var Image = React.createClass({
 
 var BigButton = React.createClass({
   render: function() {
-    var buttonClass = "btn btn-" + this.props.buttonColor + " btn-block btn-lg text-center x-large-font";
+    var buttonClass = "btn btn-" + this.props.buttonColor + " btn-block btn-lg text-center x-large-font btn-shadow";
     return (
         <div className="row">
             <div className="col-md-6 col-md-offset-3">
@@ -510,7 +510,7 @@ var BigButtonDropdown = React.createClass({
   render: function() {
     var buttonGroupStyle = {width: "100%"};
     var buttonColor = this.props.buttonColor;
-    var buttonClass = "btn btn-" + buttonColor + " btn-block btn-lg dropdown-toggle x-large-font";
+    var buttonClass = "btn btn-" + buttonColor + " btn-block btn-lg dropdown-toggle x-large-font btn-shadow";
 
     return (
         <div className="row">
@@ -754,7 +754,7 @@ var ChannelCreateEditForm = React.createClass({
                                  input={zipcodeInput} />);
 
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger">{actionText}</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">{actionText}</button>;
     formContents.push(<FormGroup key="16"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -848,7 +848,7 @@ var PlayerForm = React.createClass({
                                  input={starInput}
                                  helpBlock="Check this if the player should be prioritized first in shows" />);
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Player</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">Create/Edit Player</button>;
     formContents.push(<FormGroup key="5"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -996,7 +996,7 @@ var SuggestionPoolForm = React.createClass({
                                  input={activeInput}
                                  helpBlock="Check this if the Suggestion Pool should appear in the Create/Edit Vote Types form" />);
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Suggestion Pool</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">Create/Edit Suggestion Pool</button>;
     formContents.push(<FormGroup key="8"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1207,7 +1207,7 @@ var VoteTypeForm = React.createClass({
                                  input={activeInput}
                                  helpBlock="Check this if the Vote Type should appear in the Create Show form" />);
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Suggestion Pool</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">Create/Edit Suggestion Pool</button>;
     formContents.push(<FormGroup key="15"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1334,7 +1334,7 @@ var ChannelShowForm = React.createClass({
                                  helpBlock="Youtube video from the show (can be added later), must be a valid Youtube url" />);
 
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger">Create/Edit Show</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow">Create/Edit Show</button>;
     formContents.push(<FormGroup key="6"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1362,6 +1362,7 @@ var ChannelShowForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit/Delete Shows" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
+                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/shows.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -1379,7 +1380,7 @@ var MedalButtonForm = React.createClass({
     var medalActionLink = this.props.baseLinkUrl + 'show/' + this.props.showID + '/';
     var awardMedalInput = <div>
                             <input type="hidden" name="award_medals" value="True"></input>
-                            <input type="submit" className="btn btn-warning btn-block btn-lg x-large-font" value="Award Medals"></input>
+                            <input type="submit" className="btn btn-warning btn-block btn-lg x-large-font btn-shadow" value="Award Medals"></input>
                           </div>;
     var formContents = <FormGroup input={awardMedalInput} />
     return (
@@ -1853,6 +1854,61 @@ var UserStats = React.createClass({
 ////////////////////////////////// SHOW RECAP COMPONENTS /////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
+var ShowMedia = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.showAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    var videoPanel;
+    var photoPanel;
+    if (!this.state.data){
+        return (<div>
+                    <Loading loadingBarColor="#fff"/>
+                </div>);
+    }
+
+    if (this.state.data.photo_link) {
+        var photoBodyContent = <div className="text-center"><img src={this.state.data.photo_link} className="img-responsive img-thumbnail" /></div>;
+        photoPanel = <Panel key="1"
+                            panelWidth="6" panelOffset="3" panelColor="warning"
+                            panelHeadingContent="Recap Photo" panelHeadingClasses="x-large-font"
+                            panelBodyClasses="large-font black-font"
+                            bodyContent={photoBodyContent} />
+    }
+
+    if (this.state.data.embedded_youtube) {
+        var videoBodyContent = <div className="embed-responsive embed-responsive-16by9">
+                                   <iframe className="embed-responsive-item" src={this.state.data.embedded_youtube}></iframe>
+                               </div>;
+        videoPanel = <Panel key="2"
+                            panelWidth="6" panelOffset="3" panelColor="warning"
+                            panelHeadingContent="Recap Video" panelHeadingClasses="x-large-font"
+                            panelBodyClasses="large-font black-font"
+                            bodyContent={videoBodyContent} />
+    }
+
+    return (
+        <div className="row">
+            <div className="col-sm-12">
+                {photoPanel}
+                {videoPanel}
+            </div>
+        </div>
+    );
+  }
+});
 
 var ShowRecapPanelOptions = React.createClass({
   getInitialState: function() {
@@ -1895,7 +1951,7 @@ var ShowRecapPanelOptions = React.createClass({
         else {
             user = "Anonymous";
         }
-        var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option";
+        var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option btn-shadow";
         var suggestionCount = i + 1;
         suggestionList.push(<div key={i} id={suggestion.id} className={suggestionClass}>
                                  {suggestionCount}. {suggestion.suggestion}{starImage}
@@ -1931,41 +1987,41 @@ var ShowRecapPanels = React.createClass({
     });
   },
   render: function() {
-    if (!this.state.data){
-        return (<div>
-                    <Loading loadingBarColor="#fff"/>
-                </div>);
-    }
     var panelList = [];
     this.counter = 0;
     panelList.push(<br key="br-1" />);
-    // Create the suggestion list
-    this.state.data.map(function (recapItem) {
-        this.counter++;
-        var bodyContent = [];
-        var footerContent;
-        if (recapItem.player) {
-            bodyContent.push(<div key="1" className="text-center recap-adjusted-img">
-                                 <PlayerImage playerAPIUrl={this.props.recapContext.playerAPIUrl}
-                                              playerID={recapItem.player} />
-                             </div>);
-        }
-        if (recapItem.options_id) {
-            footerContent = <ShowRecapPanelOptions recapContext={this.props.recapContext}
-                                                   winningSuggestion={recapItem.winning_suggestion}
-                                                   optionsID={recapItem.options_id} />;
-        }
+    panelList.push(<ShowMedia key="sm-1" showAPIUrl={this.props.recapContext.showAPIUrl} />)
+    if (this.state.data) {
+        // Create the suggestion list
+        this.state.data.map(function (recapItem) {
+            this.counter++;
+            var bodyContent;
+            var footerContent;
+            if (recapItem.player) {
+                bodyContent = <div className="text-center recap-adjusted-img">
+                                  <PlayerImage playerAPIUrl={this.props.recapContext.playerAPIUrl}
+                                               playerID={recapItem.player} />
+                              </div>;
+            }
+            if (recapItem.options_id) {
+                footerContent = <ShowRecapPanelOptions recapContext={this.props.recapContext}
+                                                       winningSuggestion={recapItem.winning_suggestion}
+                                                       optionsID={recapItem.options_id} />;
+            }
 
-        var brCounter = this.counter + 'br';
-        panelList.push(<Panel key={this.counter}
-                              panelWidth="6" panelOffset="3" panelColor="info"
-                              panelHeadingContent={recapItem.vote_type} panelHeadingClasses="x-large-font"
-                              panelBodyClasses="large-font black-font"
-                              bodyContent={bodyContent}
-                              panelFooterClasses="black-background"
-                              footerContent={footerContent} />);
-        return panelList;
-    }, this);
+            var brCounter = this.counter + 'br';
+            panelList.push(<Panel key={this.counter}
+                                  panelWidth="6" panelOffset="3" panelColor="info"
+                                  panelHeadingContent={recapItem.vote_type} panelHeadingClasses="x-large-font"
+                                  panelBodyClasses="large-font black-font"
+                                  bodyContent={bodyContent}
+                                  panelFooterClasses="black-background"
+                                  footerContent={footerContent} />);
+            return panelList;
+        }, this);
+    } else {
+        panelList.push((<div key="load-1"><Loading loadingBarColor="#fff"/></div>));
+    }
 
     return (
         <div>{panelList}</div>
@@ -2133,7 +2189,7 @@ var RemainingIntervalsButton = React.createClass({
     if (this.state.data && this.state.data.intervals !== "") {
         var buttonStyle = {backgroundColor: this.state.data.button_color};
         return (
-            <button className="btn btn-block btn-lg white-input x-large-font" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
+            <button className="btn btn-block btn-lg white-input x-large-font btn-shadow" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
         );
     } else {
         return (<div></div>);
