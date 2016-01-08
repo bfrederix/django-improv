@@ -20,5 +20,5 @@ SOCIAL_AUTH_FACEBOOK_SECRET = '***REMOVED***'
 
 # Google OAuth2 settings
 # http://stackoverflow.com/a/20732762/264567
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '118682384942-2hhu73gl3tj84kb9gcaonilsu4hpbl3e.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'LvDuyEZbK_B9n1SdqL8QyBKg'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '631209346130-e6guo6qqpuchalsibev9ed6rktrlvpkg.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '***REMOVED***'

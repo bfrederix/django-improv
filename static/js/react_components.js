@@ -499,7 +499,7 @@ var BigButtonDropdownContents = React.createClass({
                                    loadingBarColor="#fff" />);
     }
     return (
-      <ul className="dropdown-menu x-large-font " role="menu" style={dropDownStyle}>
+      <ul className="dropdown-menu x-large-font text-shadow" role="menu" style={dropDownStyle}>
             {dropDownList}
       </ul>
     );

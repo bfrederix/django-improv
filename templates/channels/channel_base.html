@@ -91,7 +91,7 @@
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                                 Login <span class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu remove-text-shadow">
                                 <li><a href="{% url "social:begin" "facebook" %}?next={{request.path}}"><div class="facebook-icon-small pull-left"></div>&nbsp;<strong>Login with Facebook&nbsp;</strong></a></li>
                                 <li><a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}"><div class="google-icon-small pull-left"></div>&nbsp;<strong>Login with Google</strong></a></li>
                             </ul>
