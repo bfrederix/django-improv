@@ -164,7 +164,7 @@ class Command(BaseCommand):
                                     strip_username=entity['strip_username'],
                                     email=entity['email'],
                                     login_type=entity['login_type'],
-                                    improvote_email_opt_in=True,
+                                    site_email_opt_in=True,
                                     channels_email_opt_in=True,
                                     created=entity['created'].replace(tzinfo=pytz.utc))
                                 # Adding a user to a channel

@@ -1,6 +1,6 @@
 {% extends "home/base_home.html" %}
 
-{% block title %}Improvote: {% if channel %}{{channel.display_name}} Channel Edit{% else %}Channel Create{% endif %}{% endblock %}
+{% block title %}{% if channel %}{{channel.display_name}} Channel Edit{% else %}Channel Create{% endif %}{% endblock %}
 
 {% block content %}
     <section><div id="container-fluid" class="container-fluid"></div></section>

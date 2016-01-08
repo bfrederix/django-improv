@@ -2,7 +2,7 @@
 
 {% block recaps-selected %}active{% endblock %}
 
-{% block title %}Improvote: {{channel.display_name}}'s{% if show %} {{ show.created|date:"D d M Y" }}{% endif %} Show Recap{% endblock %}
+{% block title %}{{channel.display_name}}'s{% if show %} {{ show.created|date:"D d M Y" }}{% endif %} Show Recap{% endblock %}
 
 {% block content %}
 	<div id="container-fluid" class="container-fluid"></div>

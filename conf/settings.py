@@ -138,7 +138,7 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '***REMOVED***'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '***REMOVED***'
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['plus.login']
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = []
 
 # Pipelines when user authenticates
 # http://psa.matiasaguirre.net/docs/pipeline.html
@@ -199,7 +199,7 @@ PLAYERS_PATH = '/static/img/players/'
 
 # Cloudinary Image hosting
 cloudinary.config(
-  cloud_name = "improvote",
+  cloud_name = "dumpedit",
   api_key = "***REMOVED***",
   api_secret = "***REMOVED***"
 )

@@ -12,7 +12,7 @@
   	<link rel="stylesheet" type="text/css" href="{{CSS_URL}}base.css">
   	
   	{% block add_head %}{% endblock %}
-  	<title>{% block title %}Improvote: {{channel.display_name}} {% if debug %}dev{% endif %}{% endblock %}</title>
+  	<title>Dumpedit: {% block title %}{% endblock %}{% if debug %} dev{% endif %}</title>
   </head>
 
   <body>
@@ -28,8 +28,8 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a href="{% url "improvote_home" %}">
-						<img class="pull-left improvote-home-icon highlight-shadow" src="{{IMAGE_URL}}improvote-logo-icon-square.png" alt="Improvote Home" />
+					<a href="{% url "dumpedit_home" %}">
+						<img class="pull-left dumpedit-home-icon highlight-shadow" src="{{IMAGE_URL}}dumpedit-logo-icon-square.png" alt="Dumpedit Home" />
 					</a>
 					<a class="navbar-brand" href="{% url "channel_home" channel.name %}">&nbsp;&nbsp;{{channel.display_name}}</a>
 				</div>

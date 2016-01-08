@@ -16,7 +16,7 @@ def save_opt_in(strategy, details, user=None, is_new=False, *args, **kwargs):
         # Get the user profile
         user_profile = UserProfile.objects.get(user=user)
         # Apply the opt in data
-        user_profile.improvote_email_opt_in = request_data.get('ieoi', 'False') == 'True'
+        user_profile.site_email_opt_in = request_data.get('ieoi', 'False') == 'True'
         user_profile.channels_email_opt_in = request_data.get('ceoi', 'False') == 'True'
         user_profile.save()
 

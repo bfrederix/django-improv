@@ -774,7 +774,7 @@ var ChannelCreateEditForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent={actionText} panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
-                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/channels.html"
+                   panelHeadingLink="http://docs.dumpedit.com/en/latest/channels.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -886,7 +886,7 @@ var PlayerForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit Player" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
-                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/players.html"
+                   panelHeadingLink="http://docs.dumpedit.com/en/latest/players.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -961,7 +961,7 @@ var SuggestionPoolForm = React.createClass({
                                  inputSize="8"
                                  input={descriptionInput}
                                  helpBlock="Used to instruct users on what types of suggestions to enter"
-                                 docs="http://improvote.readthedocs.org/en/latest/suggestion_pools.html#suggestion-pool-description" />);
+                                 docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html#suggestion-pool-description" />);
     // Max User Suggestions Input
     var maxUserSuggestionsInput = <input type="text" id="max_user_suggestions" name="max_user_suggestions" maxLength="3" defaultValue={this.state.data.max_user_suggestions} className="form-control"></input>;
     formContents.push(<FormGroup key="4"
@@ -1028,7 +1028,7 @@ var SuggestionPoolForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit Suggestion Pools" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
-                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/suggestion_pools.html"
+                   panelHeadingLink="http://docs.dumpedit.com/en/latest/suggestion_pools.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -1150,7 +1150,7 @@ var VoteTypeForm = React.createClass({
                                  inputSize="6"
                                  input={styleInput}
                                  helpBlock='Select a voting style for the Vote Type.'
-                                 docs="http://improvote.readthedocs.org/en/latest/vote_types.html#vote-styles" />);
+                                 docs="http://docs.dumpedit.com/en/latest/vote_types.html#vote-styles" />);
     // ordering Input
     var orderingInput = <input type="text" id="ordering" name="ordering" maxLength="2" defaultValue={this.state.data.ordering} className="form-control"></input>;
     formContents.push(<FormGroup key="8"
@@ -1241,7 +1241,7 @@ var VoteTypeForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit Vote Types" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
-                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/vote_types.html"
+                   panelHeadingLink="http://docs.dumpedit.com/en/latest/vote_types.html"
                    bodyContent={bodyContent} />
         </div>
     );
@@ -1320,7 +1320,7 @@ var ChannelShowForm = React.createClass({
                                  inputSize="6"
                                  input={showLengthInput}
                                  helpBlock="Length of the show display from creation until end in minutes (should be a large overestimate of minutes, not exact), required for knowing when the show display should end and channel functionality should return to normal."
-                                 docs="http://improvote.readthedocs.org/en/latest/shows.html#show-length" />);
+                                 docs="http://docs.dumpedit.com/en/latest/shows.html#show-length" />);
 
     // Photo Link Input (Premium or Not)
     if (this.props.channelShowContext.isPremium === "True") {
@@ -1379,7 +1379,7 @@ var ChannelShowForm = React.createClass({
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
                    panelHeadingContent="Create/Edit/Delete Shows" panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
-                   panelHeadingLink="http://improvote.readthedocs.org/en/latest/shows.html"
+                   panelHeadingLink="http://docs.dumpedit.com/en/latest/shows.html"
                    bodyContent={bodyContent} />
         </div>
     );

@@ -2,7 +2,7 @@
 
 {% block leaderboards-selected %}active{% endblock %}
 
-{% block title %}Improvote: {{channel.display_name}}'s{% if show %} {{ show.created|date:"D d M Y" }}{% endif %} Leaderboard{% endblock %}
+{% block title %}{{channel.display_name}}'s{% if show %} {{ show.created|date:"D d M Y" }}{% endif %} Leaderboard{% endblock %}
 
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>

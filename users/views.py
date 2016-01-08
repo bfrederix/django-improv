@@ -19,7 +19,7 @@ class UserLoginView(View):
 
 class OptInPreferencesView(View):
     form_class = user_forms.OptInPreferenceForm
-    initial = {'improvote_email_opt_in': True,
+    initial = {'site_email_opt_in': False,
                'channels_email_opt_in': True}
     template_name = 'embedded_utils/opt_in_preferences.html'
 
@@ -32,7 +32,7 @@ class OptInPreferencesView(View):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            ieoi = form.cleaned_data.get('improvote_email_opt_in', False)
+            ieoi = form.cleaned_data.get('site_email_opt_in', False)
             ceoi = form.cleaned_data.get('channels_email_opt_in', False)
             #user_service.update_user_profile(request.user.id, update_fields)
             # Use cleaned data to update the user preferences

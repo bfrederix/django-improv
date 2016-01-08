@@ -15,7 +15,7 @@ class UserProfile(models.Model):
     strip_username = models.CharField(default=None, blank=False, max_length=100)
     email = models.CharField(default=None, blank=True, max_length=100)
     login_type = models.CharField(default=None, blank=False, max_length=50)
-    improvote_email_opt_in = models.BooleanField(blank=False, default=False)
+    site_email_opt_in = models.BooleanField(blank=False, default=False)
     channels_email_opt_in = models.BooleanField(blank=False, default=False)
 
     created = models.DateTimeField(blank=False)

@@ -4,7 +4,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!-- <meta property="og:image" content="{{image_path}}adventure-prov_profile_pic.jpg" /> -->
-    <meta property="og:title" content="Improvote" />
+    <meta property="og:title" content="Dumpedit" />
     <meta property="og:description" content="An improv app that lets your audience suggest and vote!" />
     <meta name="Description" CONTENT="An improv app that lets your audience suggest and vote!">
     <!-- <link rel="image_src" href="{{image_path}}adventure-prov_profile_pic.jpg" /> -->
@@ -31,7 +31,7 @@
     <![endif]-->
   	
   	{% block add_head %}{% endblock %}
-  	<title>{% block title %}Improvote {% if debug %}dev{% endif %}{% endblock %}</title>
+  	<title>Dumpedit: {% block title %}{% endblock %}{% if debug %} dev{% endif %}</title>
   </head>
 
   <body id="page-top" class="index">
@@ -50,7 +50,7 @@
                     {% if not user_account_page %}
                         <a class="navbar-brand" href="#page-top">Start Improvoting</a>
                     {% else %}
-                        <a class="navbar-brand" href="{% url "improvote_home" %}">Improvote Home</a>
+                        <a class="navbar-brand" href="{% url "dumpedit_home" %}">Dumpedit Home</a>
                     {% endif %}
                 {% else %}
                     <a class="navbar-brand" href="{% url "channel_home" channel.name %}">Back to {{channel.display_name}}</a>
@@ -71,7 +71,7 @@
                             <a href="#about">About</a>
                         </li>
                         <li class="page-scroll">
-                            <a href="http://improvote.readthedocs.org">Tutorials</a>
+                            <a href="http://docs.dumpedit.com">Tutorials</a>
                         </li>
                     {% else %}
                         <!-- Placeholder for all leaderboard -->
