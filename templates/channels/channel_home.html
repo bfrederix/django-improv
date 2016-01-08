@@ -27,7 +27,7 @@
                             <br/>
                             <br/>
                             {% if not request.user.is_authenticated %}
-                                <a href="{% url "social:begin" "google" %}?next={{request.path}}">
+                                <a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}">
                                     <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font"><div class="google-icon-large pull-left"></div>Login with Google</div>
                                 </a>
                                 <br/>

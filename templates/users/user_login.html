@@ -12,7 +12,7 @@
                         <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font"><div class="facebook-icon-large pull-left"></div>Login with Facebook</div>
                     </a>
                     <br/>
-                    <a href="{% url "social:begin" "google" %}{% if next %}?next={{next}}{% endif %}">
+                    <a href="{% url "social:begin" "google-oauth2" %}{% if next %}?next={{next}}{% endif %}">
                         <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font"><div class="google-icon-large pull-left"></div>Login with Google</div>
                     </a>
                 </div>

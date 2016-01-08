@@ -93,7 +93,7 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a href="{% url "social:begin" "facebook" %}?next={{request.path}}"><div class="facebook-icon-small pull-left"></div>&nbsp;<strong>Login with Facebook&nbsp;</strong></a></li>
-                                <li><a href="{% url "social:begin" "google" %}?next={{request.path}}"><div class="google-icon-small pull-left"></div>&nbsp;<strong>Login with Google</strong></a></li>
+                                <li><a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}"><div class="google-icon-small pull-left"></div>&nbsp;<strong>Login with Google</strong></a></li>
                             </ul>
                         </li>
                     {% else %}
@@ -103,9 +103,9 @@
 					{% endif %}
 				  </ul>
 				  {% if request.user.is_authenticated %}
-				    <p class="navbar-text navbar-right">{{user_profile.username}}</p>
+				    <p class="navbar-text navbar-right"><span style="color: #D2DEFA;">{{user_profile.username}}</span></p>
 				  {% else %}
-					<p class="navbar-text navbar-right">Joe</p>
+					<p class="navbar-text navbar-right"></p>
 				  {% endif %}
 				</div>
 			</div>
