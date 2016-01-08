@@ -86,6 +86,18 @@
 					{% endif %}
 				  </ul>
 				  <ul class="nav navbar-nav navbar-right">
+					{% if admin_channels %}
+				        <li class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                My Channels <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu remove-text-shadow">
+								{% for admin_channel in admin_channels %}
+									<li><a href="{% url "channel_home" admin_channel.name %}"><strong>{{admin_channel.display_name}}</strong>{% if admin_channel.is_premium %}<img src="{{IMAGE_URL}}star-sprite.png" />{% endif %}</a></li>
+								{% endfor %}
+							</ul>
+                        </li>
+				    {% endif %}
 				    {% if not request.user.is_authenticated %}
 				        <li class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">

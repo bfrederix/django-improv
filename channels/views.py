@@ -16,7 +16,6 @@ from users import service as users_service
 from players import service as players_service
 from shows import service as shows_service
 
-
 class ChannelHomeView(View):
     template_name = 'channels/channel_home.html'
 
@@ -25,26 +24,13 @@ class ChannelHomeView(View):
         channel = channels_service.channel_or_404(channel_name)
         is_channel_admin = channels_service.check_is_channel_admin(channel,
                                                                    getattr(request.user, 'id'))
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         user_profile = users_service.fetch_user_profile(getattr(request.user, 'id'))
         return render(request,
                       self.template_name,
                       {'channel': channel,
                        'user_profile': user_profile,
-                       'is_channel_admin': is_channel_admin})
-
-class ChannelHomeView(View):
-    template_name = 'channels/channel_home.html'
-
-    def get(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        is_channel_admin = channels_service.check_is_channel_admin(channel,
-                                                                   getattr(request.user, 'id'))
-        user_profile = users_service.fetch_user_profile(getattr(request.user, 'id'))
-        return render(request,
-                      self.template_name,
-                      {'channel': channel,
-                       'user_profile': user_profile,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': is_channel_admin})
 
 @csrf_exempt
@@ -67,9 +53,11 @@ class ChannelCreateEditView(View):
             channel = channels_service.channel_or_404(channel_id, channel_id=True)
         else:
             channel = None
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         return render(request,
                       self.template_name,
-                      {'channel': channel})
+                      {'channel': channel,
+                       'admin_channels': admin_channels})
 
     def post(self, request, *args, **kwargs):
         action = None
@@ -79,6 +67,7 @@ class ChannelCreateEditView(View):
             action = "Channel Edited Successfully!"
         else:
             channel = None
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
 
         error = None
         next_show = request.POST.get('next_show')
@@ -138,6 +127,7 @@ class ChannelCreateEditView(View):
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'action': action,
                        'error': error})
 
@@ -148,14 +138,17 @@ class ChannelPlayersView(View):
     def get(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channels_service.channel_or_404(channel_name)
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': True})
 
     def post(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channels_service.channel_or_404(channel_name)
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         error = None
         action = None
         player_id = request.POST.get('playerID')
@@ -194,6 +187,7 @@ class ChannelPlayersView(View):
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': True,
                        'action': action,
                        'error': error})
@@ -205,14 +199,17 @@ class ChannelSuggestionPoolsView(View):
     def get(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channels_service.channel_or_404(channel_name)
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': True})
 
     def post(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channels_service.channel_or_404(channel_name)
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         error = None
         action = None
         suggestion_pool_id = request.POST.get('selectID')
@@ -242,6 +239,7 @@ class ChannelSuggestionPoolsView(View):
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': True,
                        'action': action,
                        'error': error})
@@ -253,14 +251,17 @@ class ChannelVoteTypesView(View):
     def get(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channels_service.channel_or_404(channel_name)
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': True})
 
     def post(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channels_service.channel_or_404(channel_name)
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         error = None
         action = None
         vote_type_id = request.POST.get('selectID')
@@ -297,6 +298,7 @@ class ChannelVoteTypesView(View):
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': True,
                        'action': action,
                        'error': error})
@@ -308,14 +310,17 @@ class ChannelShowsView(View):
     def get(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channels_service.channel_or_404(channel_name)
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': True})
 
     def post(self, request, *args, **kwargs):
         channel_name = kwargs.get('channel_name')
         channel = channels_service.channel_or_404(channel_name)
+        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         error = None
         action = None
         show_id = request.POST.get('selectID')
@@ -344,6 +349,7 @@ class ChannelShowsView(View):
         return render(request,
                       self.template_name,
                       {'channel': channel,
+                       'admin_channels': admin_channels,
                        'is_channel_admin': True,
                        'action': action,
                        'error': error})
