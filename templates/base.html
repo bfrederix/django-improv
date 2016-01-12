@@ -70,8 +70,11 @@
                         <li class="page-scroll">
                             <a href="#about">About</a>
                         </li>
-                        <li class="page-scroll">
+                        <li>
                             <a href="http://docs.dumpedit.com">Tutorials</a>
+                        </li>
+                        <li>
+                            <a href="{% url "forums_home" %}">Forums</a>
                         </li>
                         <li role="presentation" class="dropdown">
                             {% if admin_channels %}
@@ -80,7 +83,9 @@
                                 </a>
                                 <ul class="dropdown-menu remove-text-shadow">
                                     {% for admin_channel in admin_channels %}
-                                        <li><a href="{% url "channel_home" admin_channel.name %}"><strong>{{admin_channel.display_name}}</strong>{% if admin_channel.is_premium %}<img src="{{IMAGE_URL}}star-sprite.png" />{% endif %}</a></li>
+                                        <li>
+                                            <a href="{% url "channel_home" admin_channel.name %}"><strong>{{admin_channel.display_name}}</strong>{% if admin_channel.is_premium %}<img src="{{IMAGE_URL}}star-sprite.png" />{% endif %}</a>
+                                        </li>
                                     {% endfor %}
                                 </ul>
                             {% endif %}
@@ -112,7 +117,9 @@
         </div>
         <!-- /.container-fluid -->
     </nav>
+    {% block forum_wrapper %}
     {% block content %}{% endblock %}
+    {% endblock %}
 
     {% block add_react %}
 	    <!-- jQuery -->

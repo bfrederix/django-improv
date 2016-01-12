@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'recaps',
     'shows',
     'users',
+    'forums',
     # django-rest-framework
     'rest_framework',
     # django-rest-framework-social-oauth2
