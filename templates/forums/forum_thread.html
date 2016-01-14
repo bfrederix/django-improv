@@ -1,37 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}Forums:{% endblock %}
+{% block title %}Forums: {{forum.display_name}}: {{thread.subject}}{% endblock %}
 
 {% block content %}
     <!-- Header -->
     <header>
         <div class="container">
-            <div class="row">
+            <div class="row text-left">
                 <div class="col-lg-12">
-                    <div class="row text-left">
-                        <div class="col-lg-12">
-                            <ol class="breadcrumb">
-                              <li><a href="{% url "forums_home" %}">Forums</a></li>
-                              <li><a href="{% url "forums_thread_list" forum.name %}">{{forum.display_name}}</a></li>
-                              <li class="active">{{thread.subject}}</li>
-                            </ol>
-                        </div>
-                    </div>
-                    <div class="row text-left">
-                        <div class="col-lg-12">
-                            <span class="text-shadow xx-large-font">{{thread.subject}}</span>
-                        </div>
-                    </div>
-                    <div class="panel panel-warning text-left">
-                        <div class="panel-heading text-shadow large-font">
-                            {% if thread.creator.is_superuser %}<img class="pull-left" src="{{IMAGE_URL}}star-sprite.png" />{% endif %}{{thread.creator}} [{{thread.created}}]
-                        </div>
-                        <div class="panel-body">
-                            <span class="black-font">{{thread.message}}</span>
-                        </div>
-                    </div>
+                    <ol class="breadcrumb">
+                      <li><a href="{% url "forums_home" %}">Forums</a></li>
+                      <li><a href="{% url "forums_thread_list" forum.name %}">{{forum.display_name}}</a></li>
+                      <li class="active">{{thread.subject}}</li>
+                    </ol>
                 </div>
             </div>
+            <div class="row text-left">
+                <div class="col-lg-12">
+                    <span class="text-shadow xx-large-font">{{thread.subject}}</span>
+                </div>
+            </div>
+            {% if page == 1 %}
+                <div class="panel panel-warning text-left">
+                    <div class="panel-heading text-shadow large-font">
+                        {% if thread.creator.is_superuser %}<img class="pull-left" src="{{IMAGE_URL}}star-sprite.png" />{% endif %}{{thread.creator}} [{{thread.created}}]
+                    </div>
+                    <div class="panel-body">
+                        <span class="black-font">{{thread.message}}</span>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </header>
 
@@ -44,6 +42,24 @@
                 </div>
             </div>
             {% if replies %}
+                <div class="row">
+                    <div class="col-lg-12">
+                        <ul class="pagination">
+                            {% if replies.has_previous %}
+                                    <li><a href="?page={{ replies.previous_page_number }}">Prev</a></li>
+                            {% endif %}
+                            {% if replies.paginator.num_pages > 1 %}
+                                {% for page in replies.paginator.page_range %}
+                                    <li class="{% if replies.number == page  %}active{% endif %}"><a href="?page={{page }}">{{ page }}</a></li>
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if replies.has_next %}
+                                <li> <a href="?page={{ replies.next_page_number }}">Next</a></li>
+                            {% endif %}
+                         </ul>
+                    </div>
+                </div>
                 {% for reply in replies %}
                     <div class="panel panel-info text-left">
                         <div class="panel-heading text-shadow large-font">
@@ -51,10 +67,34 @@
                         </div>
                         <div class="panel-body">
                             <span class="black-font">{{reply.message}}</span>
+                            {% if request.user.is_superuser %}
+                                <form role="form" action="{% url "forums_thread" forum.name thread.id %}" method="post" encType="multipart/form-data">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
+                                    <input type="hidden" name="delete_reply" value={{reply.id}} />
+                                    <button type="submit" class="btn btn-danger btn-shadow text-shadow large-font pull-right">Delete</button>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
-                    <hr class="text-shadow" />
                 {% endfor %}
+                <div class="row">
+                    <div class="col-lg-12">
+                        <ul class="pagination">
+                            {% if replies.has_previous %}
+                                    <li><a href="?page={{ replies.previous_page_number }}">Prev</a></li>
+                            {% endif %}
+                            {% if replies.paginator.num_pages > 1 %}
+                                {% for page in replies.paginator.page_range %}
+                                    <li class="{% if replies.number == page  %}active{% endif %}"><a href="?page={{page }}">{{ page }}</a></li>
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if replies.has_next %}
+                                <li> <a href="?page={{ replies.next_page_number }}">Next</a></li>
+                            {% endif %}
+                         </ul>
+                    </div>
+                </div>
             {% else %}
                 <div class="row">
                     <div class="col-lg-12 text-center">
@@ -63,13 +103,7 @@
                     </div>
                 </div>
             {% endif %}
-        </div>
-    </section>
-
-    {% if request.user.is_authenticated %}
-        <!-- Replies Section -->
-        <section class="success" id="post-reply">
-            <div class="container">
+            {% if request.user.is_authenticated %}
                 <div class="panel panel-warning text-left">
                     <div class="panel-heading text-shadow x-large-font">
                         Post Reply
@@ -95,9 +129,9 @@
                         </form>
                     </div>
                 </div>
-            </div>
-        </section>
-    {% endif %}
+            {% endif %}
+        </div>
+    </section>
 
     <!-- Footer -->
     <footer class="text-center">

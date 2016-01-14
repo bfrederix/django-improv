@@ -19,14 +19,33 @@
                         </div>
                         <span class="name text-shadow">{{forum.display_name}}</span>
                         <hr class="star-light text-shadow" />
-                        <div class="row text-left">
+                        {% if request.user.is_authenticated %}
+                            <div class="row text-left">
+                                <div class="col-lg-12">
+                                    <a href="{% url "forums_create_thread" forum.name %}">
+                                        <div class="btn btn-danger btn-lg btn-shadow text-shadow large-font">Create Thread</div>
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="row">
                             <div class="col-lg-12">
-                                <a href="{% url "forums_create_thread" forum.name %}">
-                                    <div class="btn btn-danger btn-lg btn-shadow text-shadow large-font">Create Thread</div>
-                                </a>
+                                <ul class="pagination">
+                                    {% if threads.has_previous %}
+                                            <li><a href="?page={{ threads.previous_page_number }}">Prev</a></li>
+                                    {% endif %}
+                                    {% if threads.paginator.num_pages > 1 %}
+                                        {% for page in threads.paginator.page_range %}
+                                            <li class="{% if threads.number == page  %}active{% endif %}"><a href="?page={{page }}">{{ page }}</a></li>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    {% if threads.has_next %}
+                                        <li> <a href="?page={{ threads.next_page_number }}">Next</a></li>
+                                    {% endif %}
+                                 </ul>
                             </div>
                         </div>
-                        <hr class="text-shadow" />
                         {% for thread in threads %}
                             <div class="row">
                                 <div class="col-lg-8 col-lg-offset-2 text-left">
@@ -39,9 +58,34 @@
                                 <div class="col-lg-6 col-lg-offset-2">
                                     <span class="text-shadow large-font">{{thread.replies_count}} replies (last post by {% if thread.last_post.creator.is_superuser %}<img class="reset-this" src="{{IMAGE_URL}}star-sprite.png" />{% endif %}{{thread.last_post.creator}} {{thread.last_post.created|timesince}} ago)</span>
                                 </div>
+                                {% if request.user.is_superuser %}
+                                    <form role="form" action="{% url "forums_thread_list" forum.name %}" method="post" encType="multipart/form-data">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
+                                        <input type="hidden" name="delete_thread" value={{thread.id}} />
+                                        <button type="submit" class="btn btn-danger btn-shadow text-shadow large-font pull-right">Delete</button>
+                                    </form>
+                                {% endif %}
                             </div>
-                            <hr class="text-shadow" />
+                            <br/>
                         {% endfor %}
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <ul class="pagination">
+                                    {% if threads.has_previous %}
+                                            <li><a href="?page={{ threads.previous_page_number }}">Prev</a></li>
+                                    {% endif %}
+                                    {% if threads.paginator.num_pages > 1 %}
+                                        {% for page in threads.paginator.page_range %}
+                                            <li class="{% if threads.number == page  %}active{% endif %}"><a href="?page={{page }}">{{ page }}</a></li>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    {% if threads.has_next %}
+                                        <li> <a href="?page={{ threads.next_page_number }}">Next</a></li>
+                                    {% endif %}
+                                 </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
