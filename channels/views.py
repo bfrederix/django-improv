@@ -269,7 +269,6 @@ class ChannelVoteTypesView(View):
                             'name': escape(request.POST.get('name', '')),
                             'display_name': escape(request.POST.get('display_name', '')),
                             'suggestion_pool': int(request.POST.get('suggestion_pool', 0)) or None, # Set to None if 0
-                            'preshow_voted': bool(request.POST.get('preshow_voted', False)),
                             'intervals': request.POST.get('intervals', '').strip(),
                             'manual_interval_control': bool(request.POST.get('manual_interval_control', False)),
                             'style': channels_service.vote_style_or_404(int(request.POST.get('style')))[0],
@@ -280,6 +279,8 @@ class ChannelVoteTypesView(View):
                             'button_color': request.POST.get('button_color'),
                             'require_login': bool(request.POST.get('require_login', False)),
                             'active': bool(request.POST.get('active', False))}
+        vote_type_kwargs.update(
+            channels_service.vote_type_style_to_fields(vote_type_kwargs['style']))
         if vote_type_id and vote_type_kwargs['name']:
             action = "Vote Type Edited Successfully!"
             vote_type = channels_service.vote_type_or_404(vote_type_id)
@@ -327,10 +328,11 @@ class ChannelShowsView(View):
         if show_id:
             show = shows_service.show_or_404(show_id)
         else:
-            raise IOError(request.POST.get('players'))
+            raise IOError(request.POST.getlist('players'))
             show = shows_service.create_show(channel.id,
-                                             request.POST.get('players'),
-                                             request.POST.get('vote_types'))
+                                             request.POST.getlist('vote_types'),
+                                             request.POST.get('show_length', 180),
+                                             player_ids=request.POST.getlist('players'))
         show.embedded_youtube = shows_service.validate_youtube(
                                     request.POST.get('embedded_youtube', ''))
         # Update or create the show image in cloudinary

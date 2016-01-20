@@ -17,4 +17,5 @@ class HomeView(View):
         return render(request,
                       self.template_name,
                       {'user_profile': user_profile,
-                       'admin_channels': admin_channels})
+                       'admin_channels': admin_channels,
+                       'home': True})

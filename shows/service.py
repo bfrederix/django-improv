@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 
 from shows.models import (Show, Suggestion, VotedItem,
                           VoteOptions, OptionSuggestion)
+from players import service as players_service
 
 
 def show_or_404(show_id):
@@ -60,21 +61,16 @@ def get_rand_player_list(players, star_players=[]):
     return rand_players
 
 
-def create_show(channel_id, players, vote_types):
-    if player_list and vote_type_list:
+def create_show(channel_id, vote_type_ids, show_length, player_ids=None,
+                embedded_youtube=None, photo_link=None):
+    if vote_type_ids:
         players = []
         star_players = []
-        # Get the players for the show
-        for player in player_list:
-            player_key = get_player(key_id=player, key_only=True)
-            # If they're a star player, add them to the star list
-            if player_key.get().star:
-                star_players.append(player_key)
-            else:
-                players.append(player_key)
+        if player_ids:
+            players = players_service.fetch_players_by_ids(player_ids, star=False)
+            star_players = players_service.fetch_players_by_ids(player_ids, star=True)
         combined_players = players + star_players
-        show = create_show({'players': combined_players,
-                            'player_pool': combined_players}).get()
+        show = None
         # Get and sort the vote types by ordering
         vts = [get_vote_type(key_id=x) for x in vote_type_list]
         vote_types = sorted(vts, key=lambda x: x.ordering)
@@ -111,6 +107,8 @@ def create_show(channel_id, players, vote_types):
                         create_show_interval({'show': show.key,
                                               'interval': interval,
                                               'vote_type': vote_type.key})
+    else:
+        raise ValueError("Vote Types are required for a show.")
 
 
 def validate_youtube(url):

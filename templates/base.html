@@ -48,7 +48,7 @@
                 </button>
                 {% if not channel %}
                     {% if not user_account_page %}
-                        <a class="navbar-brand" href="#page-top">Get Started</a>
+                        <a class="navbar-brand" href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#page-top">Get Started</a>
                     {% else %}
                         <a class="navbar-brand" href="{% url "dumpedit_home" %}">Dumpedit Home</a>
                     {% endif %}
@@ -65,10 +65,10 @@
                             <a href="#page-top"></a>
                         </li>
                         <li class="page-scroll">
-                            <a href="#features">Features</a>
+                            <a href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#features">Features</a>
                         </li>
                         <li class="page-scroll">
-                            <a href="#about">About</a>
+                            <a href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#about">About</a>
                         </li>
                         <li>
                             <a href="http://docs.dumpedit.com">Tutorials</a>

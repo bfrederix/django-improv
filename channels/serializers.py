@@ -40,11 +40,14 @@ class VoteTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = VoteType
         fields = ('id', 'channel', 'name', 'display_name',
-                  'suggestion_pool', 'preshow_voted',
+                  'suggestion_pool',
                   'manual_interval_control', 'intervals', 'style',
                   'ordering', 'options', 'vote_length', 'result_length',
-                  'button_color', 'require_login', 'active',
-                  'current_interval', 'current_init', 'created')
+                  'button_color', 'require_login', 'preshow_selected',
+                  'player_options', 'players_only', 'show_player_pool',
+                  'vote_type_player_pool', 'eliminate_winning_player',
+                  'keep_suggestions', 'active',
+                  'current_interval', 'current_vote_init', 'created')
 
 
 class VoteStyleSerializer(serializers.Serializer):

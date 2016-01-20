@@ -11,7 +11,7 @@ class Show(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     # Show length in minutes
-    show_length = models.IntegerField(blank=False, default=150)
+    show_length = models.IntegerField(blank=False, default=180)
 
     created = models.DateTimeField(blank=False)
 

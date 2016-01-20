@@ -1040,7 +1040,7 @@ var VoteTypeForm = React.createClass({
     return {data: {name: "",
                    display_name: "",
                    suggestion_pool: undefined,
-                   preshow_voted: false,
+                   preshow_selected: false,
                    intervals: "",
                    manual_interval_control: true,
                    style: undefined,
@@ -1105,40 +1105,6 @@ var VoteTypeForm = React.createClass({
                                  inputSize="4"
                                  input={displayNameInput}
                                  helpBlock="Name that appears to users" />);
-    // Suggestion Pool Dropdown Input
-    var suggestionPoolInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.suggestionPoolListAPIUrl}
-                                              defaultSelected={this.state.data.suggestion_pool}
-                                              defaultText="Select a Suggestion Pool" />;
-    formContents.push(<FormGroup key="3"
-                                 labelSize="2"
-                                 labelContents="Suggestion Pool:"
-                                 inputSize="5"
-                                 input={suggestionPoolInput}
-                                 helpBlock="Select a Suggestion Pool if the vote type requires suggestions (active suggestion pools only)" />);
-    // Pre-show Voted Input
-    var preshowVotedInput = <input type="checkbox" name="preshow_voted" value="1" defaultChecked={this.state.data.preshow_voted}></input>;
-    formContents.push(<FormGroup key="4"
-                                 labelSize="2"
-                                 labelContents="Disallow Audience Voting:"
-                                 inputSize="5"
-                                 input={preshowVotedInput}
-                                 helpBlock="Check this if the winner should be automatically selected instead of allowing the audience to vote" />);
-    // Intervals Input
-    var intervalsInput = <input type="text" id="intervals" name="intervals" defaultValue={this.state.data.intervals} className="form-control"></input>;
-    formContents.push(<FormGroup key="5"
-                                 labelSize="2"
-                                 labelContents="Intervals:"
-                                 inputSize="6"
-                                 input={intervalsInput}
-                                 helpBlock="Used to specify minute intervals at which votes are introduced into the show. Must begin with 0. (ex. 0,3,6,8,9,10)" />);
-    // Manual Interval Control Input
-    var manualIntervalControlInput = <input type="checkbox" name="manual_interval_control" value="1" defaultChecked={this.state.data.manual_interval_control}></input>;
-    formContents.push(<FormGroup key="6"
-                                 labelSize="2"
-                                 labelContents="Manual Interval Voting Control:"
-                                 inputSize="5"
-                                 input={manualIntervalControlInput}
-                                 helpBlock='Check this if you want the "tech" to control when interval voting occurs' />);
     // Style Dropdown Input
     var styleInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.voteStyleAPIUrl}
                                      defaultSelected={this.state.data.style}
@@ -1151,12 +1117,49 @@ var VoteTypeForm = React.createClass({
                                  input={styleInput}
                                  helpBlock='Select a voting style for the Vote Type.'
                                  docs="http://docs.dumpedit.com/en/latest/vote_types.html#vote-styles" />);
+    // Suggestion Pool Dropdown Input
+    var suggestionPoolInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.suggestionPoolListAPIUrl}
+                                              defaultSelected={this.state.data.suggestion_pool}
+                                              defaultText="Select a Suggestion Pool" />;
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Suggestion Pool:"
+                                 inputSize="6"
+                                 input={suggestionPoolInput}
+                                 helpBlock="Select a Suggestion Pool if the vote type requires suggestions (active suggestion pools only)"
+                                 docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html" />);
+    // Intervals Input
+    var intervalsInput = <input type="text" id="intervals" name="intervals" defaultValue={this.state.data.intervals} className="form-control"></input>;
+    formContents.push(<FormGroup key="5"
+                                 labelSize="2"
+                                 labelContents="Intervals:"
+                                 inputSize="7"
+                                 input={intervalsInput}
+                                 helpBlock="Used to specify minute intervals at which votes are introduced into the show. Must begin with 0. (ex. 0,3,6,8,9,10)"
+                                 docs="http://docs.dumpedit.com/en/latest/vote_types.html#interval" />);
+    // Pre-show Selected Input
+    var preshowSelectedInput = <input type="checkbox" name="preshow_selected" value="1" defaultChecked={this.state.data.preshow_selected}></input>;
+    formContents.push(<FormGroup key="4"
+                                 labelSize="2"
+                                 labelContents="Disallow Audience Voting:"
+                                 inputSize="5"
+                                 input={preshowSelectedInput}
+                                 helpBlock="Check this if the winner should be automatically selected instead of allowing the audience to vote"
+                                 docs="http://docs.dumpedit.com/en/latest/vote_types.html#disallow-audience-voting" />);
+    // Manual Interval Control Input
+    var manualIntervalControlInput = <input type="checkbox" name="manual_interval_control" value="1" defaultChecked={this.state.data.manual_interval_control}></input>;
+    formContents.push(<FormGroup key="6"
+                                 labelSize="2"
+                                 labelContents="Manual Interval Voting Control:"
+                                 inputSize="5"
+                                 input={manualIntervalControlInput}
+                                 helpBlock='Check this if you want the "tech" to control when interval voting occurs' />);
     // ordering Input
     var orderingInput = <input type="text" id="ordering" name="ordering" maxLength="2" defaultValue={this.state.data.ordering} className="form-control"></input>;
     formContents.push(<FormGroup key="8"
                                  labelSize="2"
                                  labelContents="Order:"
-                                 inputSize="4"
+                                 inputSize="5"
                                  input={orderingInput}
                                  helpBlock='The numeric order in which the voting types appear, either as buttons on the Show Control page, or otherwise.' />);
     // options Input
@@ -1164,9 +1167,9 @@ var VoteTypeForm = React.createClass({
     formContents.push(<FormGroup key="9"
                                  labelSize="2"
                                  labelContents="Voting Options:"
-                                 inputSize="4"
+                                 inputSize="5"
                                  input={optionsInput}
-                                 helpBlock='The number of voting options that appear on the voting page. Make sure you choose a number that will fit on the Show Display screen' />);
+                                 helpBlock='The number of voting options that appear on the voting page. Make sure you choose a number that will fit on the Show Display screen. (Options ignored for player-only vote types)' />);
     // Vote Length Input
     var voteLengthInput = <input type="text" id="vote_length" name="vote_length" defaultValue={this.state.data.vote_length} className="form-control"></input>;
     formContents.push(<FormGroup key="10"
@@ -1211,7 +1214,7 @@ var VoteTypeForm = React.createClass({
                                  labelContents="Vote Type Active:"
                                  inputSize="5"
                                  input={activeInput}
-                                 helpBlock="Check this if the Vote Type should appear in the Create Show form" />);
+                                 helpBlock="Check this if the Vote Type should appear on the Create Show page" />);
     // Submit Button
     var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Suggestion Pool</button>;
     formContents.push(<FormGroup key="15"
@@ -1251,7 +1254,7 @@ var VoteTypeForm = React.createClass({
 
 var ChannelShowForm = React.createClass({
   getInitialState: function() {
-    return {data: {show_length: 150,
+    return {data: {show_length: 180,
                    embedded_youtube: ""},
             showID: undefined,
             key: "1"};
@@ -1290,26 +1293,26 @@ var ChannelShowForm = React.createClass({
     formContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
     // Only change players and vote types during creation
     if (!this.state.showID) {
-        // Players Dropdown Input
-        var playersInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.playerListAPIUrl}
-                                           selectID="players"
-                                           multiple="true" />;
-        formContents.push(<FormGroup key="1"
-                                     labelSize="2"
-                                     labelContents="Players:"
-                                     inputSize="6"
-                                     input={playersInput}
-                                     helpBlock='Select Players for the Show' />);
         // Vote Types Dropdown Input
         var voteTypesInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.voteTypeListAPIUrl}
                                              selectID="vote_types"
                                              multiple="true" />;
-        formContents.push(<FormGroup key="2"
+        formContents.push(<FormGroup key="1"
                                      labelSize="2"
                                      labelContents="Vote Types:"
                                      inputSize="6"
                                      input={voteTypesInput}
-                                     helpBlock='Select Vote Types for the Show' />);
+                                     helpBlock='Select Vote Types for the Show (active only)' />);
+        // Players Dropdown Input
+        var playersInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.playerListAPIUrl}
+                                           selectID="players"
+                                           multiple="true" />;
+        formContents.push(<FormGroup key="2"
+                                     labelSize="2"
+                                     labelContents="Players:"
+                                     inputSize="6"
+                                     input={playersInput}
+                                     helpBlock='Select Players for the Show (active only)' />);
     }
 
     // Show Length Input

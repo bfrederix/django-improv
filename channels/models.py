@@ -4,10 +4,10 @@ from django.contrib.auth.models import User
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 
-VOTE_STYLE = [('player-options', 'Player Options'),
-              ('options', 'Options'),
-              ('preshow-voted', 'Pre-show Voted'),
-              ('repeatable', 'Repeatable Options'),
+VOTE_STYLE = [('options', 'Options'),
+              ('player-options', 'Player Options'),
+              ('repeatable-options', 'Repeatable Options'),
+              ('repeatable-player-options', 'Repeatable Player Options'),
               ('vote-type-player-survivor', 'Vote Type Player Survivor'),
               ('show-player-survivor', 'Show Player Survivor'),
               ('vote-type-player-selected', 'Vote Type Selected Player Pool'),
@@ -99,21 +99,29 @@ class VoteType(models.Model):
     name = models.CharField(blank=False, max_length=100)
     display_name = models.CharField(blank=False, max_length=100)
     suggestion_pool = FlexibleForeignKey("SuggestionPool", null=True)
-    preshow_voted = models.BooleanField(blank=False, default=False)
     intervals = models.CommaSeparatedIntegerField(blank=True, max_length=100)
     manual_interval_control = models.BooleanField(blank=False, default=True)
     style = models.CharField(choices=VOTE_STYLE, blank=False, max_length=100)
+    preshow_selected = models.BooleanField(blank=False, default=False)
     ordering = models.IntegerField(default=0, blank=False)
     options = models.IntegerField(default=3, blank=False)
     vote_length = models.IntegerField(default=25, blank=False)
     result_length = models.IntegerField(default=10, blank=False)
     button_color = models.CharField(default="#003D7A", blank=False, max_length=100)
     require_login = models.BooleanField(blank=False, default=False)
+    # Implicit Vote Type Options
+    player_options = models.BooleanField(blank=False, default=False)
+    players_only = models.BooleanField(blank=False, default=False)
+    show_player_pool = models.BooleanField(blank=False, default=False)
+    vote_type_player_pool = models.BooleanField(blank=False, default=False)
+    eliminate_winning_player = models.BooleanField(blank=False, default=False)
+    keep_suggestions = models.BooleanField(blank=False, default=False)
+    # Vote Type is active or not
     active = models.BooleanField(default=True, blank=False)
 
     # Dynamic
     current_interval = models.IntegerField(blank=True, null=True)
-    current_init = models.DateTimeField(blank=True)
+    current_vote_init = models.DateTimeField(blank=True, null=True)
 
     created = models.DateTimeField(blank=False)
 

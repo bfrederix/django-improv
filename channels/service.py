@@ -90,3 +90,38 @@ def fetch_channel_users(channel_id, leaderboard_sort=False):
     if leaderboard_sort:
         channel_users = channel_users.order_by('-suggestion_wins', '-points')
     return channel_users
+
+
+def vote_type_style_to_fields(style):
+    fields = {'player_options': False,
+              'players_only': False,
+              'show_player_pool': False,
+              'vote_type_player_pool': False,
+              'eliminate_winning_player': False,
+              'keep_suggestions': False}
+    if style == 'options':
+        pass
+    elif style == 'player-options':
+        fields['player_options'] = True
+    elif style == 'repeatable-options':
+        fields['keep_suggestions'] = True
+    elif style == 'repeatable-player-options':
+        fields['player_options'] = True
+        fields['keep_suggestions'] = True
+    elif style == 'vote-type-player-survivor':
+        fields['players_only'] = True
+        fields['vote_type_player_pool'] = True
+    elif style == 'show-player-survivor':
+        fields['players_only'] = True
+        fields['show_player_pool'] = True
+    elif style == 'vote-type-player-selected':
+        fields['players_only'] = True
+        fields['vote_type_player_pool'] = True
+        fields['eliminate_winning_player'] = True
+    elif style == 'show-player-selected':
+        fields['players_only'] = True
+        fields['show_player_pool'] = True
+        fields['eliminate_winning_player'] = True
+    elif style == 'all-players':
+        fields['players_only'] = True
+    return fields

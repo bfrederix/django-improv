@@ -19,3 +19,12 @@ def create_player(name, channel_id, photo_url, active=True, star=False):
                     created=datetime.datetime.utcnow().replace(tzinfo=pytz.utc))
     player.save()
     return player
+
+
+def fetch_players_by_ids(player_ids, star=None):
+    if star == True:
+        return Player.objects.filter(pk__in=player_ids).exclude(star=False)
+    elif star == False:
+        return Player.objects.filter(pk__in=player_ids).exclude(star=True)
+    else:
+        return Player.objects.filter(pk__in=player_ids)
