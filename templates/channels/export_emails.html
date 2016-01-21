@@ -11,7 +11,7 @@
 	            <select name="show_id" class="form-control">
 	                <option value="">Select Show</option>
 	                {% for show in shows %}
-                        <option value="{{show.key.id}}">{{show.created|date:"l N jS, Y @ P"}}</option>
+                        <option value="{{show.key.id}}">{{show.created|date:"c"}}</option>
                     {% endfor %}
                 </select>
             </div>

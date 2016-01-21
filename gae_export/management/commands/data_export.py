@@ -21,7 +21,7 @@ from leaderboards.models import (Medal, LeaderboardEntry, LeaderboardSpan,
                                 LeaderboardEntryMedal)
 from players.models import Player
 from shows.models import (Show, ShowVoteType,
-                          ShowPlayer, ShowPlayerPool, Suggestion,
+                          ShowPlayer, Suggestion,
                           PreshowVote, LiveVote, ShowInterval,
                           VoteOptions, OptionSuggestion, VotedItem)
 from users.models import UserProfile
@@ -109,7 +109,6 @@ class Command(BaseCommand):
                    'OptionSuggestion': 0,
                    'ShowVoteType': 0,
                    'ShowPlayer': 0,
-                   'ShowPlayerPool': 0,
                    'LeaderboardEntryMedal': 0}
         my_user, created = User.objects.get_or_create(username="freddy")
         channel_address, created = ChannelAddress.objects.get_or_create(street="123 Fake St.",
@@ -128,13 +127,13 @@ class Command(BaseCommand):
                                                          website="http://www.fake.com",
                                                          address=channel_address,
                                                          buy_tickets_link="http://www.fake.com",
-                                                         next_show=datetime.datetime(2017, 8, 9).replace(tzinfo=pytz.utc),
-                                                         created=datetime.datetime.utcnow().replace(tzinfo=pytz.utc))
+                                                         next_show=pytz.utc.localize(datetime.datetime(2017, 8, 9)),
+                                                         created=pytz.utc.localize(datetime.datetime.utcnow()))
         channel_owner, created = ChannelOwner.objects.get_or_create(channel=channel,
                                                                     user=my_user)
         channel_admin, created = ChannelAdmin.objects.get_or_create(channel=channel,
                                                                     user=my_user)
-        now = datetime.datetime.now().replace(tzinfo=pytz.utc)
+        now = pytz.utc.localize(datetime.datetime.now())
         for (dirpath, dirnames, filenames) in os.walk(data_path):
             for filename in filenames:
                 if not filename.endswith('backup_info'):
@@ -166,7 +165,7 @@ class Command(BaseCommand):
                                     login_type=entity['login_type'],
                                     site_email_opt_in=True,
                                     channels_email_opt_in=True,
-                                    created=entity['created'].replace(tzinfo=pytz.utc))
+                                    created=pytz.utc.localize(entity['created']))
                                 # Adding a user to a channel
                                 ChannelUser.objects.get_or_create(channel=channel,
                                                                   user=user)
@@ -196,7 +195,7 @@ class Command(BaseCommand):
                                       id=entity.key().id(),
                                       channel=channel,
                                       show_id=entity['show'].id(),
-                                      show_date=entity['show_date'].replace(tzinfo=pytz.utc),
+                                      show_date=pytz.utc.localize(entity['show_date']),
                                       user=user_profile.user,
                                       points=entity['points'],
                                       wins=entity['wins'])
@@ -257,7 +256,7 @@ class Command(BaseCommand):
                                       display_name=entity['display_name'],
                                       description=entity['description'],
                                       require_login=False,
-                                      created=entity['created'].replace(tzinfo=pytz.utc))
+                                      created=pytz.utc.localize(entity['created']))
                             except IntegrityError, e:
                                 if not 'duplicate' in str(e):
                                     raise IntegrityError(e)
@@ -269,7 +268,7 @@ class Command(BaseCommand):
                         if model_name == 'VoteType' and model_to_import == 'VoteType':
                             #pprint(entity['intervals'])
                             if entity.get('created'):
-                                sug_created = entity.get('created').replace(tzinfo=pytz.utc)
+                                sug_created = pytz.utc.localize(entity.get('created'))
                             else:
                                 sug_created = now
                             try:
@@ -294,7 +293,7 @@ class Command(BaseCommand):
                                       options=entity['options'],
                                       button_color=entity['button_color'],
                                       current_interval=entity['current_interval'],
-                                      current_vote_init=entity['current_init'].replace(tzinfo=pytz.utc),
+                                      current_vote_init=pytz.utc.localize(entity['current_init']),
                                       created=sug_created)
                             except IntegrityError, e:
                                 if not 'duplicate' in str(e):
@@ -311,9 +310,9 @@ class Command(BaseCommand):
                                       channel=channel,
                                       show_length=90,
                                       vote_options=entity['vote_options'],
-                                      created=entity['created'].replace(tzinfo=pytz.utc),
+                                      created=pytz.utc.localize(entity['created']),
                                       current_vote_type_id=entity['current_vote_type'].id(),
-                                      current_vote_init=entity['current_vote_init'].replace(tzinfo=pytz.utc),
+                                      current_vote_init=pytz.utc.localize(entity['current_vote_init']),
                                       locked=entity['locked'])
                             except IntegrityError, e:
                                 if not 'duplicate' in str(e):
@@ -336,12 +335,6 @@ class Command(BaseCommand):
                                           player_id=s_player.id())
                                     counter['ShowPlayer'] += 1
                                     self.stdout.write(str(counter['ShowPlayer']))
-                                for p_player in entity['player_pool']:
-                                    ShowPlayerPool.objects.get_or_create(
-                                          show_id=entity.key().id(),
-                                          player_id=p_player.id())
-                                    counter['ShowPlayerPool'] += 1
-                                    self.stdout.write(str(counter['ShowPlayerPool']))
                         if model_name == 'Suggestion' and model_to_import == 'Suggestion':
                             try:
                                 user_profile = UserProfile.objects.get(social_id=entity['user_id'])
@@ -361,7 +354,7 @@ class Command(BaseCommand):
                                       preshow_value=entity['preshow_value'],
                                       session_id=entity['session_id'],
                                       user=user,
-                                      created=entity['created'].replace(tzinfo=pytz.utc))
+                                      created=pytz.utc.localize(entity['created']))
                             except IntegrityError, e:
                                 if not 'duplicate' in str(e):
                                     raise IntegrityError(e)

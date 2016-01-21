@@ -21,7 +21,7 @@
     <input type="hidden" id="channelRecapsUrl" name="channelRecapsUrl"
                    value="{% url "channel_recaps" channel.name %}" readonly>
     {% if show %}
-        <input type="hidden" id="currentSelection" name="currentSelection" value="{{show.created|date:"l N jS, Y"}}" readonly>
+        <input type="hidden" id="currentSelection" name="currentSelection" value="{{show.created|date:"c"}}" readonly>
         <input type="hidden" id="channelShowLeaderboardUrl" name="channelShowLeaderboardUrl"
                value="{% url "channel_show_leaderboards" channel.name show.id %}" readonly>
         <input type="hidden" id="showRecapAPIUrl" name="showRecapAPIUrl"

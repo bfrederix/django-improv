@@ -35,8 +35,8 @@ function getElementValueOrNull(elementID){
     }
 }
 
-function showDateFormat(stringDate) {
-    return moment.utc(stringDate).format("ddd. MMM. Do, YYYY @hA");
+function showDateUTCToLocalFormat(stringDate) {
+    return moment(moment.utc(stringDate).toDate()).format("ddd. MMM. Do, YYYY @hA");
 }
 
 function getSpanFormat(spanDate){
@@ -136,6 +136,36 @@ var CSRFProtect = React.createClass({
   }
 });
 
+var ModalConfirm = React.createClass({
+  handleClick: function() {
+      $('#'+this.props.formID).submit();
+  },
+  render: function() {
+      var actionLink;
+      if (this.props.action) {
+        actionLink = <a id={this.props.submitID} onClick={this.handleClick} className="btn btn-danger btn-ok">{this.props.action}</a>;
+      }
+      return (
+        <div className="modal fade" id={this.props.modalID} role="dialog">
+            <div className="modal-dialog">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h4 className="modal-title">{this.props.header}</h4>
+                    </div>
+                    <div className="modal-body">
+                        <p>{this.props.message}</p>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-default" data-dismiss="modal">{this.props.dismiss}</button>
+                        {actionLink}
+                    </div>
+                </div>
+            </div>
+        </div>
+        );
+  }
+});
+
 var Pagination = React.createClass({
   render: function() {
       var pages = parseInt(this.props.maxPages) + 1;
@@ -187,9 +217,13 @@ var Label = React.createClass({
 
 var Form = React.createClass({
   render: function() {
+    var formID = "formfield";
     var formClass = "form-" + this.props.formStyle;
+    if (this.props.formID) {
+        formID = this.props.formID;
+    }
     return (
-      <form className={formClass} role="form"
+      <form id={formID} className={formClass} role="form"
             action={this.props.formSubmitUrl} method="post"
             encType="multipart/form-data" onSubmit={this.props.onFormSubmit}>
         {this.props.formContents}
@@ -490,7 +524,7 @@ var BigButtonDropdownContents = React.createClass({
                 showClass = "disabled";
             }
             var showLink = this.props.baseLinkUrl + 'show/' + show.id + '/';
-            var showDateFormatted = showDateFormat(show.created);
+            var showDateFormatted = showDateUTCToLocalFormat(show.created);
             dropDownList.push(<li key={this.counter} className={showClass}><a href={showLink}>{showDateFormatted}</a></li>);
             return dropDownList;
         }, this);
@@ -508,16 +542,21 @@ var BigButtonDropdownContents = React.createClass({
 
 var BigButtonDropdown = React.createClass({
   render: function() {
+    var display;
     var buttonGroupStyle = {width: "100%"};
     var buttonColor = this.props.buttonColor;
     var buttonClass = "btn btn-" + buttonColor + " btn-block btn-lg dropdown-toggle x-large-font btn-shadow text-shadow";
-
+    if (this.props.showID) {
+        display = showDateUTCToLocalFormat(this.props.currentSelection);
+    } else {
+        display = this.props.currentSelection;
+    }
     return (
         <div className="row">
             <div className="col-md-6 col-md-offset-3">
                 <div className="btn-group" style={buttonGroupStyle}>
                   <button className={buttonClass} data-toggle="dropdown" aria-expanded="false">
-                    {this.props.currentSelection}&nbsp;<span className="caret "></span>
+                    {display}&nbsp;<span className="caret "></span>
                   </button>
                   <BigButtonDropdownContents leaderboardContext={this.props.leaderboardContext}
                                              showAPIUrl={this.props.showAPIUrl}
@@ -573,7 +612,13 @@ var DropDownSelect = React.createClass({
     // Create the suggestion list
     this.state.data.map(function (item) {
         this.counter++;
-        optionList.push(<option key={this.counter} value={item.id}>{item.name}</option>);
+        var display;
+        if (this.props.convertCreatedTimestamp) {
+            display = showDateUTCToLocalFormat(item.created);
+        } else {
+            display = item.name;
+        }
+        optionList.push(<option key={this.counter} value={item.id}>{display}</option>);
         return optionList;
     }, this);
 
@@ -1289,6 +1334,7 @@ var ChannelShowForm = React.createClass({
   },
   render: function() {
     var formContents = [];
+    var bodyContent = [];
     // Premium features key
     formContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
     // Only change players and vote types during creation
@@ -1362,7 +1408,8 @@ var ChannelShowForm = React.createClass({
     var showEditInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.showListAPIUrl}
                                         selectEventHandler={this.editEventHandler}
                                         defaultSelected={this.state.showID}
-                                        defaultText="Select a Show to Edit" />;
+                                        defaultText="Select a Show to Edit"
+                                        convertCreatedTimestamp="True" />;
     formContents.push(<FormGroup key="7"
                                  labelSize="2"
                                  labelContents="Edit Show:"
@@ -1370,11 +1417,34 @@ var ChannelShowForm = React.createClass({
                                  input={showEditInput}
                                  helpBlock="Select a Show if you wish to edit it" />);
 
-    var bodyContent = <Form formStyle="horizontal"
-                            formSubmitUrl={this.props.channelShowContext.formSubmitUrl}
-                            formContents={formContents}
-                            onFormSubmit={this.onFormSubmit}
-                            csrfToken={this.props.channelShowContext.csrfToken} />
+    bodyContent.push(<Form key="1"
+                           formStyle="horizontal"
+                           formSubmitUrl={this.props.channelShowContext.formSubmitUrl}
+                           formContents={formContents}
+                           onFormSubmit={this.onFormSubmit}
+                           csrfToken={this.props.channelShowContext.csrfToken} />);
+    // If a show id has been selected. Add a delete button
+    if (this.state.showID) {
+        var deleteContents = [];
+        var message = "Are you sure you wish to delete the " + this.state.data.name + " show?";
+        // Delete Button
+        deleteContents.push(<input key="1" type="button" value="DELETE SHOW" className="btn btn-info btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
+        deleteContents.push(<input key="2" type="hidden" name="delete" value={this.state.showID}></input>);
+        deleteContents.push(<ModalConfirm key="3"
+                                          modalID="confirm-delete"
+                                          submitID="submit-delete"
+                                          formID="deleteForm"
+                                          action="Delete"
+                                          dismiss="Cancel"
+                                          header="Delete Show"
+                                          message={message} />);
+        bodyContent.push(<Form key="2"
+                               formID="deleteForm"
+                               formSubmitUrl={this.props.channelShowContext.formSubmitUrl}
+                               formContents={deleteContents}
+                               onFormSubmit={this.onFormSubmit}
+                               csrfToken={this.props.channelShowContext.csrfToken} />);
+    }
     return (
         <div key={this.state.key}>
             <FormLabel action={this.props.channelShowContext.action}
@@ -1736,7 +1806,7 @@ var UserShowStats = React.createClass({
     if (!this.state.data){
         return (<Loading />);
     }
-    var showDateFormatted = showDateFormat(this.state.data.created);
+    var showDateFormatted = showDateUTCToLocalFormat(this.state.data.created);
     var bodyContent = <UserShowStatsPanelBody showStats={this.props.showStats}
                                               userAccountContext={this.props.userAccountContext} />;
     return (

@@ -325,28 +325,38 @@ class ChannelShowsView(View):
         error = None
         action = None
         show_id = request.POST.get('selectID')
-        if show_id:
+        delete = request.POST.get('delete')
+        # If we're deleting a show
+        if delete:
+            show = shows_service.show_or_404(delete)
+            show.delete()
+            action = "Show Deleted Successfully!"
+        # If we're updating a show
+        elif show_id:
             show = shows_service.show_or_404(show_id)
+            action = "Show Updated Successfully!"
+        # Otherwise we're creating a new show
         else:
-            raise IOError(request.POST.getlist('players'))
-            show = shows_service.create_show(channel.id,
+            show = shows_service.create_show(channel,
                                              request.POST.getlist('vote_types'),
                                              request.POST.get('show_length', 180),
                                              player_ids=request.POST.getlist('players'))
-        show.embedded_youtube = shows_service.validate_youtube(
-                                    request.POST.get('embedded_youtube', ''))
-        # Update or create the show image in cloudinary
-        uploaded_file = request.FILES.get('photoFile')
-        # Files larger than 2MB won't appear in request.FILES
-        if uploaded_file and not error:
-            cloud_response = cloudinary.uploader.upload(uploaded_file,
-                                                        folder="shows",
-                                                        public_id=show.id,
-                                                        invalidate=True)
-            show.photo_link = cloud_response.get('secure_url')
+            action = "Show Created Successfully!"
+        if not delete:
+            show.embedded_youtube = shows_service.validate_youtube(
+                                        request.POST.get('embedded_youtube', ''))
+            # Update or create the show image in cloudinary
+            uploaded_file = request.FILES.get('photoFile')
+            # Files larger than 2MB won't appear in request.FILES
+            if uploaded_file and not error:
+                cloud_response = cloudinary.uploader.upload(uploaded_file,
+                                                            folder="shows",
+                                                            public_id=show.id,
+                                                            invalidate=True)
+                show.photo_link = cloud_response.get('secure_url')
 
-        if not error:
-            show.save()
+            if not error:
+                show.save()
 
         return render(request,
                       self.template_name,

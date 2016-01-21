@@ -28,7 +28,6 @@ def vote_type_or_404(vote_type_id):
 
 def vote_style_or_404(vote_style_id):
     if not vote_style_id:
-        logger.info("Blah")
         raise Http404
     try:
         return VOTE_STYLE[vote_style_id-1]
@@ -36,6 +35,10 @@ def vote_style_or_404(vote_style_id):
         logger.info('Could not find vote style: {0}, {1}'.format(vote_style_id,
                                                                  VOTE_STYLE))
         raise Http404
+
+
+def fetch_vote_types_by_ids(vote_type_ids):
+    return VoteType.objects.filter(pk__in=vote_type_ids)
 
 
 def check_is_channel_admin(channel_name, user_id):

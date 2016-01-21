@@ -20,7 +20,7 @@ class Medal(models.Model):
 class LeaderboardEntry(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
-    show = FlexibleForeignKey("shows.Show", blank=False)
+    show = FlexibleForeignKey("shows.Show", on_delete=models.CASCADE, blank=False)
     show_date = models.DateTimeField(blank=False)
     user = models.ForeignKey(User)
     points = models.IntegerField(default=0, blank=True, null=True)
@@ -40,7 +40,7 @@ class LeaderboardEntry(models.Model):
 class LeaderboardEntryMedal(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     medal = FlexibleForeignKey("Medal", blank=False)
-    leaderboard_entry = FlexibleForeignKey("LeaderboardEntry", blank=False)
+    leaderboard_entry = FlexibleForeignKey("LeaderboardEntry", on_delete=models.CASCADE, blank=False)
 
 
 class LeaderboardSpan(models.Model):

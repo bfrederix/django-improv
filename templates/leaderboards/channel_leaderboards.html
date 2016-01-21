@@ -28,7 +28,7 @@
                value="/users/" readonly>
     {% if show %}
         <input type="hidden" id="contentType" name="contentType" value="show-leaderboard" readonly>
-        <input type="hidden" id="currentSelection" name="currentSelection" value="{{show.created|date:"l N jS, Y"}}" readonly>
+        <input type="hidden" id="currentSelection" name="currentSelection" value="{{show.created|date:"c"}}" readonly>
         <input type="hidden" id="channelShowRecapUrl" name="channelShowRecapUrl"
                value="{% url "channel_show_recaps" channel.name show.id %}" readonly>
         <input type="hidden" id="leaderboardEntryAPIUrl" name="leaderboardEntryAPIUrl"

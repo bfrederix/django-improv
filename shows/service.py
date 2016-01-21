@@ -1,11 +1,21 @@
 import re
 import random
+import datetime
+import logging
+import pytz
 
 from django.shortcuts import get_object_or_404
+from django.db.models import Max
 
 from shows.models import (Show, Suggestion, VotedItem,
-                          VoteOptions, OptionSuggestion)
+                          VoteOptions, OptionSuggestion,
+                          ShowVoteType, ShowPlayer,
+                          ShowVoteTypePlayerPool, ShowInterval)
 from players import service as players_service
+from channels import service as channels_service
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def show_or_404(show_id):
@@ -61,54 +71,85 @@ def get_rand_player_list(players, star_players=[]):
     return rand_players
 
 
-def create_show(channel_id, vote_type_ids, show_length, player_ids=None,
+def create_show(channel, vote_type_ids, show_length, player_ids=None,
                 embedded_youtube=None, photo_link=None):
     if vote_type_ids:
         players = []
         star_players = []
+        combined_players = []
+        # If there are players selected for the show
         if player_ids:
+            # Get the regular players
             players = players_service.fetch_players_by_ids(player_ids, star=False)
+            # Get the star players
             star_players = players_service.fetch_players_by_ids(player_ids, star=True)
-        combined_players = players + star_players
-        show = None
-        # Get and sort the vote types by ordering
-        vts = [get_vote_type(key_id=x) for x in vote_type_list]
-        vote_types = sorted(vts, key=lambda x: x.ordering)
+            # Get both star and regular players
+            combined_players = players_service.fetch_players_by_ids(player_ids)
+        # Get the vote types selected
+        vote_types = channels_service.fetch_vote_types_by_ids(vote_type_ids)
+        # Get the max voting options (ignoring players only vote types)
+        voting_options = vote_types.exclude(players_only=True).aggregate(Max('options')).values()[0]
+        # If there are any vote types that are "player only"
+        if [vt.players_only for vt in vote_types]:
+            voting_options = max(voting_options, len(combined_players))
+        show = Show(channel=channel,
+                    show_length=show_length,
+                    vote_options=voting_options,
+                    created=datetime.datetime.utcnow().replace(tzinfo=pytz.utc),
+                    locked=False,
+                    embedded_youtube=embedded_youtube,
+                    photo_link=photo_link)
+        show.save()
+        # If there are players for the show, add them to the show
+        if combined_players:
+            for player in combined_players:
+                ShowPlayer.objects.get_or_create(show=show,
+                                                 player=player,
+                                                 used=False)
         # Add the vote types to the show
         for vote_type in vote_types:
             # Reset the vote type's current interval
             vote_type.current_interval = None
-            vote_type.put()
-            # Add the vote type to the show
-            show.vote_types.append(vote_type.key)
-            # Get the maximum voting options from the vote type
-            # And store it if it's greater than the show's current vote options
-            show.vote_options = max(show.vote_options, vote_type.options)
+            vote_type.save()
+            # Create the show vote type
+            ShowVoteType.objects.get_or_create(show=show,
+                                               vote_type=vote_type)
+            # If there are players for the vote type, add them to the vote type
+            if vote_type.vote_type_player_pool and combined_players:
+                for player in combined_players:
+                    ShowVoteTypePlayerPool.objects.get_or_create(show=show,
+                                                                 player=player,
+                                                                 vote_type=vote_type,
+                                                                 used=False)
             # If the vote type has intervals
-            if vote_type.has_intervals:
+            if vote_type.intervals:
+                logger.info("Show: {0} Intervals: {1}".format(show.id, vote_type.intervals))
                 # If this suggestion vote has players attached
-                if vote_type.interval_uses_players:
+                if vote_type.player_options:
                     # Make a copy of the list of players and randomize it
                     rand_players = get_rand_player_list(players, star_players=star_players)
                     # Add the intervals to the show
-                    for interval in vote_type.intervals:
+                    for interval in vote_type.intervals.split(','):
                         # If random players list gets empty, refill it with more players
                         if len(rand_players) == 0:
                             rand_players = get_rand_player_list(players, star_players=star_players)
+                        logger.info("Random Players: {0}".format(rand_players))
                         # Pop a random player off the list and create a ShowInterval
-                        create_show_interval({'show': show.key,
-                                              'player': rand_players.pop(),
-                                              'interval': interval,
-                                              'vote_type': vote_type.key})
+                        ShowInterval.objects.get_or_create(show=show,
+                                                           player=rand_players.pop(),
+                                                           interval=int(interval),
+                                                           vote_type=vote_type)
                 else:
                     # Add the suggestion intervals to the show
-                    for interval in vote_type.intervals:
+                    for interval in vote_type.intervals.split(','):
                         # Create a ShowInterval
-                        create_show_interval({'show': show.key,
-                                              'interval': interval,
-                                              'vote_type': vote_type.key})
+                        ShowInterval.objects.get_or_create(show=show,
+                                                           interval=int(interval),
+                                                           vote_type=vote_type)
     else:
         raise ValueError("Vote Types are required for a show.")
+
+    return show
 
 
 def validate_youtube(url):
