@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^suggestion_pools/$', channel_admin_required(views.ChannelSuggestionPoolsView.as_view()), name="channel_suggestion_pools"),
     url(r'^vote_types/$', channel_admin_required(views.ChannelVoteTypesView.as_view()), name="channel_vote_types"),
     url(r'^shows/$', channel_admin_required(views.ChannelShowsView.as_view()), name="channel_shows"),
+    url(r'^pre_show_instructions/$', channel_admin_required(views.ChannelPreShowView.as_view()), name="channel_pre_show"),
 ]

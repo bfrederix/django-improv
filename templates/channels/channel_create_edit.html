@@ -17,11 +17,13 @@
 	{% endif %}
     {% if channel %}
         <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
+        <input type="hidden" id="isPremium" name="isPremium" value="{{channel.is_premium}}" readonly>
         <input type="hidden" id="channelAPIUrl" name="channelAPIUrl"
            value="{% url "channel-detail" channel.id %}" readonly>
         <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
                value="{% url "channel_edit" channel.id %}" readonly>
     {% else %}
+        <input type="hidden" id="isPremium" name="isPremium" value="False" readonly>
         <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
                value="{% url "channel_create" %}" readonly>
     {% endif %}

@@ -128,6 +128,8 @@ class Command(BaseCommand):
                                                          address=channel_address,
                                                          buy_tickets_link="http://www.fake.com",
                                                          next_show=pytz.utc.localize(datetime.datetime(2017, 8, 9)),
+                                                         navbar_color="#4596FF",
+                                                         background_color="#000000",
                                                          created=pytz.utc.localize(datetime.datetime.utcnow()))
         channel_owner, created = ChannelOwner.objects.get_or_create(channel=channel,
                                                                     user=my_user)

@@ -30,6 +30,8 @@ class Channel(models.Model):
     facebook_page = models.CharField(blank=True, null=True, max_length=500)
     buy_tickets_link = models.CharField(blank=True, null=True, max_length=500)
     next_show = models.DateTimeField(blank=True, null=True)
+    navbar_color = models.CharField(default="#4596FF", blank=False, max_length=20)
+    background_color = models.CharField(default="#000000", blank=False, max_length=20)
     address = FlexibleForeignKey("ChannelAddress", blank=True, null=True)
 
     created = models.DateTimeField(blank=False)

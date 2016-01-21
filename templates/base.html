@@ -53,7 +53,7 @@
                         <a class="navbar-brand" href="{% url "dumpedit_home" %}">Dumpedit Home</a>
                     {% endif %}
                 {% else %}
-                    <a class="navbar-brand" href="{% url "channel_home" channel.name %}">Back to {{channel.display_name}}</a>
+                    <a class="navbar-brand" href="{% url "channel_home" channel.name %}"><span class="large-font">Back to {{channel.display_name}}</span></a>
                 {% endif %}
             </div>
 

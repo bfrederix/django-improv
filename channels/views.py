@@ -16,22 +16,41 @@ from users import service as users_service
 from players import service as players_service
 from shows import service as shows_service
 
-class ChannelHomeView(View):
+
+class ChannelView(View):
+
+    def get_default_channel_context(self, request, *args, **kwargs):
+        context = {}
+        # Get the channel ids from the kwargs
+        channel_name = kwargs.get('channel_name')
+        channel_id = kwargs.get('channel_id')
+        # If a channel name was given
+        if channel_name:
+            context['channel'] = channels_service.channel_or_404(channel_name)
+        # If a channel id was given
+        elif channel_id:
+            context['channel'] = channels_service.channel_or_404(channel_id, channel_id=True)
+        # If no channel was found
+        else:
+            context['channel'] = None
+        # If a channel was found, see if the user is an admin
+        if context['channel']:
+            context['is_channel_admin'] = channels_service.check_is_channel_admin(
+                                                context['channel'],
+                                                getattr(self.request.user, 'id'))
+        # Get the channels that the user is an admin of
+        context['admin_channels'] = channels_service.get_channels_by_admin(getattr(self.request.user, 'id'))
+        return context
+
+
+class ChannelHomeView(ChannelView):
     template_name = 'channels/channel_home.html'
 
     def get(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        is_channel_admin = channels_service.check_is_channel_admin(channel,
-                                                                   getattr(request.user, 'id'))
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
-        user_profile = users_service.fetch_user_profile(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'user_profile': user_profile,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': is_channel_admin})
+                      context)
 
 @csrf_exempt
 def channel_user_update(request, *args, **kwargs):
@@ -44,30 +63,21 @@ def channel_user_update(request, *args, **kwargs):
     return HttpResponse("Not Updated", content_type='text/plain')
 
 
-class ChannelCreateEditView(View):
+class ChannelCreateEditView(ChannelView):
     template_name = 'channels/channel_create_edit.html'
 
     def get(self, request, *args, **kwargs):
-        channel_id = kwargs.get('channel_id')
-        if channel_id:
-            channel = channels_service.channel_or_404(channel_id, channel_id=True)
-        else:
-            channel = None
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels})
+                      context)
 
     def post(self, request, *args, **kwargs):
         action = None
         channel_id = kwargs.get('channel_id')
         if channel_id:
-            channel = channels_service.channel_or_404(channel_id, channel_id=True)
             action = "Channel Edited Successfully!"
-        else:
-            channel = None
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
 
         error = None
         next_show = request.POST.get('next_show')
@@ -78,58 +88,60 @@ class ChannelCreateEditView(View):
                           "website": request.POST.get('website'),
                           "facebook_page": request.POST.get('facebook_page'),
                           "buy_tickets_link": request.POST.get('buy_tickets_link'),
-                          "next_show": next_show or None}
+                          "next_show": next_show or None,
+                          "navbar_color": request.POST.get('navbar_color'),
+                          "background_color": request.POST.get('background_color')}
         address_update = {"street": request.POST.get('street'),
                           "city": request.POST.get('city'),
                           "state": request.POST.get('state'),
                           "zipcode": request.POST.get('zipcode')}
         image_update = {"logo_url": request.FILES.get('logoFile'),
                         "team_photo_url": request.FILES.get('teamPhotoFile')}
-        if not channel:
-            channel = Channel(**channel_update)
+        if not context['channel']:
+            context['channel'] = Channel(**channel_update)
         else:
             for field, value in channel_update.items():
-                setattr(channel, field, value)
-        channel.save()
+                setattr(context['channel'], field, value)
+        context['channel'].save()
         # Update or create images in cloudinary
         for field_name, img_file in image_update.items():
             if img_file and not error:
-                public_id = "{0}_{1}".format(field_name, channel.id)
+                public_id = "{0}_{1}".format(field_name, context['channel'].id)
                 cloud_response = cloudinary.uploader.upload(img_file,
                                                             folder="channels",
                                                             public_id=public_id,
                                                             invalidate=True)
-                setattr(channel, field_name, cloud_response.get('secure_url'))
+                setattr(context['channel'], field_name, cloud_response.get('secure_url'))
         # If there were no errors, save the channel
         if not error:
             # Create/Update the channel address
-            if not channel.address:
+            if not context['channel'].address:
                 channel_address = ChannelAddress(**address_update)
                 channel_address.save()
-                channel.address = channel_address
+                context['channel'].address = channel_address
             else:
                 for field, value in address_update.items():
-                    setattr(channel.address, field, value)
-                channel.address.save()
-            channel.save()
+                    setattr(context['channel'].address, field, value)
+                context['channel'].address.save()
+            context['channel'].save()
             # If this is a new channel
             if not channel_id:
-                channel.created = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
-                channel.save()
+                context['channel'].created = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+                context['channel'].save()
                 # Make the current user the owner and admin of the channel
-                ChannelOwner.objects.get_or_create(channel=channel,
+                ChannelOwner.objects.get_or_create(channel=context['channel'],
                                                    user=request.user)
-                ChannelAdmin.objects.get_or_create(channel=channel,
+                ChannelAdmin.objects.get_or_create(channel=context['channel'],
                                                    user=request.user)
                 # redirect to the newly created channel
-                return redirect('channel_home', channel_name=channel.name)
+                return redirect('channel_home', channel_name=context['channel'].name)
 
+        context.update(
+            {'action': action,
+             'error': error})
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'action': action,
-                       'error': error})
+                      context)
 
 
 class ChannelPlayersView(View):
@@ -365,3 +377,13 @@ class ChannelShowsView(View):
                        'is_channel_admin': True,
                        'action': action,
                        'error': error})
+
+
+class ChannelPreShowView(ChannelView):
+    template_name = 'channels/channel_pre_show.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        return render(request,
+                      self.template_name,
+                      context)

@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 def show_or_404(show_id):
     return get_object_or_404(Show, pk=show_id)
 
-
 def fetch_suggestion_count_by_user(user_id, show_id=None):
     if user_id:
         kwargs = {'user': user_id}
@@ -133,7 +132,6 @@ def create_show(channel, vote_type_ids, show_length, player_ids=None,
                         # If random players list gets empty, refill it with more players
                         if len(rand_players) == 0:
                             rand_players = get_rand_player_list(players, star_players=star_players)
-                        logger.info("Random Players: {0}".format(rand_players))
                         # Pop a random player off the list and create a ShowInterval
                         ShowInterval.objects.get_or_create(show=show,
                                                            player=rand_players.pop(),

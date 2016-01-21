@@ -113,9 +113,136 @@ function PageLink(i, char, current){
   }
 }
 
+function componentToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// BASE COMPONENTS /////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+var Slider = React.createClass({
+  getDefaultProps: function() {
+    return {
+      redVal: "",
+      greenVal: "",
+      blueVal: ""
+    }
+  },
+  updateVal: function() {
+    this.props.onUserInput(
+      this.refs.redVal.value,
+      this.refs.greenVal.value,
+      this.refs.blueVal.value
+    )
+  },
+  render: function() {
+    var redSliderInput, greenSliderInput, blueSliderInput;
+    var hexValue = rgbToHex(parseInt(this.props.redVal),
+                            parseInt(this.props.greenVal),
+                            parseInt(this.props.blueVal));
+    if (this.props.enabled === "True") {
+        redSliderInput = <input className="col-xs-8" id="redSlider" ref="redVal" type="range" min="0" max="255" value={this.props.redVal} onChange={this.updateVal} />;
+        greenSliderInput = <input className="col-xs-8" id="greenSlider" ref="greenVal" type="range" min="0" max="255" value={this.props.greenVal} onChange={this.updateVal} />;
+        blueSliderInput = <input className="col-xs-8" id="blueSlider" ref="blueVal" type="range" min="0" max="255" value={this.props.blueVal} onChange={this.updateVal} />;
+    } else {
+        redSliderInput = <input className="col-xs-8" id="redSlider" disabled="true" ref="redVal" type="range" min="0" max="255" value={this.props.redVal} onChange={this.updateVal} />;
+        greenSliderInput = <input className="col-xs-8" id="greenSlider" disabled="true" ref="greenVal" type="range" min="0" max="255" value={this.props.greenVal} onChange={this.updateVal} />;
+        blueSliderInput = <input className="col-xs-8" id="blueSlider" disabled="true" ref="blueVal" type="range" min="0" max="255" value={this.props.blueVal} onChange={this.updateVal} />;
+    }
+    return (
+      <div>
+        <div className="form-group row">
+          <label className="col-xs-4" htmlFor="redSlider">R - {this.props.redVal}</label>
+          {redSliderInput}
+        </div>
+        <div className="form-group row">
+          <label className="col-xs-4" htmlFor="greenSlider">G - {this.props.greenVal}</label>
+          {greenSliderInput}
+        </div>
+        <div className="form-group row">
+          <label className="col-xs-4" htmlFor="blueSlider">B - {this.props.blueVal}</label>
+          {blueSliderInput}
+        </div>
+        <input type="hidden" name={this.props.inputName} value={hexValue}></input>
+      </div>
+    )
+  }
+});
+
+var ColorBar = React.createClass({
+  getDefaultProps: function() {
+    return {
+      redVal: "",
+      greenVal: "",
+      blueVal: ""
+    }
+  },
+  render: function() {
+    var redVal = this.props.redVal,
+        greenVal = this.props.greenVal,
+        blueVal = this.props.blueVal;
+
+    var style = {
+      backgroundColor:'rgb(' + redVal + ',' + greenVal + ',' + blueVal + ')'
+    };
+    return (
+      <div className="color-bar" style={style}></div>
+    )
+  }
+});
+
+var ColorPicker = React.createClass({
+  getInitialState: function() {
+    // Convert hex to RGB, remove all whitespace from the hex
+    var rgb = hexToRgb(this.props.hexColor.replace(/ /g,''));
+    return {
+      redValue: rgb.r,
+      greenValue: rgb.g,
+      blueValue: rgb.b
+    }
+  },
+  handleUserInput: function(redValueFromDOM, greenValueFromDOM, blueValueFromDOM) {
+    this.setState({
+      redValue: redValueFromDOM,
+      greenValue: greenValueFromDOM,
+      blueValue: blueValueFromDOM
+    });
+  },
+  render: function() {
+    return (
+      <div>
+        <Slider
+         redVal={this.state.redValue}
+         greenVal={this.state.greenValue}
+         blueVal={this.state.blueValue}
+         onUserInput={this.handleUserInput}
+         inputName={this.props.inputName}
+         enabled={this.props.enabled}
+         />
+        <ColorBar
+        redVal={this.state.redValue}
+        greenVal={this.state.greenValue}
+        blueVal={this.state.blueValue}
+        />
+      </div>
+    )
+  }
+});
 
 var StarImage = React.createClass({
   render: function() {
@@ -649,6 +776,8 @@ var ChannelCreateEditForm = React.createClass({
                    facebook_page: "",
                    buy_tickets_link: "",
                    next_show: "",
+                   navbar_color: "#4596FF",
+                   background_color: "#000000",
                    address: {street: "",
                              city: "",
                              state: "",
@@ -769,6 +898,28 @@ var ChannelCreateEditForm = React.createClass({
                                  inputSize="5"
                                  input={nextShowInput}
                                  helpBlock="When your next show is scheduled, appears on your channel's homepage" />);
+    // Navbar Color Input (Requires Premium)
+    var navbarColorInput = <ColorPicker hexColor={this.state.data.navbar_color}
+                                        inputName="navbar_color"
+                                        enabled={this.props.channelCreateEditContext.isPremium} />;
+    formContents.push(<FormGroup key="17"
+                                 labelSize="2"
+                                 labelContents="Navigation Bar Color:"
+                                 inputSize="4"
+                                 premium="true"
+                                 input={navbarColorInput}
+                                 helpBlock="The color of your channel's Navigation Bar" />);
+    // Background Color Input (Requires Premium)
+    var backgroundColorInput = <ColorPicker hexColor={this.state.data.background_color}
+                                            inputName="background_color"
+                                            enabled={this.props.channelCreateEditContext.isPremium} />;
+    formContents.push(<FormGroup key="18"
+                                 labelSize="2"
+                                 labelContents="Background Color:"
+                                 inputSize="4"
+                                 premium="true"
+                                 input={backgroundColorInput}
+                                 helpBlock="The color of your channel's background" />);
     // ADDRESS //
     // Street Input
     var streetInput = <input type="text" name="street" defaultValue={this.state.data.address.street} className="form-control"></input>;
@@ -814,6 +965,8 @@ var ChannelCreateEditForm = React.createClass({
                             csrfToken={this.props.channelCreateEditContext.csrfToken} />
     return (
         <div key={this.state.key}>
+            <br/>
+            <br/>
             <FormLabel action={this.props.channelCreateEditContext.action}
                        error={this.props.channelCreateEditContext.error} />
             <Panel panelWidth="6" panelOffset="3" panelColor="info"
@@ -1023,7 +1176,7 @@ var SuggestionPoolForm = React.createClass({
                                  inputSize="4"
                                  input={adminOnlyInput}
                                  helpBlock="Check this if only admin can enter suggestions in this pool" />);
-    // Require Login Input
+    // Require Login Input (Requires Premium)
     if (this.props.suggestionPoolContext.isPremium === "True") {
         var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
     } else {
@@ -1232,7 +1385,9 @@ var VoteTypeForm = React.createClass({
                                  input={resultLengthInput}
                                  helpBlock='How many seconds the results of the vote stays on the screen' />);
     // Button Color Input
-    var buttonColorInput = <input type="color" name="button_color" defaultValue={this.state.data.button_color} className="form-control"></input>;
+    var buttonColorInput = <ColorPicker hexColor={this.state.data.button_color}
+                                        inputName="navbar_color"
+                                        enabled="True" />;
     formContents.push(<FormGroup key="12"
                                  labelSize="2"
                                  labelContents="Vote Type Color:"
@@ -1261,7 +1416,7 @@ var VoteTypeForm = React.createClass({
                                  input={activeInput}
                                  helpBlock="Check this if the Vote Type should appear on the Create Show page" />);
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Suggestion Pool</button>;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Vote Type</button>;
     formContents.push(<FormGroup key="15"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1275,7 +1430,7 @@ var VoteTypeForm = React.createClass({
                                  labelContents="Edit VoteType:"
                                  inputSize="4"
                                  input={voteTypeEditInput}
-                                 helpBlock="Select a Suggestion Pool if you wish to edit it" />);
+                                 helpBlock="Select a Vote Type if you wish to edit it" />);
 
     var bodyContent = <Form formStyle="horizontal"
                             formSubmitUrl={this.props.voteTypeContext.formSubmitUrl}
@@ -1827,18 +1982,18 @@ var UserShowStatsPanelBody = React.createClass({
         var showID = this.props.showStats.show;
         var showLink = "/" + this.props.showStats.channel_name + "/leaderboards/show/" + showID + "/";
         var recapLink = "/" + this.props.showStats.channel_name + "/recaps/show/" + showID + "/";
-        statElements.push(<div key="1" className="row text-colorless-shadow"><div className="col-md-12">Points Earned: {this.props.showStats.points}</div></div>);
-        statElements.push(<div key="2" className="row text-colorless-shadow"><div className="col-md-12">Winning Suggestions: {this.props.showStats.wins}</div></div>);
+        statElements.push(<div key="1" className="row"><div className="col-md-12">Points Earned: {this.props.showStats.points}</div></div>);
+        statElements.push(<div key="2" className="row"><div className="col-md-12">Winning Suggestions: {this.props.showStats.wins}</div></div>);
         statElements.push(<div key="3" className="row"><div className="col-md-12"><a href={showLink}>Show Leaderboard</a></div></div>);
         statElements.push(<div key="4" className="row"><div className="col-md-12"><a href={recapLink}>Show Recap</a></div></div>);
-        statElements.push(<div key="5" className="row text-colorless-shadow"><div className="col-md-12">Suggestions:</div></div>);
+        statElements.push(<div key="5" className="row"><div className="col-md-12">Suggestions:</div></div>);
         statElements.push(<UserShowStatsTableBody key="6"
                                                   userAccountContext={this.props.userAccountContext}
                                                   showID={showID}
                                                   showStats={this.props.showStats} />);
-        statElements.push(<div key="7" className="row text-colorless-shadow"><div className="col-md-12"><StarImage /> = Winning Suggestion</div></div>);
-        statElements.push(<div key="8" className="row text-colorless-shadow"><div className="col-md-12"><Label labelColor="info" labelContents="&nbsp;&nbsp;" /> = Appeared in Voting</div></div>);
-        statElements.push(<div key="9" className="row text-colorless-shadow"><div className="col-md-12"><Label labelColor="info" extraClasses="light-gray-bg" labelContents="&nbsp;&nbsp;" /> = Not Voted on</div></div>);
+        statElements.push(<div key="7" className="row"><div className="col-md-12"><StarImage /> = Winning Suggestion</div></div>);
+        statElements.push(<div key="8" className="row"><div className="col-md-12"><Label labelColor="info" labelContents="&nbsp;&nbsp;" /> = Appeared in Voting</div></div>);
+        statElements.push(<div key="9" className="row"><div className="col-md-12"><Label labelColor="info" extraClasses="light-gray-bg" labelContents="&nbsp;&nbsp;" /> = Not Voted on</div></div>);
     }
 
     return (
@@ -1874,7 +2029,6 @@ var UserShowStatsTableBody = React.createClass({
                     </table>
                 </div>);
     }
-    var showID = this.props.showID;
     var suggestionList = [];
     this.counter = 0;
     // Create the suggestion list
@@ -1889,10 +2043,9 @@ var UserShowStatsTableBody = React.createClass({
         } else {
             suggestionClass = "active";
         }
-        var suggestionUrl = "/" + this.props.showStats.channel_name + "/recaps/show/" + showID + "/#" + suggestion.id;
-        // If the suggestion was voted on during the show
+        // If the suggestion was used during the show
         if (suggestion.used === true) {
-            suggestionDisplay = <td className={suggestionClass}>{suggestion.value}<StarImage /></td>;
+            suggestionDisplay = <td className={suggestionClass}><span className="text-shadow">{suggestion.value}</span><StarImage /></td>;
         } else {
             suggestionDisplay = <td className={suggestionClass}>{suggestion.value}</td>;
         }
@@ -1900,7 +2053,7 @@ var UserShowStatsTableBody = React.createClass({
         return suggestionList;
     }, this);
     return (
-        <div className="table-responsive text-shadow">
+        <div className="table-responsive">
             <table className="table table-condensed black-font">
                 <tbody>{suggestionList}</tbody>
             </table>
@@ -2061,7 +2214,7 @@ var ShowRecapPanelOptions = React.createClass({
         }
         var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option btn-shadow text-shadow";
         var suggestionCount = i + 1;
-        suggestionList.push(<div key={i} id={suggestion.id} className={suggestionClass}>
+        suggestionList.push(<div key={i} id={suggestion.suggestion_id} className={suggestionClass}>
                                  {suggestionCount}. {suggestion.suggestion}{starImage}
                                  <br/>
                                  Submitted by: {user}
@@ -2367,6 +2520,7 @@ var RootComponent = React.createClass({
     } else if (rootType == "channel-create-edit") {
         var channelCreateEditContext = {
             channelID: getElementValueOrNull("channelID"),
+            isPremium: getElementValueOrNull("isPremium"),
             channelAPIUrl: getElementValueOrNull("channelAPIUrl"),
             userID: getElementValueOrNull("userID"),
             formSubmitUrl: getElementValueOrNull("formSubmitUrl"),

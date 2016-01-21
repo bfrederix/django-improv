@@ -625,6 +625,39 @@ ul.remove-text-shadow {
     text-shadow: none;
 }
 
+/* Color Picker */
+#container {
+  padding-top: 20px;
+}
+
+input[type=range] {
+  width: auto;
+}
+
+.color-bar {
+  width: 100%;
+  height: 40px;
+  display: block;
+  border: 1px solid #b6b6b6;
+  border-radius: 6px;
+}
+
+.col-xs-8 {
+  padding: 0
+}
+
+[for=redSlider] {
+  color: red;
+}
+
+[for=greenSlider] {
+  color: green;
+}
+
+[for=blueSlider] {
+  color: blue;
+}
+
 
 /* Reset All the things */
 .reset-this {
