@@ -116,7 +116,7 @@ class Command(BaseCommand):
                                                                         state="CO",
                                                                         zipcode="80202")
         channel, created = Channel.objects.get_or_create(id=1,
-                                                         name="adventure-prov",
+                                                         name="adventure",
                                                          display_name="Adventure-prov",
                                                          is_premium=True,
                                                          short_description="Adventure-prov rules!",

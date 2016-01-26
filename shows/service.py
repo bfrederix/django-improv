@@ -21,6 +21,17 @@ logger = logging.getLogger(__name__)
 def show_or_404(show_id):
     return get_object_or_404(Show, pk=show_id)
 
+def get_current_show(channel):
+    now_utc = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+    longest_showtime_ago = now_utc - datetime.timedelta(hours=48)
+    shows = Show.objects.filter(channel=channel,
+                                created__gt=longest_showtime_ago).order_by('-created')
+    if shows:
+        show_end = shows[0].created + datetime.timedelta(minutes=shows[0].show_length)
+        if show_end > now_utc:
+            return shows[0]
+    return None
+
 def fetch_suggestion_count_by_user(user_id, show_id=None):
     if user_id:
         kwargs = {'user': user_id}
@@ -55,6 +66,15 @@ def fetch_vote_options(show=None, vote_type=None, interval=None):
 
 def fetch_option_suggestion(vote_option_id):
     return OptionSuggestion.objects.filter(vote_option=vote_option_id)
+
+
+def get_show_suggestion_pools(show):
+    suggestion_pools = []
+    vote_types = channels_service.fetch_vote_types_by_ids(show.vote_types())
+    for vote_type in vote_types:
+        if vote_type.suggestion_pool:
+            suggestion_pools.append(vote_type.suggestion_pool)
+    return suggestion_pools
 
 
 def get_rand_player_list(players, star_players=[]):

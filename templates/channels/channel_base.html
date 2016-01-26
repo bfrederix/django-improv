@@ -17,7 +17,7 @@
 
   <body {% if channel.background_color %}style="background-color:{{channel.background_color}} !important;"{% endif %}>
   {% include "embedded_utils/facebook_sdk.html" %}
-  	{% block nav_bar %}
+  	{% block navigation %}
 		<nav id="top-nav-bar" class="navbar navbar-default navbar-custom" role="navigation" {% if channel.navbar_color %}style="background-color:{{channel.navbar_color}} !important;"{% endif %}>
 			<div class="container-fluid">
 			<!-- Brand and toggle get grouped for better mobile display -->
@@ -73,11 +73,13 @@
       							Admin <span class="caret"></span>
     						</a>
     						<ul class="dropdown-menu">
-                                <li {% block pre-show-selected %}{% endblock %}><a href="{% url "channel_pre_show" channel.name %}">Pre-show Instructions</a></li>
     							<li {% block channel-shows-selected %}{% endblock %}><a href="{% url "channel_shows" channel.name %}">Create/Edit/Delete Shows</a></li>
     							<li {% block vote-type-selected %}{% endblock %}><a href="{% url "channel_vote_types" channel.name %}">Create/Edit Vote Types</a></li>
     							<li {% block suggestion-pool-selected %}{% endblock %}><a href="{% url "channel_suggestion_pools" channel.name %}">Create/Edit Suggestion Pools</a></li>
 								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Create/Edit Players</a></li>
+								{% if current_show %}
+									<li {% block pre-show-selected %}{% endblock %}><a href="{% url "channel_pre_show" channel.name %}">Pre-show Instructions</a></li>
+								{% endif %}
 								<li><a href="{% url "channel_edit" channel.id %}">Edit Channel</a></li>
 								{% if not channel.is_premium %}
 									<li><a href="{% url "channel_edit" channel.id %}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
@@ -121,7 +123,7 @@
 					{% endif %}
 				  </ul>
 				  {% if request.user.is_authenticated %}
-				    <p class="navbar-text navbar-right"><span style="color: #D2DEFA;">{{user_profile.username}}</span></p>
+				    <p class="navbar-text navbar-right"><span class="light-gray-text">{{user_profile.username}}</span></p>
 				  {% else %}
 					<p class="navbar-text navbar-right"></p>
 				  {% endif %}

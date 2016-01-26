@@ -35,88 +35,90 @@
   </head>
 
   <body id="page-top" class="index">
-  	<!-- Navigation -->
-    <nav class="navbar navbar-default navbar-fixed-top home-navbar-custom">
-        <div class="container">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header page-scroll">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                {% if not channel %}
-                    {% if not user_account_page %}
-                        <a class="navbar-brand" href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#page-top">Get Started</a>
+    {% block navigation %}
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-fixed-top home-navbar-custom">
+            <div class="container">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <div class="navbar-header page-scroll">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    {% if not channel %}
+                        {% if not user_account_page %}
+                            <a class="navbar-brand" href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#page-top">Get Started</a>
+                        {% else %}
+                            <a class="navbar-brand" href="{% url "dumpedit_home" %}">Dumpedit Home</a>
+                        {% endif %}
                     {% else %}
-                        <a class="navbar-brand" href="{% url "dumpedit_home" %}">Dumpedit Home</a>
+                        <a class="navbar-brand" href="{% url "channel_home" channel.name %}"><span class="large-font">Back to {{channel.display_name}}</span></a>
                     {% endif %}
-                {% else %}
-                    <a class="navbar-brand" href="{% url "channel_home" channel.name %}"><span class="large-font">Back to {{channel.display_name}}</span></a>
-                {% endif %}
-            </div>
+                </div>
 
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav navbar-right">
-                    {% if not user_account_page %}
-                        <li class="hidden">
-                            <a href="#page-top"></a>
-                        </li>
-                        <li class="page-scroll">
-                            <a href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#features">Features</a>
-                        </li>
-                        <li class="page-scroll">
-                            <a href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#about">About</a>
-                        </li>
-                        <li>
-                            <a href="http://docs.dumpedit.com">Tutorials</a>
-                        </li>
-                        <li>
-                            <a href="{% url "forums_home" %}">Forums</a>
-                        </li>
-                        <li role="presentation" class="dropdown">
-                            {% if admin_channels %}
+                <!-- Collect the nav links, forms, and other content for toggling -->
+                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if not user_account_page %}
+                            <li class="hidden">
+                                <a href="#page-top"></a>
+                            </li>
+                            <li class="page-scroll">
+                                <a href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#features">Features</a>
+                            </li>
+                            <li class="page-scroll">
+                                <a href="{% if not home %}{% url "dumpedit_home" %}{% endif %}#about">About</a>
+                            </li>
+                            <li>
+                                <a href="http://docs.dumpedit.com">Tutorials</a>
+                            </li>
+                            <li>
+                                <a href="{% url "forums_home" %}">Forums</a>
+                            </li>
+                            <li role="presentation" class="dropdown">
+                                {% if admin_channels %}
+                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                                        My Channels <span class="caret"></span>
+                                    </a>
+                                    <ul class="dropdown-menu remove-text-shadow">
+                                        {% for admin_channel in admin_channels %}
+                                            <li>
+                                                <a href="{% url "channel_home" admin_channel.name %}"><strong>{{admin_channel.display_name}}</strong>{% if admin_channel.is_premium %}<img src="{{IMAGE_URL}}star-sprite.png" />{% endif %}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </li>
+                        {% else %}
+                            <!-- Placeholder for all leaderboard -->
+                        {% endif %}
+                        {% if not request.user.is_authenticated %}
+                            <li role="presentation" class="dropdown">
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
-                                    My Channels <span class="caret"></span>
+                                    Login <span class="caret"></span>
                                 </a>
                                 <ul class="dropdown-menu remove-text-shadow">
-                                    {% for admin_channel in admin_channels %}
-                                        <li>
-                                            <a href="{% url "channel_home" admin_channel.name %}"><strong>{{admin_channel.display_name}}</strong>{% if admin_channel.is_premium %}<img src="{{IMAGE_URL}}star-sprite.png" />{% endif %}</a>
-                                        </li>
-                                    {% endfor %}
+                                    <li><a href="{% url "social:begin" "facebook" %}?next={{request.path}}"><div class="facebook-icon-small pull-left"></div>&nbsp;<strong>Login with Facebook&nbsp;</strong></a></li>
+                                    <li><a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}"><div class="google-icon-small pull-left"></div>&nbsp;<strong>Login with Google</strong></a></li>
                                 </ul>
-                            {% endif %}
-                        </li>
-                    {% else %}
-                        <!-- Placeholder for all leaderboard -->
+                            </li>
+                        {% else %}
+                            <li>
+                                <a href="{% url "auth_logout" %}?next={{request.path}}">Logout</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    {% if request.user.is_authenticated %}
+                        <p class="navbar-text navbar-right">{{user_profile.username}}</p>
                     {% endif %}
-                    {% if not request.user.is_authenticated %}
-                        <li role="presentation" class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
-                                Login <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu remove-text-shadow">
-                                <li><a href="{% url "social:begin" "facebook" %}?next={{request.path}}"><div class="facebook-icon-small pull-left"></div>&nbsp;<strong>Login with Facebook&nbsp;</strong></a></li>
-                                <li><a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}"><div class="google-icon-small pull-left"></div>&nbsp;<strong>Login with Google</strong></a></li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li>
-                            <a href="{% url "auth_logout" %}?next={{request.path}}">Logout</a>
-                        </li>
-                    {% endif %}
-                </ul>
-                {% if request.user.is_authenticated %}
-                    <p class="navbar-text navbar-right">{{user_profile.username}}</p>
-                {% endif %}
+                </div>
+                <!-- /.navbar-collapse -->
             </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container-fluid -->
-    </nav>
+            <!-- /.container-fluid -->
+        </nav>
+    {% endblock %}
     {% block forum_wrapper %}
     {% block content %}{% endblock %}
     {% endblock %}

@@ -35,6 +35,10 @@ input.white-input,input.white-input:visited,input.white-input:hover {
 	text-decoration:none;
 }
 
+div.light-gray-text, span.light-gray-text {
+    color: #D2DEFA;
+}
+
 input.x-large-font {
 	font-size:x-large;
 }
@@ -289,6 +293,10 @@ img.dumpedit-home-icon {
 
 .google-icon-small {
     background-image:url('/static/img/google-icon-small.png');
+}
+
+img.social-sprite {
+    width: 140px;
 }
 
 hr.thick {

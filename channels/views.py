@@ -40,6 +40,8 @@ class ChannelView(View):
                                                 getattr(self.request.user, 'id'))
         # Get the channels that the user is an admin of
         context['admin_channels'] = channels_service.get_channels_by_admin(getattr(self.request.user, 'id'))
+        # Determine if there is a current show for this channel
+        context['current_show'] = shows_service.get_current_show(context['channel'])
         return context
 
 
@@ -144,23 +146,17 @@ class ChannelCreateEditView(ChannelView):
                       context)
 
 
-class ChannelPlayersView(View):
+class ChannelPlayersView(ChannelView):
     template_name = 'channels/channel_players.html'
 
     def get(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': True})
+                      context)
 
     def post(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         error = None
         action = None
         player_id = request.POST.get('playerID')
@@ -176,7 +172,7 @@ class ChannelPlayersView(View):
         elif player_name:
             action = "Player Created Successfully!"
             player = players_service.create_player(player_name,
-                                                   channel,
+                                                   context['channel'],
                                                    "temp",
                                                    active=active,
                                                    star=star)
@@ -195,37 +191,29 @@ class ChannelPlayersView(View):
         if not error:
             player.save()
 
-
+        context.update(
+            {'action': action,
+             'error': error})
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': True,
-                       'action': action,
-                       'error': error})
+                      context)
 
 
-class ChannelSuggestionPoolsView(View):
+class ChannelSuggestionPoolsView(ChannelView):
     template_name = 'channels/channel_suggestion_pools.html'
 
     def get(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': True})
+                      context)
 
     def post(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         error = None
         action = None
         suggestion_pool_id = request.POST.get('selectID')
-        suggestion_pool_kwargs = {'channel': channel,
+        suggestion_pool_kwargs = {'channel': context['channel'],
                                   'name': escape(request.POST.get('name', '')),
                                   'display_name': escape(request.POST.get('display_name', '')),
                                   'description': escape(request.POST.get('description', '')),
@@ -248,39 +236,39 @@ class ChannelSuggestionPoolsView(View):
         if not error:
             suggestion_pool.save()
 
+        context.update(
+            {'action': action,
+             'error': error})
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': True,
-                       'action': action,
-                       'error': error})
+                      context)
 
 
-class ChannelVoteTypesView(View):
+class ChannelVoteTypesView(ChannelView):
     template_name = 'channels/channel_vote_types.html'
 
     def get(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': True})
+                      context)
 
     def post(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         error = None
         action = None
         vote_type_id = request.POST.get('selectID')
-        vote_type_kwargs = {'channel': channel,
+        suggestion_pool_id = int(request.POST.get('suggestion_pool', 0))
+        # If a suggestion pool was selected (and not 0)
+        if suggestion_pool_id:
+            suggestion_pool = SuggestionPool.objects.get(pk=suggestion_pool_id)
+        # Otherwise set no suggestion pool
+        else:
+            suggestion_pool = None
+        vote_type_kwargs = {'channel': context['channel'],
                             'name': escape(request.POST.get('name', '')),
                             'display_name': escape(request.POST.get('display_name', '')),
-                            'suggestion_pool': int(request.POST.get('suggestion_pool', 0)) or None, # Set to None if 0
+                            'suggestion_pool': suggestion_pool,
                             'intervals': request.POST.get('intervals', '').strip(),
                             'manual_interval_control': bool(request.POST.get('manual_interval_control', False)),
                             'style': channels_service.vote_style_or_404(int(request.POST.get('style')))[0],
@@ -308,32 +296,25 @@ class ChannelVoteTypesView(View):
         if not error:
             vote_type.save()
 
+        context.update(
+            {'action': action,
+             'error': error})
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': True,
-                       'action': action,
-                       'error': error})
+                      context)
 
 
-class ChannelShowsView(View):
+class ChannelShowsView(ChannelView):
     template_name = 'channels/channel_shows.html'
 
     def get(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': True})
+                      context)
 
     def post(self, request, *args, **kwargs):
-        channel_name = kwargs.get('channel_name')
-        channel = channels_service.channel_or_404(channel_name)
-        admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
+        context = self.get_default_channel_context(request, *args, **kwargs)
         error = None
         action = None
         show_id = request.POST.get('selectID')
@@ -349,7 +330,7 @@ class ChannelShowsView(View):
             action = "Show Updated Successfully!"
         # Otherwise we're creating a new show
         else:
-            show = shows_service.create_show(channel,
+            show = shows_service.create_show(context['channel'],
                                              request.POST.getlist('vote_types'),
                                              request.POST.get('show_length', 180),
                                              player_ids=request.POST.getlist('players'))
@@ -370,13 +351,12 @@ class ChannelShowsView(View):
             if not error:
                 show.save()
 
+        context.update(
+            {'action': action,
+             'error': error})
         return render(request,
                       self.template_name,
-                      {'channel': channel,
-                       'admin_channels': admin_channels,
-                       'is_channel_admin': True,
-                       'action': action,
-                       'error': error})
+                      context)
 
 
 class ChannelPreShowView(ChannelView):
@@ -384,6 +364,8 @@ class ChannelPreShowView(ChannelView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_default_channel_context(request, *args, **kwargs)
+        suggestion_pools = shows_service.get_show_suggestion_pools(context['current_show'])
+        context.update({'suggestion_pools': suggestion_pools})
         return render(request,
                       self.template_name,
                       context)

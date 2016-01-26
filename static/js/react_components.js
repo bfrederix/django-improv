@@ -820,7 +820,7 @@ var ChannelCreateEditForm = React.createClass({
     var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
     formContents.push(<FormGroup key="1"
                                  labelSize="2"
-                                 labelContents="*Url Name:"
+                                 labelContents="Url Name*:"
                                  inputSize="5"
                                  input={nameInput}
                                  helpBlock="Required: Used as the url address and can only be letters, numbers, hyphens or underscores" />);
@@ -828,7 +828,7 @@ var ChannelCreateEditForm = React.createClass({
     var displayNameInput = <input type="text" id="display_name" name="display_name" defaultValue={this.state.data.display_name} className="form-control"></input>;
     formContents.push(<FormGroup key="2"
                                  labelSize="2"
-                                 labelContents="*Display Name:"
+                                 labelContents="Display Name*:"
                                  inputSize="5"
                                  input={displayNameInput}
                                  helpBlock="Required: Used as the human readable name on the site" />);
@@ -1159,7 +1159,7 @@ var SuggestionPoolForm = React.createClass({
                                  inputSize="8"
                                  input={descriptionInput}
                                  helpBlock="Used to instruct users on what types of suggestions to enter"
-                                 docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html#suggestion-pool-description" />);
+                                 docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html#suggestion-pools-description" />);
     // Max User Suggestions Input
     var maxUserSuggestionsInput = <input type="text" id="max_user_suggestions" name="max_user_suggestions" maxLength="3" defaultValue={this.state.data.max_user_suggestions} className="form-control"></input>;
     formContents.push(<FormGroup key="4"
@@ -1167,7 +1167,8 @@ var SuggestionPoolForm = React.createClass({
                                  labelContents="User Suggestion Limit*:"
                                  inputSize="2"
                                  input={maxUserSuggestionsInput}
-                                 helpBlock="How many suggestions each user can enter for this suggestion pool" />);
+                                 helpBlock="How many suggestions each user can enter for this suggestion pool"
+                                 docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html#suggestion-pools-user-suggestion-limit" />);
     // Admin Only Input
     var adminOnlyInput = <input type="checkbox" name="admin_only" value="1" defaultChecked={this.state.data.admin_only}></input>;
     formContents.push(<FormGroup key="5"
@@ -1175,7 +1176,8 @@ var SuggestionPoolForm = React.createClass({
                                  labelContents="Admin Suggestions Only:"
                                  inputSize="4"
                                  input={adminOnlyInput}
-                                 helpBlock="Check this if only admin can enter suggestions in this pool" />);
+                                 helpBlock="Check this if only admin can enter suggestions in this pool"
+                                 docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html#suggestion-pools-admin-suggestions-only" />);
     // Require Login Input (Requires Premium)
     if (this.props.suggestionPoolContext.isPremium === "True") {
         var requireLoginInput = <input type="checkbox" name="require_login" value="1" defaultChecked={this.state.data.require_login}></input>;
@@ -1188,7 +1190,8 @@ var SuggestionPoolForm = React.createClass({
                                  premium="true"
                                  inputSize="5"
                                  input={requireLoginInput}
-                                 helpBlock="Check this if users are required to login to add suggestions" />);
+                                 helpBlock="Check this if users are required to login to add suggestions"
+                                 docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html#suggestion-pools-require-login" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
     formContents.push(<FormGroup key="7"
@@ -1318,7 +1321,8 @@ var VoteTypeForm = React.createClass({
     // Suggestion Pool Dropdown Input
     var suggestionPoolInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.suggestionPoolListAPIUrl}
                                               defaultSelected={this.state.data.suggestion_pool}
-                                              defaultText="Select a Suggestion Pool" />;
+                                              defaultText="Select a Suggestion Pool"
+                                              selectID="suggestion_pool" />;
     formContents.push(<FormGroup key="3"
                                  labelSize="2"
                                  labelContents="Suggestion Pool:"
@@ -1334,7 +1338,7 @@ var VoteTypeForm = React.createClass({
                                  inputSize="7"
                                  input={intervalsInput}
                                  helpBlock="Used to specify minute intervals at which votes are introduced into the show. Must begin with 0. (ex. 0,3,6,8,9,10)"
-                                 docs="http://docs.dumpedit.com/en/latest/vote_types.html#interval" />);
+                                 docs="http://docs.dumpedit.com/en/latest/vote_types.html#vote-types-interval" />);
     // Pre-show Selected Input
     var preshowSelectedInput = <input type="checkbox" name="preshow_selected" value="1" defaultChecked={this.state.data.preshow_selected}></input>;
     formContents.push(<FormGroup key="4"
@@ -1343,7 +1347,7 @@ var VoteTypeForm = React.createClass({
                                  inputSize="5"
                                  input={preshowSelectedInput}
                                  helpBlock="Check this if the winner should be automatically selected instead of allowing the audience to vote"
-                                 docs="http://docs.dumpedit.com/en/latest/vote_types.html#disallow-audience-voting" />);
+                                 docs="http://docs.dumpedit.com/en/latest/vote_types.html#vote-types-disallow-audience-voting" />);
     // Manual Interval Control Input
     var manualIntervalControlInput = <input type="checkbox" name="manual_interval_control" value="1" defaultChecked={this.state.data.manual_interval_control}></input>;
     formContents.push(<FormGroup key="6"
@@ -1386,7 +1390,7 @@ var VoteTypeForm = React.createClass({
                                  helpBlock='How many seconds the results of the vote stays on the screen' />);
     // Button Color Input
     var buttonColorInput = <ColorPicker hexColor={this.state.data.button_color}
-                                        inputName="navbar_color"
+                                        inputName="button_color"
                                         enabled="True" />;
     formContents.push(<FormGroup key="12"
                                  labelSize="2"

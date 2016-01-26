@@ -4,16 +4,101 @@
 
 {% block title %}{{channel.display_name}} Pre-Show Instructions{% endblock %}
 
+{% comment %}
+    <nav id="top-nav-bar" class="navbar navbar-default navbar-custom" role="navigation" {% if channel.navbar_color %}style="background-color:{{channel.navbar_color}} !important;"{% endif %}>
+        <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a href="{% url "dumpedit_home" %}">
+                    <img class="pull-left dumpedit-home-icon highlight-shadow" src="{{IMAGE_URL}}dumpedit-logo-icon-square.png" alt="Dumpedit Home" />
+                </a>
+                <a class="navbar-brand" href="{% url "channel_home" channel.name %}">&nbsp;&nbsp;{{channel.display_name}}</a>
+            </div>
+            <div class="row navbar-text xx-large-font">
+                <div class="col-md-12 col-md-offset-5">
+                    <span class="light-gray-text">Go to: </span><a class="white-link" href="http://dumpedit.com{% url "channel_home" channel.name %}">http://dumpedit.com{% url "channel_home" channel.name %}</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+{% endcomment %}
+
 {% block content %}
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-5 col-md-offset-2">
-                <div class="panel panel-default highlight-shadow">
-                    <div class="panel-heading text-shadow">
-
+            <div class="col-md-6 col-md-offset-3">
+                <div class="panel panel-info highlight-shadow">
+                    <div class="panel-heading text-shadow xx-large-font">
+                        Show Instructions
                     </div>
-                    <div class="panel-body text-shadow">
+                    <div class="panel-body text-shadow xx-large-font" style="background-color:{{channel.navbar_color}} !important;">
+                        <ol>
+                            <li>
+                                Go to: http://dumpedit.com{% url "channel_home" channel.name %}
 
+                            </li>
+                            <hr />
+                            {% if channel.is_premium %}
+                                <li>
+                                    <div class="row pull-right">
+                                        <div class="col-md-3">
+                                            Login with
+                                        </div>
+                                        <div class="col-md-3">
+                                            <img class="img-responsive img-rounded" src="{{IMAGE_URL}}facebook-sprite.png" />
+                                        </div>
+                                        <div class="col-md-1">
+                                            or
+                                        </div>
+                                        <div class="col-md-3">
+                                            <img class="img-responsive img-rounded" src="{{IMAGE_URL}}google-sprite.png" />
+                                        </div>
+                                        <div class="col-md-1">
+                                            <span class="xx-large-font">*</span>
+                                        </div>
+                                    </div>
+                                </li>
+                                <hr />
+                            {% endif %}
+                            {% if suggestion_pools %}
+                                <li>
+                                    Enter Suggestions for
+                                    {% for sp in suggestion_pools %}
+                                        <span style="font-weight: bold;">{{sp.display_name}}</span>
+                                        {% if not forloop.last %}|{% endif %}
+                                    {% endfor %}
+                                </li>
+                                <hr />
+                                <li>
+                                    <div class="row pull-right">
+                                        <div class="col-md-3">
+                                            <img class="img-responsive img-rounded" src="{{IMAGE_URL}}upvote-sprite.png" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            the Suggestions you like!
+                                        </div>
+                                        <div class="col-md-3">
+                                            &nbsp;&nbsp;
+                                        </div>
+                                    </div>
+                                </li>
+                                <hr />
+                            {% endif %}
+                            {% if channel.is_premium %}
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <span class="xx-large-font">*</span>
+                                        <span class="x-large-font">Note: Logging in isn't always required, but your votes count for double the points and you can also climb the show's leaderboard</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </ol>
                     </div>
                 </div>
             </div>
