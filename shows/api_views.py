@@ -78,10 +78,13 @@ class SuggestionViewSet(viewsets.ViewSet):
         kwargs = {}
         user_id = self.request.query_params.get('user_id')
         show_id = self.request.query_params.get('show_id')
+        suggestion_pool_id = self.request.query_params.get('suggestion_pool_id')
         if user_id:
             kwargs['user'] = user_id
         if show_id:
             kwargs['show'] = show_id
+        if suggestion_pool_id:
+            kwargs['suggestion_pool'] = suggestion_pool_id
         queryset = Suggestion.objects.filter(**kwargs)
         updated_suggestions = [SuggestionAPIObject(item) for item in queryset]
         serializer = SuggestionsSerializer(updated_suggestions, many=True)

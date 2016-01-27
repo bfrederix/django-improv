@@ -7,6 +7,7 @@ from channels.serializers import (ChannelSerializer, ChannelAddressSerializer,
                                   SuggestionPoolSerializer, VoteTypeSerializer,
                                   VoteStyleSerializer)
 from channels import service as channels_service
+from shows import service as shows_service
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
@@ -40,16 +41,23 @@ class SuggestionPoolViewSet(viewsets.ViewSet):
     def list(self, request):
         kwargs = {}
         channel_id = self.request.query_params.get('channel_id')
+        show_id = self.request.query_params.get('show_id')
         sort_by_active = self.request.query_params.get('sort_by_active')
         active_only = self.request.query_params.get('active_only')
-        if channel_id:
-            kwargs['channel'] = channel_id
-        queryset = SuggestionPool.objects.filter(**kwargs)
-        # Exclude non-active suggestion pools
-        if active_only:
-            queryset = queryset.exclude(active=False)
-        if sort_by_active:
-            queryset = queryset.order_by('-active', 'name')
+        # If pulling suggestion pools that are attached to a show
+        if show_id:
+            show = shows_service.show_or_404(show_id)
+            queryset = shows_service.get_show_suggestion_pools(show)
+        # Any other suggestion pool fetching
+        else:
+            if channel_id:
+                kwargs['channel'] = channel_id
+            queryset = SuggestionPool.objects.filter(**kwargs)
+            # Exclude non-active suggestion pools
+            if active_only:
+                queryset = queryset.exclude(active=False)
+            if sort_by_active:
+                queryset = queryset.order_by('-active', 'name')
         serializer = SuggestionPoolSerializer(queryset, many=True)
         return Response(serializer.data)
 

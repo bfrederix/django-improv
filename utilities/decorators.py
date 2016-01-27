@@ -1,5 +1,4 @@
-from django.http import HttpResponseRedirect
-from django.http import Http404
+from django.http import HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 
 from channels import service as channels_service

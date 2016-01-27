@@ -70,11 +70,37 @@ def fetch_option_suggestion(vote_option_id):
 
 def get_show_suggestion_pools(show):
     suggestion_pools = []
-    vote_types = channels_service.fetch_vote_types_by_ids(show.vote_types())
-    for vote_type in vote_types:
-        if vote_type.suggestion_pool:
-            suggestion_pools.append(vote_type.suggestion_pool)
+    if show:
+        # Get the vote types by a list of ids
+        vote_types = channels_service.fetch_vote_types_by_ids(show.vote_types())
+        for vote_type in vote_types:
+            # If the vote type has a suggestion pool
+            if vote_type.suggestion_pool:
+                # Add it to the list of suggestion pools for the show
+                suggestion_pools.append(vote_type.suggestion_pool)
     return suggestion_pools
+
+
+def suggestions_maxed(show, suggestion_pool, user_id=None, session_id=None):
+    # If a user id was given
+    if user_id:
+        # Get the number of suggestions made by the user id
+        suggestion_count = Suggestion.objects.filter(show=show,
+                                                     suggestion_pool=suggestion_pool,
+                                                     user=user_id).count()
+    elif session_id:
+        # Get the number of suggestions made by the session
+        suggestion_count = Suggestion.objects.filter(show=show,
+                                                     suggestion_pool=suggestion_pool,
+                                                     session_id=session_id).count()
+    else:
+        return False
+
+    # Return True if the suggestion count is greater than or equal to the max
+    if suggestion_count >= suggestion_pool.max_user_suggestions:
+        return True
+    else:
+        return False
 
 
 def get_rand_player_list(players, star_players=[]):

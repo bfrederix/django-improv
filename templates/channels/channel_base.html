@@ -36,20 +36,20 @@
 				<!-- Collect the nav links, forms, and other content for toggling -->
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 				  <ul class="nav navbar-nav white-nav">
-					{% if show_today %}
-                        {% if is_admin %}
-                            <li><a href="/show_control/{{current_show.key.id}}/"><strong>Show Controller</strong></a></li>
-                            <li><a href="/show/{{current_show.key.id}}/"><strong>Show Display</strong></a></li>
+					{% if current_show %}
+                        {% if is_channel_admin %}
+                            <li {% block show-controller-selected %}{% endblock %}><a href="{% url "show_controller" channel.name current_show.id %}"><strong>Show Controller</strong></a></li>
+                            <li {% block show-display-selected %}{% endblock %}><a href="{% url "show_display" channel.name current_show.id %}"><strong>Show Display</strong></a></li>
                         {% else %}
-                            <li><a href="/live_vote/"><strong>Live Vote!</strong></a></li>
+                            <li {% block show-live-vote %}{% endblock %}><a href="{% url "show_live_vote" channel.name current_show.id %}"><strong>Live Vote!</strong></a></li>
                         {% endif %}
-                        <li class="dropdown{% block suggestions-selected %}{% endblock %}">
+                        <li class="dropdown{% block show-suggestions-selected %}{% endblock %}">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                Suggestions <span class="caret"></span>
+                                <strong>Suggestions <span class="caret"></span></strong>
                             </a>
                             <ul class="dropdown-menu">
-                                {% for pool in current_suggestion_pools %}
-                                    <li><a href="/suggestions/{{pool.name}}/"><strong>{{pool.display_name}}</strong> Add/Vote</a></li>
+                                {% for pool in suggestion_pools %}
+                                    <li><a href="{% url "show_suggestion_pool" channel.name current_show.id pool.id %}">{{pool.display_name}} Add/Vote</a></li>
                                 {% endfor %}
                             </ul>
                         </li>
@@ -77,9 +77,7 @@
     							<li {% block vote-type-selected %}{% endblock %}><a href="{% url "channel_vote_types" channel.name %}">Create/Edit Vote Types</a></li>
     							<li {% block suggestion-pool-selected %}{% endblock %}><a href="{% url "channel_suggestion_pools" channel.name %}">Create/Edit Suggestion Pools</a></li>
 								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Create/Edit Players</a></li>
-								{% if current_show %}
-									<li {% block pre-show-selected %}{% endblock %}><a href="{% url "channel_pre_show" channel.name %}">Pre-show Instructions</a></li>
-								{% endif %}
+								<li {% block pre-show-selected %}{% endblock %}><a href="{% url "channel_pre_show" channel.name %}">Pre-show Instructions</a></li>
 								<li><a href="{% url "channel_edit" channel.id %}">Edit Channel</a></li>
 								{% if not channel.is_premium %}
 									<li><a href="{% url "channel_edit" channel.id %}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>

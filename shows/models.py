@@ -94,7 +94,7 @@ class Suggestion(models.Model):
     value = models.CharField(blank=False, max_length=255)
     # Pre-show upvotes
     preshow_value = models.IntegerField(default=0, blank=True, null=True)
-    session_id = models.CharField(blank=False, max_length=255)
+    session_id = models.CharField(blank=True, null=True, max_length=255)
     user = models.ForeignKey(User, blank=True, null=True)
 
     created = models.DateTimeField(blank=False)

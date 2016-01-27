@@ -762,6 +762,59 @@ var DropDownSelect = React.createClass({
 });
 
 
+var BottomNavSelect = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.listAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    var optionList = [];
+    var selectedID;
+    var itemLink;
+    if (!this.state.data){
+        return (<div></div>);
+    }
+    this.counter = 0;
+    // Create the suggestion list
+    this.state.data.map(function (item) {
+        this.counter++;
+        itemLink = this.props.baseLinkUrl + item.id + "/";
+        if (parseInt(this.props.selectedID) == item.id) {
+            optionList.push(<li key={this.counter} className="active"><a href={itemLink}><span className="bottom-nav-item">{item.display_name}</span></a></li>);
+        } else {
+            optionList.push(<li key={this.counter}><a href={itemLink}><span className="bottom-nav-item">{item.display_name}</span></a></li>);
+        }
+        return optionList;
+    }, this);
+
+    return (
+        <nav className="navbar navbar-inverse navbar-fixed-bottom nav-bottom" role="navigation">
+            <div className="container-fluid">
+                <div className="navbar-header text-shadow">
+                    <li className="dropdown">
+                        <a className="dropdown-toggle navbar-brand" data-toggle="dropdown" href="#"><span className="bottom-nav-item pull-left">{this.props.label}&nbsp;</span><div className="caret-up"></div></a>
+                        <ul className="dropdown-menu" role="menu">
+                            {optionList}
+                        </ul>
+                    </li>
+                </div>
+            </div>
+        </nav>);
+  }
+});
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// FORM COMPONENTS /////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -2331,6 +2384,147 @@ var Recap = React.createClass({
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// SHOW RECAP COMPONENTS /////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+var ShowSuggestionPoolSuggestion = React.createClass({
+  render: function() {
+
+
+    return (
+        <div>
+            <div className="row">
+                <div className="col-md-2">
+                    <button className="upvote btn btn-success" disabled="disabled" type="submit">
+                        <span className="glyphicon glyphicon-circle-arrow-up vote-button-label">Upvote</span>
+                    </button>
+                    <span className="vote-value">&nbsp;{suggestion.preshow_value}</span>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-md-12">
+                    <span className="word-wrap entered-value">{suggestion.value}</span>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-md-2">
+                    <form action="/suggestions/{{current_suggestion_pool.name}}/" method="post">
+                        <input type="hidden" name="delete_id" value="{{suggestion.key.id}}"/>
+                        <button type="submit" className="btn btn-danger btn-shadow text-shadow">
+                            <span className="glyphicon glyphicon-trash vote-button-label">Delete</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <hr className="thick-divider bg-primary"/>
+        </div>
+    );
+  }
+});
+
+var ShowSuggestionPoolAdd = React.createClass({
+  render: function() {
+    var maximum;
+    var displayName = this.props.showSuggestionPoolContext.suggestionPoolDisplayName;
+    var entryInput = <input type="text" className="form-control" name="entry_value" />;
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font">Add {displayName}</button>
+    if (this.props.showSuggestionPoolContext.suggestingDisabled) {
+        maximum = <div className="bg-info large-font text-shadow">Maximum {displayName} suggestions entered. Please Upvote your favorites, or try another suggestion type.</div>;
+        entryInput = <input type="text" className="form-control" name="entry_value" disabled />;
+        submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font" disabled>Add {displayName}</button>;
+    }
+
+    return (
+        <div className="row">
+            <div className="col-md-6 col-md-offset-3">
+                <div className="panel panel-info highlight-shadow">
+                    <div className="panel-heading large-font"><span className="underlay-object x-large-font text-shadow">Add {displayName}</span>
+                        {maximum}
+                        <div className="white-background well well-sm black-font">
+                            {this.props.showSuggestionPoolContext.suggestionPoolDescription}
+                        </div>
+                    </div>
+                    <div className="panel-body">
+                        <form action={this.props.showSuggestionPoolContext.formSubmitUrl} method="post">
+                            <div className="row">
+                                <div className="col-md-12">
+                                    {entryInput}
+                                </div>
+                            </div>
+                            <div className="row text-center">
+                                {submitButton}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+  }
+});
+
+var ShowSuggestionPool = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.showSuggestionPoolContext.suggestionListAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    var displayName = this.props.showSuggestionPoolContext.suggestionPoolDisplayName;
+    var votePanelList = [];
+    var addPanelList = [];
+    var addHeading = "Add " + displayName;
+    var voteHeading = "Vote for " + displayName;
+    var baseSuggestionPoolUrl = this.props.showSuggestionPoolContext.channelHomeUrl + "show/" + this.props.showSuggestionPoolContext.showID + "/suggestion_pool/";
+    this.counter = 0;
+    if (this.state.data) {
+        // Create the suggestion list
+        this.state.data.map(function (suggestion) {
+            this.counter++;
+            votePanelList.push(<ShowSuggestionPoolSuggestion key={this.counter}
+                                                             suggestion={suggestion} />);
+            return votePanelList;
+        }, this);
+    } else {
+        votePanelList.push((<div key="load-1"><Loading loadingBarColor="#fff"/></div>));
+    }
+
+    return (
+        <div className="row">
+            <BottomNavSelect key="1"
+                             selectedID={this.props.showSuggestionPoolContext.suggestionPoolID}
+                             listAPIUrl={this.props.showSuggestionPoolContext.suggestionPoolListAPIUrl}
+                             baseLinkUrl={baseSuggestionPoolUrl}
+                             label="Suggestion Types" />
+            <FormLabel key="2"
+                       action={this.props.showSuggestionPoolContext.action}
+                       error={this.props.showSuggestionPoolContext.error} />
+            <ShowSuggestionPoolAdd key="3"
+                                   showSuggestionPoolContext={this.props.showSuggestionPoolContext} />
+            <Panel key="4"
+                   panelWidth="6" panelOffset="3" panelColor="primary"
+                   panelHeadingContent={voteHeading} panelHeadingClasses="x-large-font"
+                   panelBodyClasses="large-font black-font white-background"
+                   bodyContent={votePanelList} />
+            <br key="5" />
+            <br key="6" />
+        </div>
+    );
+  }
+});
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////// SHOW DISPLAY COMPONENTS ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2589,6 +2783,26 @@ var RootComponent = React.createClass({
             error: getElementValueOrNull("error")
         };
         rootComponents.push(<ChannelShowForm key="1" channelShowContext={channelShowContext} />);
+    } else if (rootType == "show_suggestion_pool") {
+        var showSuggestionPoolContext = {
+            channelID: getElementValueOrNull("channelID"),
+            channelName: getElementValueOrNull("channelName"),
+            showID: getElementValueOrNull("showID"),
+            suggestionPoolID: getElementValueOrNull("suggestionPoolID"),
+            suggestionPoolDisplayName: getElementValueOrNull("suggestionPoolDisplayName"),
+            suggestionPoolDescription: getElementValueOrNull("suggestionPoolDescription"),
+            suggestingDisabled: getElementValueOrNull("suggestingDisabled"),
+            suggestionListAPIUrl: getElementValueOrNull("suggestionListAPIUrl"),
+            suggestionPoolListAPIUrl: getElementValueOrNull("suggestionPoolListAPIUrl"),
+            channelHomeUrl: getElementValueOrNull("channelHomeUrl"),
+            userID: getElementValueOrNull("userID"),
+            sessionID: getElementValueOrNull("sessionID"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
+        };
+        rootComponents.push(<ShowSuggestionPool key="1" showSuggestionPoolContext={showSuggestionPoolContext} />);
     }
 
 

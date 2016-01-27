@@ -1,0 +1,50 @@
+{% extends "channels/channel_base.html" %}
+
+{% block show-suggestions-selected %} active{% endblock %}
+
+{% block title %}{{channel.display_name}}'s {{suggestion_pool.display_name}} Add/Vote{% endblock %}
+
+{% block content %}
+    <div id="container-fluid" class="container-fluid"></div>
+    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+
+    <input type="hidden" id="rootType" name="rootType" value="show_suggestion_pool" readonly>
+    <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
+    <input type="hidden" id="channelName" name="channelName" value="{{channel.name}}" readonly>
+    <input type="hidden" id="showID" name="showID" value="{{current_show.id}}" readonly>
+    <input type="hidden" id="suggestionPoolID" name="suggestionPoolID"
+           value="{{suggestion_pool.id}}" readonly>
+    <input type="hidden" id="suggestionPoolDisplayName" name="suggestionPoolDisplayName"
+           value="{{suggestion_pool.display_name}}" readonly>
+    <input type="hidden" id="suggestionPoolDescription" name="suggestionPoolDescription"
+           value="{{suggestion_pool.description}}" readonly>
+    <input type="hidden" id="suggestionListAPIUrl" name="suggestionListAPIUrl"
+           value="{% url "suggestion-list" %}?show_id={{current_show.id}}&suggestion_pool_id={{suggestion_pool.id}}" readonly>
+    <input type="hidden" id="suggestionPoolListAPIUrl" name="suggestionPoolListAPIUrl"
+           value="{% url "suggestion-pool-list" %}?show_id={{current_show.id}}" readonly>
+    <input type="hidden" id="channelHomeUrl" name="channelHomeUrl"
+           value="{% url "channel_home" channel.name %}" readonly>
+    <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
+           value="{% url "show_suggestion_pool" channel.name current_show.id suggestion_pool.id %}" readonly>
+    <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
+	{% if action %}
+		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
+	{% endif %}
+    {% if error %}
+		<input type="hidden" id="error" name="error" value="{{error}}" readonly>
+	{% endif %}
+    {% if request.user.is_authenticated %}
+        <input type="hidden" id="userID" name="userID" value="{{request.user.id}}" readonly>
+    {% else %}
+        <input type="hidden" id="sessionID" name="sessionID" value="{{session_id}}" readonly>
+    {% endif %}
+    {% if disabled %}
+        <input type="hidden" id="suggestingDisabled" name="suggestingDisabled"
+           value="{{disabled}}" readonly>
+    {% endif %}
+
+{% endblock %}
+
+{% block add_react %}
+    {% include "embedded_utils/react_src.html" %}
+{% endblock %}

@@ -40,56 +40,58 @@
 			{% endif %}
   			<div class="row">
 				<div class="col-md-12">
-					{% if current_show.is_today %}
+					{% if current_show %}
 						{% if is_channel_admin %}
-                            <a class="text-center" href="/show_control/{{current_show.key.id}}/">
+                            <a class="text-center" href="{% url "show_controller" channel.name current_show.id %}">
 								<div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font">Show Controller</div>
 							</a>
                             <br/>
-							<a class="text-center" href="/show/{{current_show.key.id}}/">
+							<a class="text-center" href="{% url "show_display" channel.name current_show.id %}">
 								<div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font">Show Display</div>
 							</a>
 						{% else %}
-							<a class="text-center" href="/live_vote/">
-								<div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font">Live Show Voting!</div>
+							<a class="text-center" href="{% url "show_live_vote" channel.name current_show.id %}">
+								<div class="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font">Live Show Voting!</div>
 							</a>
 						{% endif %}
-					{% else %}
-                        <a class="text-center" href="{% url "channel_recaps" channel.name %}">
-                            <div class="btn btn-warning btn-block btn-lg btn-shadow text-shadow x-large-font">Show Recaps</div>
-                        </a>
-                        <br />
-                        {% if channel.is_premium %}
+                        <br/>
+                        {% for pool in suggestion_pools %}
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <a class="text-center white-link" href="{% url "show_suggestion_pool" channel.name current_show.id pool.id %}">
+                                        <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font">
+                                            Add / Vote for {{pool.display_name}}
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <br/>
+                        {% endfor %}
+					{% endif %}
+                    <a class="text-center" href="{% url "channel_recaps" channel.name %}">
+                        <div class="btn btn-warning btn-block btn-lg btn-shadow text-shadow x-large-font">Show Recaps</div>
+                    </a>
+                    <br />
+                    {% if channel.is_premium %}
+                        {% if channel.buy_tickets_link %}
                             <a class="text-center" href="{{channel.buy_tickets_link}}">
                                 <div class="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font"><img src="{{IMAGE_URL}}star-sprite.png" /> Buy Tickets to {{channel.display_name}} <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                             </a>
-                            <br/>
-                            <a class="text-center" href="{% url "channel_leaderboards" channel.name %}">
-                                <div class="btn btn-success btn-block btn-lg btn-shadow text-shadow x-large-font"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
-                            </a>
                         {% else %}
                             <div class="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font disabled"><img src="{{IMAGE_URL}}star-sprite.png" /> Buy Tickets to {{channel.display_name}} <img src="{{IMAGE_URL}}star-sprite.png" /></div>
-                            <br/>
-                            <div class="btn btn-success btn-block btn-lg btn-shadow text-shadow x-large-font disabled"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                         {% endif %}
                         <br/>
-					{% endif %}
+                        <a class="text-center" href="{% url "channel_leaderboards" channel.name %}">
+                            <div class="btn btn-success btn-block btn-lg btn-shadow text-shadow x-large-font"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                        </a>
+                    {% else %}
+                        <div class="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font disabled"><img src="{{IMAGE_URL}}star-sprite.png" /> Buy Tickets to {{channel.display_name}} <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                        <br/>
+                        <div class="btn btn-success btn-block btn-lg btn-shadow text-shadow x-large-font disabled"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                    {% endif %}
+                    <br/>
 				</div>
 			</div>
-			<hr/>
-			{% for pool in current_suggestion_pools %}
-                <div class="row">
-                    <div class="col-md-12">
-                        <a class="text-center white-link" href="/suggestions/{{pool.name}}/">
-                            <div class="btn btn-default btn-block btn-lg large-font">
-                                Add / Vote for {{pool.display_name}}
-                            </div>
-                        </a>
-                    </div>
-                </div>
-                <br/>
-            {% endfor %}
-			
 		</div>
 	</div>
   </div>

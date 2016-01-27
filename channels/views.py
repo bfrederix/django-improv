@@ -12,7 +12,6 @@ from django.utils.html import escape
 from channels.models import (Channel, ChannelAddress, ChannelOwner,
                              ChannelAdmin, SuggestionPool, VoteType)
 from channels import service as channels_service
-from users import service as users_service
 from players import service as players_service
 from shows import service as shows_service
 
@@ -29,7 +28,8 @@ class ChannelView(View):
             context['channel'] = channels_service.channel_or_404(channel_name)
         # If a channel id was given
         elif channel_id:
-            context['channel'] = channels_service.channel_or_404(channel_id, channel_id=True)
+            context['channel'] = channels_service.channel_or_404(channel_id,
+                                                                 channel_id=True)
         # If no channel was found
         else:
             context['channel'] = None
@@ -39,9 +39,13 @@ class ChannelView(View):
                                                 context['channel'],
                                                 getattr(self.request.user, 'id'))
         # Get the channels that the user is an admin of
-        context['admin_channels'] = channels_service.get_channels_by_admin(getattr(self.request.user, 'id'))
+        context['admin_channels'] = channels_service.get_channels_by_admin(
+                                            getattr(self.request.user, 'id'))
         # Determine if there is a current show for this channel
         context['current_show'] = shows_service.get_current_show(context['channel'])
+        # Get the suggestion pools for the current show if it exists
+        context['suggestion_pools'] = shows_service.get_show_suggestion_pools(
+                                            context['current_show'])
         return context
 
 
@@ -364,8 +368,6 @@ class ChannelPreShowView(ChannelView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_default_channel_context(request, *args, **kwargs)
-        suggestion_pools = shows_service.get_show_suggestion_pools(context['current_show'])
-        context.update({'suggestion_pools': suggestion_pools})
         return render(request,
                       self.template_name,
                       context)
