@@ -28,8 +28,11 @@ class SuggestionsSerializer(serializers.Serializer):
     points = serializers.IntegerField()
     voted_on = serializers.BooleanField()
     value = serializers.CharField()
+    preshow_value = serializers.IntegerField()
     user_id = serializers.IntegerField()
+    session_id = serializers.CharField(required=False)
 
     class Meta:
         fields = ('id', 'created', 'used', 'points',
-                  'voted_on', 'value', 'user_id')
+                  'voted_on', 'value', 'preshow_value',
+                  'user_id', 'session_id')

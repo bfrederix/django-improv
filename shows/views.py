@@ -1,8 +1,12 @@
+import datetime
+import pytz
+
 from django.views.generic import View
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
+from shows.models import Suggestion
 from shows import service as shows_service
 from channels import service as channels_service
 from utilities import sessions as session_utils
@@ -105,6 +109,8 @@ class ShowSuggestionPoolView(ShowView):
     def post(self, request, *args, **kwargs):
         action = None
         error = None
+        user_id = getattr(self.request.user, 'id')
+        suggestion_value = request.POST.get('suggestion_value')
         context = self.get_default_show_context(request, *args, **kwargs)
         session_id = session_utils.get_or_create_session_id(request)
         # Get the Suggestion pool
@@ -116,11 +122,30 @@ class ShowSuggestionPoolView(ShowView):
             redirect_url = "{0}?next={1}".format(reverse('user_login'), request.path)
             return HttpResponseRedirect(redirect_url)
         # Add the new suggestion
-
+        if suggestion_value and not Suggestion.objects.filter(show=context['current_show'],
+                                                              value=suggestion_value):
+            suggestion_kwargs = {'channel': context['channel'],
+                                 'show': context['current_show'],
+                                 'suggestion_pool': suggestion_pool,
+                                 'used': False,
+                                 'voted_on': False,
+                                 'amount_voted_on': 0,
+                                 'value': suggestion_value,
+                                 'preshow_value': 0,
+                                 'created': datetime.datetime.utcnow().replace(tzinfo=pytz.utc)}
+            if user_id:
+                suggestion_kwargs['user'] = request.user
+            else:
+                suggestion_kwargs['session_id'] = session_id
+            Suggestion.objects.get_or_create(**suggestion_kwargs)
+        elif suggestion_value:
+            error = "Suggestion already exists!"
+        else:
+            error = "Suggestions cannot be blank!"
         # Determine if the user has reached the max suggestions
         disabled = shows_service.suggestions_maxed(context['current_show'],
                                                    suggestion_pool,
-                                                   user_id=getattr(self.request.user, 'id'),
+                                                   user_id=user_id,
                                                    session_id=session_id)
         # If the user is authenticated, find any suggestion or leaderboard entries with their session id
         # Add their user id to that suggestion/leaderboard entry.

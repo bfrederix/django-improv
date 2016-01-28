@@ -2384,35 +2384,54 @@ var Recap = React.createClass({
 });
 
 //////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////// SHOW RECAP COMPONENTS /////////////////////////////////
+///////////////////////////// SHOW SUGGESTION POOL COMPONENTS ////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
 var ShowSuggestionPoolSuggestion = React.createClass({
   render: function() {
+    var upvoteButton, deleteButton;
+    var upvoteSpans = <div>
+                          <span className="glyphicon glyphicon-circle-arrow-up"></span>
+                          <span>&nbsp;Upvote</span>
+                      </div>;
 
+    if (this.props.userID && this.props.suggestion.user_id == this.props.userID ||
+        this.props.sessionID && this.props.suggestion.session_id == this.props.sessionID) {
+        upvoteButton = <button className="btn btn-success text-shadow large-font" disabled="disabled" type="submit">
+                           {upvoteSpans}
+                       </button>;
+        deleteButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font">
+                            <span className="glyphicon glyphicon-trash"></span>
+                            <span>&nbsp;Delete</span>
+                       </button>;
+    } else {
+        upvoteButton = <button className="btn btn-success text-shadow large-font" type="submit">
+                           {upvoteSpans}
+                       </button>;
+    }
+
+    if (this.props.isChannelAdmin == "True") {
+        deleteButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font">
+                            <span className="glyphicon glyphicon-trash"></span>
+                            <span>&nbsp;Delete</span>
+                       </button>;
+    }
 
     return (
         <div>
             <div className="row">
-                <div className="col-md-2">
-                    <button className="upvote btn btn-success" disabled="disabled" type="submit">
-                        <span className="glyphicon glyphicon-circle-arrow-up vote-button-label">Upvote</span>
-                    </button>
-                    <span className="vote-value">&nbsp;{suggestion.preshow_value}</span>
+                <div className="col-md-2 pull-left">
+                    {upvoteButton}
+                    <span className="black-font xx-large-font">&nbsp;&nbsp;{this.props.suggestion.preshow_value}</span>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-md-12">
-                    <span className="word-wrap entered-value">{suggestion.value}</span>
+                <div className="col-md-8">
+                    <span className="word-wrap black-font">{this.props.suggestion.value}</span>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-md-2">
-                    <form action="/suggestions/{{current_suggestion_pool.name}}/" method="post">
-                        <input type="hidden" name="delete_id" value="{{suggestion.key.id}}"/>
-                        <button type="submit" className="btn btn-danger btn-shadow text-shadow">
-                            <span className="glyphicon glyphicon-trash vote-button-label">Delete</span>
-                        </button>
+                <div className="col-md-2 pull-right">
+                    <form action={this.props.deleteSubmitUrl} method="post">
+                        <input type="hidden" name="delete_id" value={this.props.suggestion.id}/>
+                        {deleteButton}
+                        <CSRFProtect csrfToken={this.props.csrfToken} />
                     </form>
                 </div>
             </div>
@@ -2426,11 +2445,11 @@ var ShowSuggestionPoolAdd = React.createClass({
   render: function() {
     var maximum;
     var displayName = this.props.showSuggestionPoolContext.suggestionPoolDisplayName;
-    var entryInput = <input type="text" className="form-control" name="entry_value" />;
+    var suggestionInput = <input type="text" className="form-control" name="suggestion_value" />;
     var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font">Add {displayName}</button>
     if (this.props.showSuggestionPoolContext.suggestingDisabled) {
         maximum = <div className="bg-info large-font text-shadow">Maximum {displayName} suggestions entered. Please Upvote your favorites, or try another suggestion type.</div>;
-        entryInput = <input type="text" className="form-control" name="entry_value" disabled />;
+        suggestionInput = <input type="text" className="form-control" name="suggestion_value" disabled />;
         submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font" disabled>Add {displayName}</button>;
     }
 
@@ -2448,12 +2467,13 @@ var ShowSuggestionPoolAdd = React.createClass({
                         <form action={this.props.showSuggestionPoolContext.formSubmitUrl} method="post">
                             <div className="row">
                                 <div className="col-md-12">
-                                    {entryInput}
+                                    {suggestionInput}
                                 </div>
                             </div>
                             <div className="row text-center">
                                 {submitButton}
                             </div>
+                            <CSRFProtect csrfToken={this.props.showSuggestionPoolContext.csrfToken} />
                         </form>
                     </div>
                 </div>
@@ -2492,7 +2512,12 @@ var ShowSuggestionPool = React.createClass({
         this.state.data.map(function (suggestion) {
             this.counter++;
             votePanelList.push(<ShowSuggestionPoolSuggestion key={this.counter}
-                                                             suggestion={suggestion} />);
+                                                             suggestion={suggestion}
+                                                             userID={this.props.showSuggestionPoolContext.userID}
+                                                             sessionID={this.props.showSuggestionPoolContext.sessionID}
+                                                             isChannelAdmin={this.props.showSuggestionPoolContext.isChannelAdmin}
+                                                             deleteSubmitUrl={this.props.showSuggestionPoolContext.formSubmitUrl}
+                                                             csrfToken={this.props.showSuggestionPoolContext.csrfToken} />);
             return votePanelList;
         }, this);
     } else {
@@ -2512,9 +2537,9 @@ var ShowSuggestionPool = React.createClass({
             <ShowSuggestionPoolAdd key="3"
                                    showSuggestionPoolContext={this.props.showSuggestionPoolContext} />
             <Panel key="4"
-                   panelWidth="6" panelOffset="3" panelColor="primary"
+                   panelWidth="6" panelOffset="3" panelColor="warning"
                    panelHeadingContent={voteHeading} panelHeadingClasses="x-large-font"
-                   panelBodyClasses="large-font black-font white-background"
+                   panelBodyClasses="large-font white-background"
                    bodyContent={votePanelList} />
             <br key="5" />
             <br key="6" />
@@ -2792,6 +2817,7 @@ var RootComponent = React.createClass({
             suggestionPoolDisplayName: getElementValueOrNull("suggestionPoolDisplayName"),
             suggestionPoolDescription: getElementValueOrNull("suggestionPoolDescription"),
             suggestingDisabled: getElementValueOrNull("suggestingDisabled"),
+            isChannelAdmin: getElementValueOrNull("isChannelAdmin"),
             suggestionListAPIUrl: getElementValueOrNull("suggestionListAPIUrl"),
             suggestionPoolListAPIUrl: getElementValueOrNull("suggestionPoolListAPIUrl"),
             channelHomeUrl: getElementValueOrNull("channelHomeUrl"),

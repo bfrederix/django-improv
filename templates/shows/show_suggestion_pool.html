@@ -42,6 +42,11 @@
         <input type="hidden" id="suggestingDisabled" name="suggestingDisabled"
            value="{{disabled}}" readonly>
     {% endif %}
+    {% if is_channel_admin %}
+        <input type="hidden" id="isChannelAdmin" name="isChannelAdmin"
+           value="{{is_channel_admin}}" readonly>
+    {% endif %}
+
 
 {% endblock %}
 

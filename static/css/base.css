@@ -135,22 +135,6 @@ span.count-font {
 	color:black;
 }
 
-span.entered-value {
-	color:black;
-	font-size:large;
-}
-
-span.vote-value {
-	color: black;
-	font-weight:bold;
-	font-size: x-large;
-}
-
-span.vote-button-label {
-	color: black;
-	font-size: large;
-}
-
 .word-wrap {
 	white-space: normal;
 }

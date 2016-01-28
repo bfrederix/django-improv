@@ -93,7 +93,7 @@ class Suggestion(models.Model):
     amount_voted_on = models.IntegerField(default=0, blank=True, null=True)
     value = models.CharField(blank=False, max_length=255)
     # Pre-show upvotes
-    preshow_value = models.IntegerField(default=0, blank=True, null=True)
+    preshow_value = models.IntegerField(default=0, blank=False)
     session_id = models.CharField(blank=True, null=True, max_length=255)
     user = models.ForeignKey(User, blank=True, null=True)
 
@@ -102,24 +102,24 @@ class Suggestion(models.Model):
     def __unicode__(self):
         return self.value
 
+
 class PreshowVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=True, null=True)
     suggestion = FlexibleForeignKey("Suggestion", blank=False)
-    session_id = models.CharField(blank=False, max_length=255)
+    session_id = models.CharField(blank=True, null=True, max_length=255)
+    user = models.ForeignKey(User, blank=True, null=True)
 
     def __unicode__(self):
         return str(self.id)
 
-'''
-    def put(self, *args, **kwargs):
-        """Increment the Suggestion's pre-show value"""
-        if self.suggestion:
-            suggestion_entity = self.suggestion.get()
-            suggestion_entity.preshow_value += 1
-            suggestion_entity.put()
-        return super(PreshowVote, self).put(*args, **kwargs)
-'''
+    def save(self, *args, **kwargs):
+        # Count all the preshow votes for the suggestion
+        preshow_count = PreshowVote.objects.filter(suggestion=self.suggestion).count()
+        # Then add the new vote to that count
+        self.suggestion.preshow_value = preshow_count + 1
+        self.suggestion.save()
+        super(PreshowVote, self).save(*args, **kwargs)
 
 
 class LiveVote(models.Model):

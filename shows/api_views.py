@@ -28,12 +28,18 @@ class SuggestionAPIObject(APIObject):
                   'created',
                   'used',
                   'voted_on',
-                  'value']
+                  'value',
+                  'preshow_value',
+                  'session_id']
 
     def __init__(self, suggestion, **kwargs):
         super(SuggestionAPIObject, self).__init__(suggestion, **kwargs)
         self.points = LiveVote.objects.filter(suggestion=suggestion).count()
-        self.user_id = suggestion.user.id
+        user = getattr(suggestion, 'user', None)
+        if user:
+            self.user_id = user.id
+        else:
+            self.user_id = None
 
 
 class ShowViewSet(viewsets.ViewSet):
