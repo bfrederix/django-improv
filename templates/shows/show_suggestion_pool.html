@@ -19,13 +19,15 @@
     <input type="hidden" id="suggestionPoolDescription" name="suggestionPoolDescription"
            value="{{suggestion_pool.description}}" readonly>
     <input type="hidden" id="suggestionListAPIUrl" name="suggestionListAPIUrl"
-           value="{% url "suggestion-list" %}?show_id={{current_show.id}}&suggestion_pool_id={{suggestion_pool.id}}" readonly>
+           value="{% url "suggestion-list" %}?show_id={{current_show.id}}&suggestion_pool_id={{suggestion_pool.id}}&upvote_user_id={{request.user.id}}&upvote_session_id={{session_id}}&suggestion_pool_sort=True" readonly>
     <input type="hidden" id="suggestionPoolListAPIUrl" name="suggestionPoolListAPIUrl"
            value="{% url "suggestion-pool-list" %}?show_id={{current_show.id}}" readonly>
     <input type="hidden" id="channelHomeUrl" name="channelHomeUrl"
            value="{% url "channel_home" channel.name %}" readonly>
     <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
            value="{% url "show_suggestion_pool" channel.name current_show.id suggestion_pool.id %}" readonly>
+    <input type="hidden" id="upvoteSubmitUrl" name="upvoteSubmitUrl"
+           value="{% url "upvote_submit" channel.name current_show.id suggestion_pool.id %}" readonly>
     <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
 	{% if action %}
 		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
@@ -52,4 +54,5 @@
 
 {% block add_react %}
     {% include "embedded_utils/react_src.html" %}
+    <script src="{{JS_URL}}markdown-0.6.0-beta1/markdown.min.js"></script>
 {% endblock %}

@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 from users import service as users_service
+from channels import service as channels_service
 
 
 class Medal(models.Model):
@@ -38,6 +39,27 @@ class LeaderboardEntry(models.Model):
     def username(self):
         user_profile = users_service.fetch_user_profile(self.user.id)
         return user_profile.safe_username()
+
+    def show_win(self):
+        # Fetch the leaderboard entries sorted by suggestion wins and points
+        leaderboard_entries = LeaderboardEntry.objects.filter(show=self.show).order_by('-wins',
+                                                                                       '-points')
+        try:
+            # If the top user of that show and this user match
+            if leaderboard_entries[0].user.id == self.user.id:
+                # They won the show!
+                return True
+        except (IndexError, AttributeError) as e:
+            pass
+        return False
+
+    def save(self, *args, **kwargs):
+        # If there is a user attached to the entry
+        if self.user:
+            leaderboard_entries = LeaderboardEntry.objects.filter(user=self.user.id)
+            # Add them as a channel user and update their leaderboard aggregate stats
+            channels_service.update_channel_user(self.channel, self.user.id, leaderboard_entries)
+        super(LeaderboardEntry, self).save(*args, **kwargs)
 
 
 class LeaderboardEntryMedal(models.Model):

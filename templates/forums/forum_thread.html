@@ -26,7 +26,7 @@
                         {% if thread.creator.is_superuser %}<img class="pull-left" src="{{IMAGE_URL}}star-sprite.png" />{% endif %}{{thread.creator}} [{{thread.created}}]
                     </div>
                     <div class="panel-body">
-                        <span class="black-font">{{thread.message}}</span>
+                        <span class="markdown-message black-font">{{thread.message|safe}}</span>
                     </div>
                 </div>
             {% endif %}
@@ -66,7 +66,7 @@
                             {% if reply.creator.is_superuser %}<img class="pull-left" src="{{IMAGE_URL}}star-sprite.png" />{% endif %}{{reply.creator}} [{{reply.created}}]
                         </div>
                         <div class="panel-body">
-                            <span class="black-font">{{reply.message}}</span>
+                            <span class="markdown-message black-font">{{reply.message|safe}}</span>
                             {% if request.user.is_superuser %}
                                 <form role="form" action="{% url "forums_thread" forum.name thread.id %}" method="post" encType="multipart/form-data">
                                     <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
@@ -121,7 +121,11 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-lg-12">
+                                <div class="col-lg-4">
+                                    <br/>
+                                    You can use <a target="_blank" href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Markdown</a> in your messages.
+                                </div>
+                                <div class="col-lg-8">
                                     <br/>
                                     <button type="submit" class="btn btn-danger btn-shadow text-shadow large-font pull-right">Submit</button>
                                 </div>
@@ -149,4 +153,13 @@
         </div>
     </footer>
 
+{% endblock %}
+
+{% block add_script %}
+    <script src="{{JS_URL}}markdown-0.6.0-beta1/markdown.min.js"></script>
+    <script>
+        $( ".markdown-message" ).each(function( index ) {
+            $(this).html(markdown.toHTML($(this).text()));
+        });
+    </script>
 {% endblock %}

@@ -11,8 +11,6 @@ from shows.models import (Show, Suggestion, VotedItem,
                           VoteOptions, OptionSuggestion,
                           ShowVoteType, ShowPlayer,
                           ShowVoteTypePlayerPool, ShowInterval)
-from players import service as players_service
-from channels import service as channels_service
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -68,16 +66,13 @@ def fetch_option_suggestion(vote_option_id):
     return OptionSuggestion.objects.filter(vote_option=vote_option_id)
 
 
-def get_show_suggestion_pools(show):
+def get_vote_types_suggestion_pools(vote_types):
     suggestion_pools = []
-    if show:
-        # Get the vote types by a list of ids
-        vote_types = channels_service.fetch_vote_types_by_ids(show.vote_types())
-        for vote_type in vote_types:
-            # If the vote type has a suggestion pool
-            if vote_type.suggestion_pool:
-                # Add it to the list of suggestion pools for the show
-                suggestion_pools.append(vote_type.suggestion_pool)
+    for vote_type in vote_types:
+        # If the vote type has a suggestion pool
+        if vote_type.suggestion_pool:
+            # Add it to the list of suggestion pools for the show
+            suggestion_pools.append(vote_type.suggestion_pool)
     return suggestion_pools
 
 
@@ -116,22 +111,10 @@ def get_rand_player_list(players, star_players=[]):
     return rand_players
 
 
-def create_show(channel, vote_type_ids, show_length, player_ids=None,
+def create_show(channel, vote_types, show_length, players=[],
+                star_players=[], combined_players=[],
                 embedded_youtube=None, photo_link=None):
-    if vote_type_ids:
-        players = []
-        star_players = []
-        combined_players = []
-        # If there are players selected for the show
-        if player_ids:
-            # Get the regular players
-            players = players_service.fetch_players_by_ids(player_ids, star=False)
-            # Get the star players
-            star_players = players_service.fetch_players_by_ids(player_ids, star=True)
-            # Get both star and regular players
-            combined_players = players_service.fetch_players_by_ids(player_ids)
-        # Get the vote types selected
-        vote_types = channels_service.fetch_vote_types_by_ids(vote_type_ids)
+    if vote_types:
         # Get the max voting options (ignoring players only vote types)
         voting_options = vote_types.exclude(players_only=True).aggregate(Max('options')).values()[0]
         # If there are any vote types that are "player only"

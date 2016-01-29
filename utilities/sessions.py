@@ -10,5 +10,5 @@ def get_or_create_session_id(request):
         return session_id
     # Otherwise, generate a new session id
     else:
-        request.session[session_key] = random.getrandbits(128)
+        request.session[session_key] = str(random.getrandbits(128))
         return request.session[session_key]

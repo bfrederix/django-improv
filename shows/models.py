@@ -63,23 +63,23 @@ class Show(models.Model):
 # Doing this as a Many to Many so I can use BigInts
 class ShowVoteType(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    vote_type = FlexibleForeignKey("channels.VoteType", blank=False)
+    vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
 
 
 # Doing this as a Many to Many so I can use BigInts
 class ShowPlayer(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    player = FlexibleForeignKey("players.Player", blank=False)
+    player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=False)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
     used = models.BooleanField(default=False, blank=False)
 
 
 class ShowVoteTypePlayerPool(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    player = FlexibleForeignKey("players.Player", blank=False)
+    player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=False)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
-    vote_type = FlexibleForeignKey("channels.VoteType", blank=False)
+    vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
     used = models.BooleanField(default=False, blank=False)
 
 
@@ -87,7 +87,7 @@ class Suggestion(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=True, null=True)
-    suggestion_pool = FlexibleForeignKey("channels.SuggestionPool", blank=False)
+    suggestion_pool = FlexibleForeignKey("channels.SuggestionPool", on_delete=models.CASCADE, blank=False)
     used = models.BooleanField(default=False, blank=False)
     voted_on = models.NullBooleanField(default=False, blank=True)
     amount_voted_on = models.IntegerField(default=0, blank=True, null=True)
@@ -106,7 +106,7 @@ class Suggestion(models.Model):
 class PreshowVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=True, null=True)
-    suggestion = FlexibleForeignKey("Suggestion", blank=False)
+    suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=False)
     session_id = models.CharField(blank=True, null=True, max_length=255)
     user = models.ForeignKey(User, blank=True, null=True)
 
@@ -125,9 +125,9 @@ class PreshowVote(models.Model):
 class LiveVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
-    vote_type = FlexibleForeignKey("channels.VoteType", blank=False)
-    player = FlexibleForeignKey("players.Player", blank=True, null=True)
-    suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)
+    vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
+    player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=True, null=True)
+    suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=True, null=True)
     interval = models.IntegerField(blank=True, null=True)
     session_id = models.CharField(blank=False, max_length=255)
     user = models.ForeignKey(User, blank=True, null=True)
@@ -138,9 +138,9 @@ class LiveVote(models.Model):
 class ShowInterval(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
-    vote_type = FlexibleForeignKey("channels.VoteType", blank=False)
+    vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
     interval = models.IntegerField(blank=False)
-    player = FlexibleForeignKey("players.Player", blank=True, null=True)
+    player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=True, null=True)
 
     def __unicode__(self):
         return str(self.id)
@@ -148,7 +148,7 @@ class ShowInterval(models.Model):
 class VoteOptions(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
-    vote_type = FlexibleForeignKey("channels.VoteType", blank=False)
+    vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
     interval = models.IntegerField(blank=True, null=True)
 
     def __unicode__(self):
@@ -158,16 +158,16 @@ class VoteOptions(models.Model):
 
 class OptionSuggestion(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    suggestion = FlexibleForeignKey("Suggestion", blank=False)
-    vote_option = FlexibleForeignKey("VoteOptions", blank=False)
+    suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=False)
+    vote_option = FlexibleForeignKey("VoteOptions", on_delete=models.CASCADE, blank=False)
 
 
 class VotedItem(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
-    vote_type = FlexibleForeignKey("channels.VoteType", blank=False)
-    suggestion = FlexibleForeignKey("Suggestion", blank=True, null=True)
-    player = FlexibleForeignKey("players.Player", blank=True, null=True)
+    vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
+    suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=True, null=True)
+    player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=True, null=True)
     interval = models.IntegerField(default=None, blank=True, null=True)
 
     def __unicode__(self):

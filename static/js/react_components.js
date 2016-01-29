@@ -135,6 +135,19 @@ function hexToRgb(hex) {
 ///////////////////////////////////// BASE COMPONENTS /////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+var SetIntervalMixin = {
+  componentWillMount: function() {
+    this.intervals = [];
+  },
+  setInterval: function() {
+    this.intervals.push(setInterval.apply(null, arguments));
+  },
+  componentWillUnmount: function() {
+    this.intervals.forEach(clearInterval);
+  }
+};
+
+
 var Slider = React.createClass({
   getDefaultProps: function() {
     return {
@@ -368,7 +381,7 @@ var FormGroup = React.createClass({
     var starImage = "";
     var docs;
     if (this.props.docs) {
-        docs = <a href={this.props.docs}>Explained Here</a>;
+        docs = <a target="_blank" href={this.props.docs}>Explained Here</a>;
     }
     if (this.props.helpBlock) {
         helpBlock = <span className="help-block">{this.props.helpBlock} {docs}</span>;
@@ -1149,7 +1162,7 @@ var SuggestionPoolForm = React.createClass({
   getInitialState: function() {
     return {data: {name: "",
                    display_name: "",
-                   description: 'Instructive text used to help guide users on what suggestions to enter',
+                   description: 'Instructive **Markdown** text used to help guide users on what suggestions to enter',
                    max_user_suggestions: 5,
                    admin_only: false,
                    require_login: false,
@@ -1211,7 +1224,7 @@ var SuggestionPoolForm = React.createClass({
                                  labelContents="Description:"
                                  inputSize="8"
                                  input={descriptionInput}
-                                 helpBlock="Used to instruct users on what types of suggestions to enter"
+                                 helpBlock="Used to instruct users on what types of suggestions to enter. Supports Markdown."
                                  docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html#suggestion-pools-description" />);
     // Max User Suggestions Input
     var maxUserSuggestionsInput = <input type="text" id="max_user_suggestions" name="max_user_suggestions" maxLength="3" defaultValue={this.state.data.max_user_suggestions} className="form-control"></input>;
@@ -2392,8 +2405,10 @@ var ShowSuggestionPoolSuggestion = React.createClass({
     var upvoteButton, deleteButton;
     var upvoteSpans = <div>
                           <span className="glyphicon glyphicon-circle-arrow-up"></span>
-                          <span>&nbsp;Upvote</span>
+                          <span id={this.props.suggestion.id}>&nbsp;Upvote</span>
                       </div>;
+    var votesID = this.props.suggestion.id + "-votes";
+    var buttonID = this.props.suggestion.id + "-button";
 
     if (this.props.userID && this.props.suggestion.user_id == this.props.userID ||
         this.props.sessionID && this.props.suggestion.session_id == this.props.sessionID) {
@@ -2404,8 +2419,12 @@ var ShowSuggestionPoolSuggestion = React.createClass({
                             <span className="glyphicon glyphicon-trash"></span>
                             <span>&nbsp;Delete</span>
                        </button>;
+    } else if (this.props.suggestion.user_already_upvoted) {
+        upvoteButton = <button className="btn btn-success text-shadow large-font" disabled="disabled" type="submit">
+                           {upvoteSpans}
+                       </button>;
     } else {
-        upvoteButton = <button className="btn btn-success text-shadow large-font" type="submit">
+        upvoteButton = <button id={buttonID} onClick={this.props.handleUpvote} className="btn btn-success text-shadow large-font" type="submit">
                            {upvoteSpans}
                        </button>;
     }
@@ -2422,7 +2441,7 @@ var ShowSuggestionPoolSuggestion = React.createClass({
             <div className="row">
                 <div className="col-md-2 pull-left">
                     {upvoteButton}
-                    <span className="black-font xx-large-font">&nbsp;&nbsp;{this.props.suggestion.preshow_value}</span>
+                    &nbsp;&nbsp;<span id={votesID} className="black-font xx-large-font">{this.props.suggestion.preshow_value}</span>
                 </div>
                 <div className="col-md-8">
                     <span className="word-wrap black-font">{this.props.suggestion.value}</span>
@@ -2447,6 +2466,7 @@ var ShowSuggestionPoolAdd = React.createClass({
     var displayName = this.props.showSuggestionPoolContext.suggestionPoolDisplayName;
     var suggestionInput = <input type="text" className="form-control" name="suggestion_value" />;
     var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font">Add {displayName}</button>
+    var description = markdown.toHTML(this.props.showSuggestionPoolContext.suggestionPoolDescription);
     if (this.props.showSuggestionPoolContext.suggestingDisabled) {
         maximum = <div className="bg-info large-font text-shadow">Maximum {displayName} suggestions entered. Please Upvote your favorites, or try another suggestion type.</div>;
         suggestionInput = <input type="text" className="form-control" name="suggestion_value" disabled />;
@@ -2459,9 +2479,7 @@ var ShowSuggestionPoolAdd = React.createClass({
                 <div className="panel panel-info highlight-shadow">
                     <div className="panel-heading large-font"><span className="underlay-object x-large-font text-shadow">Add {displayName}</span>
                         {maximum}
-                        <div className="white-background well well-sm black-font">
-                            {this.props.showSuggestionPoolContext.suggestionPoolDescription}
-                        </div>
+                        <div className="white-background well well-sm black-font" dangerouslySetInnerHTML={{__html: description}}></div>
                     </div>
                     <div className="panel-body">
                         <form action={this.props.showSuggestionPoolContext.formSubmitUrl} method="post">
@@ -2484,20 +2502,104 @@ var ShowSuggestionPoolAdd = React.createClass({
 });
 
 var ShowSuggestionPool = React.createClass({
+  mixins: [SetIntervalMixin], // Use the setInterval timing mixin
   getInitialState: function() {
-    return {data: undefined};
+    return {data: undefined,
+            suggestionIDIndex: undefined};
   },
   componentDidMount: function() {
+    // Initially Get the suggestions
+    this.pullInitialSuggestions();
+    // Set an interval to update the suggestions on
+    this.setInterval(this.updateSuggestions, 5000);
+  },
+  pullInitialSuggestions: function() {
     $.ajax({
       url: this.props.showSuggestionPoolContext.suggestionListAPIUrl,
       dataType: 'json',
       success: function(data) {
-        this.setState({data: data});
+        // Set the suggestion list index to the most recently pulled down suggestions
+        var NewSuggestionIDIndex = data.map(
+            function(suggestion) { return suggestion.id; }
+        );
+        this.setState({data: data,
+                       suggestionIDIndex: NewSuggestionIDIndex});
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
+  },
+  updateSuggestions: function() {
+    $.ajax({
+      url: this.props.showSuggestionPoolContext.suggestionListAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        var orderedSuggestions;
+        // If we have a previous suggestion list state
+        if (this.state.data) {
+            // Set the ordered suggestion to the old state
+            orderedSuggestions = this.state.data;
+            // Loop through the pulled down suggestion list
+            data.map(function (suggestion) {
+                // Get the index of the suggestions from the previous state's suggestion list
+                var suggestionIndex = $.inArray(suggestion.id, this.state.suggestionIDIndex);
+                // If the suggestion isn't in the old list
+                if (suggestionIndex == -1) {
+                    // Append it to the bottom of the list
+                    orderedSuggestions.push(suggestion);
+                // If the suggestion is in the list
+                // AND it's still at the same index as it was before
+                } else if (orderedSuggestions[suggestionIndex].id == suggestion.id) {
+                    // Update the suggestion
+                    orderedSuggestions[suggestionIndex] = suggestion;
+                }
+                return orderedSuggestions;
+            }, this);
+
+        } else {
+            // Set the ordered suggestions for the first time
+            orderedSuggestions = data;
+        }
+        // Set the suggestion list index to the most recently pulled down suggestions
+        var NewSuggestionIDIndex = data.map(
+            function(suggestion) { return suggestion.id; }
+        );
+        this.setState({data: orderedSuggestions,
+                       suggestionIDIndex: NewSuggestionIDIndex});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  handleUpvote: function(event) {
+      this.setState({data: this.state.data,
+                     suggestionIDIndex: this.state.suggestionIDIndex}, function() {
+          var suggestionID = event.target.id;
+          var upvoteData = {id: suggestionID,
+                            csrfmiddlewaretoken: this.props.showSuggestionPoolContext.csrfToken}
+          // Do a POST to upvote the suggestion
+          $.ajax({
+              url: this.props.showSuggestionPoolContext.upvoteSubmitUrl,
+              dataType: 'json',
+              type: 'POST',
+              data: upvoteData,
+              success: function(data) {
+                  // Update the votes
+                  this.componentDidMount();
+                  // Disable the upvote button for the suggestion
+                  $(suggestionID+'-button').prop('disabled', true);
+                  // Add one to the upvotes for that suggestion
+                  var upvotes = $(suggestionID+'-votes');
+                  upvotes.text(parseInt(upvotes.text())+1);
+              }.bind(this),
+              error: function(xhr, status, err) {
+                  console.error(this.props.url, status, err.toString());
+                  console.log(xhr.responseText);
+              }.bind(this)
+          });
+      });
   },
   render: function() {
     var displayName = this.props.showSuggestionPoolContext.suggestionPoolDisplayName;
@@ -2517,11 +2619,12 @@ var ShowSuggestionPool = React.createClass({
                                                              sessionID={this.props.showSuggestionPoolContext.sessionID}
                                                              isChannelAdmin={this.props.showSuggestionPoolContext.isChannelAdmin}
                                                              deleteSubmitUrl={this.props.showSuggestionPoolContext.formSubmitUrl}
-                                                             csrfToken={this.props.showSuggestionPoolContext.csrfToken} />);
+                                                             csrfToken={this.props.showSuggestionPoolContext.csrfToken}
+                                                             handleUpvote={this.handleUpvote} />);
             return votePanelList;
         }, this);
     } else {
-        votePanelList.push((<div key="load-1"><Loading loadingBarColor="#fff"/></div>));
+        votePanelList.push((<div key="load-1"><Loading loadingBarColor="#000"/></div>));
     }
 
     return (
@@ -2824,6 +2927,7 @@ var RootComponent = React.createClass({
             userID: getElementValueOrNull("userID"),
             sessionID: getElementValueOrNull("sessionID"),
             formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            upvoteSubmitUrl: getElementValueOrNull("upvoteSubmitUrl"),
             csrfToken: getElementValueOrNull("csrfToken"),
             action: getElementValueOrNull("action"),
             error: getElementValueOrNull("error")

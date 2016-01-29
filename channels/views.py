@@ -5,9 +5,7 @@ import cloudinary.uploader
 
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.html import escape
+from django.utils.html import escape, strip_tags
 
 from channels.models import (Channel, ChannelAddress, ChannelOwner,
                              ChannelAdmin, SuggestionPool, VoteType)
@@ -43,9 +41,13 @@ class ChannelView(View):
                                             getattr(self.request.user, 'id'))
         # Determine if there is a current show for this channel
         context['current_show'] = shows_service.get_current_show(context['channel'])
-        # Get the suggestion pools for the current show if it exists
-        context['suggestion_pools'] = shows_service.get_show_suggestion_pools(
-                                            context['current_show'])
+        if context['current_show']:
+            # Get the vote types by a list of ids
+            vote_types = channels_service.fetch_vote_types_by_ids(
+                                                context['current_show'].vote_types())
+            # Get the suggestion pools for the current show if it exists
+            context['suggestion_pools'] = shows_service.get_vote_types_suggestion_pools(
+                                                vote_types)
         return context
 
 
@@ -57,16 +59,6 @@ class ChannelHomeView(ChannelView):
         return render(request,
                       self.template_name,
                       context)
-
-@csrf_exempt
-def channel_user_update(request, *args, **kwargs):
-    channel_name = kwargs.get('channel_name')
-    user_id = kwargs.get('user_id')
-    channel = channels_service.channel_or_404(channel_name)
-    if request.method == 'POST' and user_id:
-        channels_service.update_channel_user(channel.id, user_id)
-        return HttpResponse("Channel User Updated", content_type='text/plain')
-    return HttpResponse("Not Updated", content_type='text/plain')
 
 
 class ChannelCreateEditView(ChannelView):
@@ -220,7 +212,7 @@ class ChannelSuggestionPoolsView(ChannelView):
         suggestion_pool_kwargs = {'channel': context['channel'],
                                   'name': escape(request.POST.get('name', '')),
                                   'display_name': escape(request.POST.get('display_name', '')),
-                                  'description': escape(request.POST.get('description', '')),
+                                  'description': strip_tags(request.POST.get('description', '')),
                                   'max_user_suggestions': int(request.POST.get('max_user_suggestions', 5)),
                                   'require_login': bool(request.POST.get('require_login', False)),
                                   'active': bool(request.POST.get('active', False)),
@@ -334,10 +326,28 @@ class ChannelShowsView(ChannelView):
             action = "Show Updated Successfully!"
         # Otherwise we're creating a new show
         else:
+            player_ids = request.POST.getlist('players')
+            vote_type_ids = request.POST.getlist('vote_types')
+            # Get the vote types selected
+            vote_types = channels_service.fetch_vote_types_by_ids(vote_type_ids)
+            # If players were selected, fetch them
+            if player_ids:
+                players = players_service.fetch_players_by_ids(player_ids, star=False)
+                # Get the star players
+                star_players = players_service.fetch_players_by_ids(player_ids, star=True)
+                # Get both star and regular players
+                combined_players = players_service.fetch_players_by_ids(player_ids)
+            # Otherwise the show has no players
+            else:
+                players = []
+                star_players = []
+                combined_players = []
             show = shows_service.create_show(context['channel'],
-                                             request.POST.getlist('vote_types'),
+                                             vote_types,
                                              request.POST.get('show_length', 180),
-                                             player_ids=request.POST.getlist('players'))
+                                             players=players,
+                                             star_players=star_players,
+                                             combined_players=combined_players)
             action = "Show Created Successfully!"
         if not delete:
             show.embedded_youtube = shows_service.validate_youtube(

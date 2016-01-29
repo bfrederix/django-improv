@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from shows.models import Show, Suggestion, LiveVote
+from shows.models import Show, Suggestion, LiveVote, PreshowVote
 from shows.serializers import ShowSerializer, SuggestionsSerializer
 from shows import service as shows_service
 from utilities.api import APIObject
@@ -40,6 +40,18 @@ class SuggestionAPIObject(APIObject):
             self.user_id = user.id
         else:
             self.user_id = None
+        upvote_user_id = kwargs.get('upvote_user_id')
+        upvote_session_id = kwargs.get('upvote_session_id')
+        if upvote_user_id and upvote_user_id !="None":
+            self.user_already_upvoted = bool(PreshowVote.objects.filter(show=suggestion.show,
+                                                                        suggestion=suggestion,
+                                                                        user=upvote_user_id).count())
+        elif upvote_session_id and upvote_session_id !="None":
+            self.user_already_upvoted = bool(PreshowVote.objects.filter(show=suggestion.show,
+                                                                        suggestion=suggestion,
+                                                                        session_id=upvote_session_id).count())
+        else:
+            self.user_already_upvoted = False
 
 
 class ShowViewSet(viewsets.ViewSet):
@@ -82,9 +94,12 @@ class SuggestionViewSet(viewsets.ViewSet):
 
     def list(self, request):
         kwargs = {}
+        api_kwargs = {'upvote_user_id': self.request.query_params.get('upvote_user_id'),
+                      'upvote_session_id': self.request.query_params.get('upvote_session_id')}
         user_id = self.request.query_params.get('user_id')
         show_id = self.request.query_params.get('show_id')
         suggestion_pool_id = self.request.query_params.get('suggestion_pool_id')
+        suggestion_pool_sort = self.request.query_params.get('suggestion_pool_sort')
         if user_id:
             kwargs['user'] = user_id
         if show_id:
@@ -92,6 +107,9 @@ class SuggestionViewSet(viewsets.ViewSet):
         if suggestion_pool_id:
             kwargs['suggestion_pool'] = suggestion_pool_id
         queryset = Suggestion.objects.filter(**kwargs)
-        updated_suggestions = [SuggestionAPIObject(item) for item in queryset]
+        # If we need to sort the suggestions for a suggestion pool display
+        if suggestion_pool_sort:
+            queryset = queryset.order_by('-preshow_value', 'created')
+        updated_suggestions = [SuggestionAPIObject(item, **api_kwargs) for item in queryset]
         serializer = SuggestionsSerializer(updated_suggestions, many=True)
         return Response(serializer.data)

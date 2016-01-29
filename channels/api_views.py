@@ -47,7 +47,10 @@ class SuggestionPoolViewSet(viewsets.ViewSet):
         # If pulling suggestion pools that are attached to a show
         if show_id:
             show = shows_service.show_or_404(show_id)
-            queryset = shows_service.get_show_suggestion_pools(show)
+            # Get the vote types by a list of ids
+            vote_types = channels_service.fetch_vote_types_by_ids(show.vote_types())
+            # Get the suggestion pools from the vote types
+            queryset = shows_service.get_vote_types_suggestion_pools(vote_types)
         # Any other suggestion pool fetching
         else:
             if channel_id:

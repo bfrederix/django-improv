@@ -3,10 +3,12 @@ import pytz
 
 from django.views.generic import View
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
-from shows.models import Suggestion
+from shows.models import Suggestion, PreshowVote
 from shows import service as shows_service
 from channels import service as channels_service
 from utilities import sessions as session_utils
@@ -28,9 +30,12 @@ class ShowView(View):
                                             getattr(self.request.user, 'id'))
         # Determine if there is a current show for this channel
         context['current_show'] = shows_service.show_or_404(show_id)
+        # Get the vote types by a list of ids
+        vote_types = channels_service.fetch_vote_types_by_ids(
+                                            context['current_show'].vote_types())
         # Get the suggestion pools for the current show if it exists
-        context['suggestion_pools'] = shows_service.get_show_suggestion_pools(
-                                            context['current_show'])
+        context['suggestion_pools'] = shows_service.get_vote_types_suggestion_pools(
+                                            vote_types)
         return context
 
 
@@ -99,6 +104,7 @@ class ShowSuggestionPoolView(ShowView):
                                                    suggestion_pool,
                                                    user_id=getattr(self.request.user, 'id'),
                                                    session_id=session_id)
+
         context.update({'suggestion_pool': suggestion_pool,
                         'session_id': session_id,
                         'disabled': disabled})
@@ -110,6 +116,7 @@ class ShowSuggestionPoolView(ShowView):
         action = None
         error = None
         user_id = getattr(self.request.user, 'id')
+        delete_id = request.POST.get('delete_id')
         suggestion_value = request.POST.get('suggestion_value')
         context = self.get_default_show_context(request, *args, **kwargs)
         session_id = session_utils.get_or_create_session_id(request)
@@ -117,12 +124,27 @@ class ShowSuggestionPoolView(ShowView):
         suggestion_pool_id = kwargs.get('suggestion_pool_id')
         suggestion_pool = channels_service.suggestion_pool_or_404(suggestion_pool_id)
         # Make sure the user is authenticated properly for the pool
+        # i.e. require_login or admin_only
         if not self.pool_auth_acceptable(suggestion_pool, request, context):
             # Redirect the user to the login page
             redirect_url = "{0}?next={1}".format(reverse('user_login'), request.path)
             return HttpResponseRedirect(redirect_url)
+        # If we are deleting a suggestion
+        if delete_id:
+            try:
+                suggestion = Suggestion.objects.get(pk=delete_id)
+            except ObjectDoesNotExist:
+                error = "Suggestion already deleted!"
+            else:
+                # Make sure the user has privileges to delete the suggestion
+                # Either they're an admin, or a user matching the user id or session id
+                if context['is_channel_admin'] or \
+                    suggestion.user and suggestion.user.id == user_id or \
+                    suggestion.session_id == session_id:
+                    # Delete the suggestion
+                    suggestion.delete()
         # Add the new suggestion
-        if suggestion_value and not Suggestion.objects.filter(show=context['current_show'],
+        elif suggestion_value and not Suggestion.objects.filter(show=context['current_show'],
                                                               value=suggestion_value):
             suggestion_kwargs = {'channel': context['channel'],
                                  'show': context['current_show'],
@@ -159,3 +181,20 @@ class ShowSuggestionPoolView(ShowView):
                       self.template_name,
                       context)
 
+
+class UpvoteSubmitView(ShowView):
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_default_show_context(request, *args, **kwargs)
+        suggestion_id = request.POST.get('id')
+        # If a suggestion was submitted properly
+        if suggestion_id:
+            preshow_kwargs = {'show': context['current_show'],
+                              'suggestion': Suggestion.objects.get(pk=suggestion_id),
+                              'session_id': session_utils.get_or_create_session_id(request)}
+            # If the user is logged in
+            if getattr(self.request.user, 'id'):
+                preshow_kwargs['user'] = User.objects.get(pk=request.user.id)
+            # Get or create the preshow vote
+            PreshowVote.objects.get_or_create(**preshow_kwargs)
+        return JsonResponse({})

@@ -2,6 +2,7 @@ import datetime
 import pytz
 
 from django.views.generic import View
+from django.utils.html import strip_tags
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -10,7 +11,7 @@ from channels import service as channels_service
 from users import service as users_service
 
 
-def get_paginated(request, objects, per_page=2):
+def get_paginated(request, objects, per_page=25):
     paginator = Paginator(objects, per_page) # How many per page
 
     page = request.GET.get('page')
@@ -165,7 +166,7 @@ class ForumThreadView(View):
         thread = get_object_or_404(Thread, id=thread_id)
         admin_channels = channels_service.get_channels_by_admin(getattr(request.user, 'id'))
         user_profile = users_service.fetch_user_profile(getattr(request.user, 'id'))
-        message = request.POST.get('message', '')
+        message = strip_tags(request.POST.get('message', ''))
         delete_reply = request.POST.get('delete_reply')
         # Superuser deleting a thread reply
         if request.user.is_superuser and delete_reply:

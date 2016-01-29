@@ -5,7 +5,6 @@ from django.http import Http404
 
 from channels.models import (ChannelAdmin, Channel, ChannelUser,
                              SuggestionPool, VoteType, VOTE_STYLE)
-from leaderboards import service as leaderboards_service
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -68,26 +67,20 @@ def channel_user_count(channel_id):
     return ChannelUser.objects.filter(channel=channel_id).count()
 
 
-def update_channel_user(channel_id, user_id):
+def update_channel_user(channel_id, user_id, leaderboard_entries):
     user_id = int(user_id)
     # Add the user as a ChannelUser
     channel_user, created = ChannelUser.objects.get_or_create(channel=channel_id, user=user_id)
-    # Get all the leaderboard entries by the user
-    les = leaderboards_service.fetch_leaderboard_entries_by_user(user_id)
     cu_update = {'points': 0,
                  'suggestion_wins': 0,
                  'show_wins': 0}
     # Go through all the leaderboard entries for the user
-    for le in les:
+    for le in leaderboard_entries:
         # Total points and suggestion wins
         cu_update['points'] += le.points
         cu_update['suggestion_wins'] += le.wins
-        # Fetch the each show's leaderboard in sorted order
-        show_entries = leaderboards_service.fetch_leaderboard_entries_by_show(le.show.id,
-                                                                              leaderboard_order=True)
-        # If the top user of that show and this user match
-        if show_entries[0].user.id == user_id:
-            # Mark it as a win for that user
+        # If they won the show
+        if le.show_win:
             cu_update['show_wins'] += 1
     # Set the overall leaderboard data on the Channel User
     for key, value in cu_update.items():
