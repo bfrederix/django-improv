@@ -7,7 +7,7 @@
 {% block content %}
   <div class="container-fluid">
   	<div class="row">
-  		<div class="col-md-4 col-md-offset-3 home-button-list">
+  		<div class="col-md-5 col-md-offset-3 home-button-list">
   			{% if channel.is_premium %}
 				<div class="row">
 				    <div class="col-md-12">
@@ -56,16 +56,31 @@
 						{% endif %}
                         <br/>
                         {% for pool in suggestion_pools %}
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <a class="text-center white-link" href="{% url "show_suggestion_pool" channel.name current_show.id pool.id %}">
-                                        <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font">
-                                            Add / Vote for {{pool.display_name}}
+                            {% if pool.admin_only %}
+                                {% if is_channel_admin %}
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <a class="text-center white-link" href="{% url "show_suggestion_pool" channel.name current_show.id pool.id %}">
+                                                <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font">
+                                                    Add / Vote for {{pool.display_name}}
+                                                </div>
+                                            </a>
                                         </div>
-                                    </a>
+                                    </div>
+                                    <br/>
+                                {% endif %}
+                            {% else %}
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <a class="text-center white-link" href="{% url "show_suggestion_pool" channel.name current_show.id pool.id %}">
+                                            <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font">
+                                                Add / Vote for {{pool.display_name}}
+                                            </div>
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
-                            <br/>
+                                <br/>
+                            {% endif %}
                         {% endfor %}
 					{% endif %}
                     <a class="text-center" href="{% url "channel_recaps" channel.name %}">

@@ -128,3 +128,21 @@ def vote_type_style_to_fields(style):
     elif style == 'all-players':
         fields['players_only'] = True
     return fields
+
+
+def vote_type_available_options(vote_type,
+                                show_players_count=0,
+                                show_vote_type_player_pool_count=0,
+                                show_player_pool_count=0):
+    # If it's player options
+    if vote_type.players_only:
+        # If it uses a pool for the show
+        if vote_type.show_player_pool:
+            return show_player_pool_count
+        elif vote_type.vote_type_player_pool:
+            pass
+        else:
+            pass
+    # If it's a suggestion pool option
+    else:
+        pass

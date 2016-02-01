@@ -6,6 +6,7 @@ import pytz
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Max
+from django.core.exceptions import ObjectDoesNotExist
 
 from shows.models import (Show, Suggestion, VotedItem,
                           VoteOptions, OptionSuggestion,
@@ -21,23 +22,36 @@ def show_or_404(show_id):
 
 def get_current_show(channel):
     now_utc = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+    # Set the longest back we would consider a show still running
     longest_showtime_ago = now_utc - datetime.timedelta(hours=48)
+    # Fetch all shows that started within the last 48 hours
     shows = Show.objects.filter(channel=channel,
                                 created__gt=longest_showtime_ago).order_by('-created')
+    # If there were shows in the last 48 hours
     if shows:
-        show_end = shows[0].created + datetime.timedelta(minutes=shows[0].show_length)
-        if show_end > now_utc:
+        # Return the most recent show, as long as it hasn't ended already
+        if shows[0].show_end() > now_utc:
             return shows[0]
     return None
 
-def fetch_suggestion_count_by_user(user_id, show_id=None):
+
+def fetch_suggestions(user_id=None, show_id=None, suggestion_pool_id=None,
+                      used=None, count=False):
+    kwargs = {}
     if user_id:
-        kwargs = {'user': user_id}
-        if show_id:
-            kwargs['show'] = show_id
-        return Suggestion.objects.filter(**kwargs).count()
+        kwargs['user'] = user_id
+    if show_id:
+        kwargs['show'] = show_id
+    if suggestion_pool_id:
+        kwargs['suggestion_pool'] = suggestion_pool_id
+    if used != None:
+        kwargs['used'] = used
+    queryset = Suggestion.objects.filter(**kwargs)
+
+    if count:
+        return queryset.count()
     else:
-        return 0
+        return queryset
 
 
 def suggestion_or_404(suggestion_id):
@@ -66,6 +80,28 @@ def fetch_option_suggestion(vote_option_id):
     return OptionSuggestion.objects.filter(vote_option=vote_option_id)
 
 
+def get_show_vote_type_player_pool(vote_type, show, count=False, used=None):
+    """
+    Get the players remaining for the vote type in the show
+    :param vote_type: obj
+    :param show: obj
+    :param count: bool: Only return the count
+    :param used: bool: Decide whether to return used or not used
+    :return: List of Player objects
+    """
+    svtpp_kwargs = {'show': show,
+                    'vote_type': vote_type}
+    if used != None:
+        svtpp_kwargs['used'] = used
+    queryset = ShowVoteTypePlayerPool.objects.filter(**svtpp_kwargs)
+    # If we only want the count
+    if count:
+        return queryset.count()
+    # Return the remaining players
+    else:
+        return [svtpp.player for svtpp in queryset]
+
+
 def get_vote_types_suggestion_pools(vote_types):
     suggestion_pools = []
     for vote_type in vote_types:
@@ -74,6 +110,16 @@ def get_vote_types_suggestion_pools(vote_types):
             # Add it to the list of suggestion pools for the show
             suggestion_pools.append(vote_type.suggestion_pool)
     return suggestion_pools
+
+
+def get_vote_type_used(show, vote_type):
+    try:
+        VotedItem.objects.get(show=show,
+                              vote_type=vote_type)
+    except ObjectDoesNotExist:
+        return False
+    else:
+        return True
 
 
 def suggestions_maxed(show, suggestion_pool, user_id=None, session_id=None):

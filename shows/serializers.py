@@ -13,10 +13,12 @@ class ShowSerializer(serializers.Serializer):
     show_length = serializers.IntegerField()
     photo_link = serializers.CharField(required=False)
     embedded_youtube = serializers.CharField(required=False, source="formatted_youtube")
+    vote_types = serializers.ListField()
 
     class Meta:
         fields = ('id', 'channel_id', 'channel_name',
                   'name', 'created', 'show_length',
+                  'vote_types',
                   #'current_vote_type', 'current_vote_init',
                   'locked', 'photo_link', 'embedded_youtube')
 

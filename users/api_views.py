@@ -18,7 +18,7 @@ class UserAPIObject(APIObject):
 
     def __init__(self, user_profile, **kwargs):
         super(UserAPIObject, self).__init__(user_profile, **kwargs)
-        self.suggestions = shows_service.fetch_suggestion_count_by_user(self.user_id)
+        self.suggestions = shows_service.fetch_suggestions(user_id=self.user_id, count=True)
         leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_user(
                                     self.user_id)
         self.points = 0

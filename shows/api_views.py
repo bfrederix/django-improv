@@ -15,7 +15,9 @@ class ShowAPIObject(APIObject):
                   'photo_link',
                   'embedded_youtube',
                   'formatted_youtube',
-                  'formatted_date']
+                  'formatted_date',
+                  'show_end',
+                  'vote_types']
 
     def __init__(self, show, **kwargs):
         super(ShowAPIObject, self).__init__(show, **kwargs)

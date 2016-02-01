@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from shows import service as shows_service
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 
@@ -111,6 +112,7 @@ class VoteType(models.Model):
     result_length = models.IntegerField(default=10, blank=False)
     button_color = models.CharField(default="#003D7A", blank=False, max_length=100)
     require_login = models.BooleanField(blank=False, default=False)
+
     # Implicit Vote Type Options
     player_options = models.BooleanField(blank=False, default=False)
     players_only = models.BooleanField(blank=False, default=False)
@@ -131,6 +133,12 @@ class VoteType(models.Model):
         if self.intervals:
             return self.intervals.translate({ord(i):None for i in '[]L '})
 
+    def interval_list(self):
+        if self.intervals:
+            return [int(i) for i in self.stripped_intervals().split(',')]
+        else:
+            return []
+
     def style_id(self):
         if self.style:
             count = 0
@@ -138,6 +146,33 @@ class VoteType(models.Model):
                 count += 1
                 if self.style == name:
                     return count
+
+    def vote_options_name(self):
+        """ Either a suggestion pool display name or "Players"
+        :return: str
+        """
+        if self.players_only:
+            return "Players"
+        elif self.suggestion_pool:
+            return self.suggestion_pool.display_name
+        return "Requires either Players or a Suggestion Pool"
+
+    def remaining_intervals(self):
+        # If a current interval exists, return the entire amount of intervals
+        if self.current_interval == None:
+            return len(self.interval_list())
+        try:
+            # Find the index of the current interval in the list
+            interval_index = self.interval_list().index(self.current_interval)
+        except ValueError:
+            # Return no more intervals if the index isn't found
+            return 0
+        # Return the length of the list from the current interval to the end
+        # Subtract one because where the index starts
+        return len(self.interval_list()[interval_index:]) - 1
+
+    def vote_type_used(self, show):
+        return shows_service.get_vote_type_used(show, self)
 
     def __unicode__(self):
         return self.name

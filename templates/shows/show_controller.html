@@ -1,21 +1,21 @@
 {% extends "channels/channel_base.html" %}
 
-{% block admin-selected %} active{% endblock %}
-{% block add-player-selected %}class="active"{% endblock %}
+{% block show-controller-selected %} active{% endblock %}
 
-{% block title %}{{channel.display_name}}'s Add/Edit Players{% endblock %}
+{% block title %}{{channel.display_name}}'s Show Controller{% endblock %}
 
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>
     <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
 
-    <input type="hidden" id="rootType" name="rootType" value="channel_players" readonly>
-	<input type="hidden" id="playerAPIUrl" name="playerAPIUrl"
-           value="{% url "player-list" %}" readonly>
-    <input type="hidden" id="playerListAPIUrl" name="playerListAPIUrl"
-           value="{% url "player-list" %}?channel_id={{channel.id}}&sort_by_active=True" readonly>
+    <input type="hidden" id="rootType" name="rootType" value="show_controller" readonly>
+    <input type="hidden" id="showID" name="showID" value="{{current_show.id}}" readonly>
+    <input type="hidden" id="showAPIUrl" name="showAPIUrl"
+               value="{% url "show-detail" current_show.id %}" readonly>
+    <input type="hidden" id="voteTypeAPIUrl" name="voteTypeAPIUrl"
+           value="{% url "vote-type-list" %}" readonly>
     <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
-               value="{% url "channel_players" channel.name %}" readonly>
+           value="{% url "show_controller" channel.name current_show.id %}" readonly>
     <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
 	{% if action %}
 		<input type="hidden" id="action" name="action" value="{{action}}" readonly>

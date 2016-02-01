@@ -436,6 +436,7 @@ var Panel = React.createClass({
     if (this.props.panelHeadingContent) {
         panelComponents.push(<PanelHeader key="1"
                                           panelHeadingClasses={this.props.panelHeadingClasses}
+                                          panelHeadingStyle={this.props.panelHeadingStyle}
                                           panelHeadingContent={this.props.panelHeadingContent}
                                           panelHeadingLink={this.props.panelHeadingLink} />);
     }
@@ -469,7 +470,7 @@ var PanelHeader = React.createClass({
         link = <span>(<a href={this.props.panelHeadingLink}>Read More</a>)</span>;
     }
     return (
-      <div className={panelHeaderClasses}>{this.props.panelHeadingContent} {link}</div>
+      <div className={panelHeaderClasses} style={this.props.panelHeadingStyle}>{this.props.panelHeadingContent} {link}</div>
     );
   }
 });
@@ -1379,7 +1380,7 @@ var VoteTypeForm = React.createClass({
                                      selectID="style" />;
     formContents.push(<FormGroup key="7"
                                  labelSize="2"
-                                 labelContents="Voting Style:"
+                                 labelContents="Voting Style*:"
                                  inputSize="6"
                                  input={styleInput}
                                  helpBlock='Select a voting style for the Vote Type.'
@@ -2653,6 +2654,174 @@ var ShowSuggestionPool = React.createClass({
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// SHOW CONTROLLER COMPONENTS ///////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+var ShowControllerVoteType = React.createClass({
+  mixins: [SetIntervalMixin], // Use the setInterval timing mixin
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Initially update the vote type
+    this.updateVoteType()
+    // Set an interval to update the vote types on (10 seconds)
+    this.setInterval(this.updateVoteType, 10000);
+  },
+  updateVoteType: function() {
+    var voteTypeAPIUrl = this.props.voteTypeAPIUrl + this.props.voteTypeID + "/?show_id=" + this.props.showID;
+    $.ajax({
+      url: voteTypeAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+    var buttonStyle = {backgroundColor: this.state.data.button_color};
+    var voteTypeButton;
+    var buttonText;
+    var optionType = "";
+    var availableOptions = this.state.data.available_options;
+    // Determine if the vote type is players or options
+    if (!this.state.data.players_only) {
+        optionType = "Suggestions";
+    } else {
+        optionType = "Players";
+    }
+    // Show what's available
+    var availableText = optionType + ": " + this.state.data.available_options;
+    // If the vote type has intervals
+    if (this.state.data.intervals) {
+        // If there are still remaining intervals
+        if (this.state.data.remaining_intervals) {
+            // If the available options are greater than the remaining intervals
+            if (this.state.data.available_options >= this.state.data.remaining_intervals) {
+                buttonText = "Start the " + this.state.data.display_name + " Interval Vote (" + availableOptions + ")  ";
+                voteTypeButton = (
+                    <div>
+                        <input key="1" type="hidden" name="vote_start" value={this.state.data.name} />
+                        <input key="2" type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />
+                    </div>
+                );
+            // Not enough available options for the vote
+            } else {
+                buttonText = "Need more " + this.state.data.vote_options_name + " " + optionType + " (" + availableOptions + ")  ";
+                voteTypeButton = <input disabled="true" type="submit" className="btn btn-block btn-lg word-wrap x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />;
+            }
+        // No more intervals remain
+        } else {
+            buttonText = "No more " + this.state.data.display_name + " Intervals";
+            voteTypeButton = <input disabled="true" type="submit" className="btn btn-block btn-lg word-wrap x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />;
+        }
+    // If there are enough options for the vote
+    } else if (this.state.data.available_options) {
+        // If the vote type was already used
+        if (this.state.data.vote_type_used) {
+            buttonText = "No more " + this.state.data.display_name;
+            voteTypeButton = <input disabled="true" type="submit" className="btn btn-block btn-lg word-wrap x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />;
+        } else {
+            buttonText = "Start the " + this.state.data.display_name + " Vote";
+            voteTypeButton = (
+                <div>
+                    <input key="1" type="hidden" name="vote_start" value={this.state.data.name} />
+                    <input key="2" type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />
+                </div>
+            );
+        }
+    // Not enough options for the vote
+    } else {
+        buttonText = "Need more " + this.state.data.vote_options_name + " " + optionType;
+        voteTypeButton = <input disabled="true" type="submit" className="btn btn-block btn-lg word-wrap x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />;
+    }
+
+    var voteTypePanelContents = (
+        <form action={this.props.formSubmitUrl} method="post">
+            <div className="row">
+                <div className="col-md-6">
+                    {voteTypeButton}
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-md-12">
+                    <br />
+                    {availableText}
+                </div>
+            </div>
+        </form>
+    );
+
+    return (
+        <Panel key="1"
+               panelWidth="6" panelOffset="3" panelColor="danger"
+               panelHeadingContent={this.state.data.display_name}
+               panelHeadingStyle={buttonStyle}
+               panelHeadingClasses="x-large-font"
+               panelBodyClasses="large-font white-background"
+               bodyContent={voteTypePanelContents} />
+    );
+  }
+});
+
+
+var ShowController = React.createClass({
+  mixins: [SetIntervalMixin], // Use the setInterval timing mixin
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Initially update the show controller
+    this.updateShowController()
+    // Set an interval to update the show controller on (20 seconds)
+    this.setInterval(this.updateShowController, 20000);
+  },
+  updateShowController: function() {
+    $.ajax({
+      url: this.props.showControllerContext.showAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    var voteTypePanelList = [];
+    this.counter = 0;
+    if (this.state.data) {
+        // Create the vote type list
+        this.state.data.vote_types.map(function (voteTypeID) {
+            this.counter++;
+            voteTypePanelList.push(<ShowControllerVoteType key={this.counter}
+                                                           voteTypeID={voteTypeID}
+                                                           showID={this.props.showControllerContext.showID}
+                                                           voteTypeAPIUrl={this.props.showControllerContext.voteTypeAPIUrl}
+                                                           formSubmitUrl={this.props.showControllerContext.formSubmitUrl}
+                                                           csrfToken={this.props.showControllerContext.csrfToken} />);
+            return voteTypePanelList;
+        }, this);
+    } else {
+        voteTypePanelList.push((<div key="load-1"><Loading loadingBarColor="#fff"/></div>));
+    }
+
+    return (
+        <div>{voteTypePanelList}</div>
+    );
+  }
+});
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////// SHOW DISPLAY COMPONENTS ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2828,7 +2997,6 @@ var RootComponent = React.createClass({
         rootComponents.push(<Leaderboard key="1" leaderboardContext={leaderboardContext} />);
     } else if (rootType == "recap") {
         var recapContext = {
-            channelID: getElementValueOrNull("channelID"),
             channelName: getElementValueOrNull("channelName"),
             imageBaseUrl: getElementValueOrNull("imageBaseUrl"),
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
@@ -2858,8 +3026,6 @@ var RootComponent = React.createClass({
                                                    channelCreateEditContext={channelCreateEditContext} />);
     } else if (rootType == "channel_players") {
         var addPlayerContext = {
-            channelID: getElementValueOrNull("channelID"),
-            channelName: getElementValueOrNull("channelName"),
             playerAPIUrl: getElementValueOrNull("playerAPIUrl"),
             playerListAPIUrl: getElementValueOrNull("playerListAPIUrl"),
             formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
@@ -2870,8 +3036,6 @@ var RootComponent = React.createClass({
         rootComponents.push(<PlayerForm key="1" addPlayerContext={addPlayerContext} />);
     } else if (rootType == "channel_suggestion_pools") {
         var suggestionPoolContext = {
-            channelID: getElementValueOrNull("channelID"),
-            channelName: getElementValueOrNull("channelName"),
             isPremium: getElementValueOrNull("isPremium"),
             suggestionPoolAPIUrl: getElementValueOrNull("suggestionPoolAPIUrl"),
             suggestionPoolListAPIUrl: getElementValueOrNull("suggestionPoolListAPIUrl"),
@@ -2883,8 +3047,6 @@ var RootComponent = React.createClass({
         rootComponents.push(<SuggestionPoolForm key="1" suggestionPoolContext={suggestionPoolContext} />);
     } else if (rootType == "channel_vote_types") {
         var voteTypeContext = {
-            channelID: getElementValueOrNull("channelID"),
-            channelName: getElementValueOrNull("channelName"),
             isPremium: getElementValueOrNull("isPremium"),
             voteTypeAPIUrl: getElementValueOrNull("voteTypeAPIUrl"),
             voteTypeListAPIUrl: getElementValueOrNull("voteTypeListAPIUrl"),
@@ -2898,8 +3060,6 @@ var RootComponent = React.createClass({
         rootComponents.push(<VoteTypeForm key="1" voteTypeContext={voteTypeContext} />);
     } else if (rootType == "channel_shows") {
         var channelShowContext = {
-            channelID: getElementValueOrNull("channelID"),
-            channelName: getElementValueOrNull("channelName"),
             isPremium: getElementValueOrNull("isPremium"),
             showAPIUrl: getElementValueOrNull("showAPIUrl"),
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
@@ -2913,8 +3073,6 @@ var RootComponent = React.createClass({
         rootComponents.push(<ChannelShowForm key="1" channelShowContext={channelShowContext} />);
     } else if (rootType == "show_suggestion_pool") {
         var showSuggestionPoolContext = {
-            channelID: getElementValueOrNull("channelID"),
-            channelName: getElementValueOrNull("channelName"),
             showID: getElementValueOrNull("showID"),
             suggestionPoolID: getElementValueOrNull("suggestionPoolID"),
             suggestionPoolDisplayName: getElementValueOrNull("suggestionPoolDisplayName"),
@@ -2933,6 +3091,17 @@ var RootComponent = React.createClass({
             error: getElementValueOrNull("error")
         };
         rootComponents.push(<ShowSuggestionPool key="1" showSuggestionPoolContext={showSuggestionPoolContext} />);
+    } else if (rootType == "show_controller") {
+        var showControllerContext = {
+            showID: getElementValueOrNull("showID"),
+            showAPIUrl: getElementValueOrNull("showAPIUrl"),
+            voteTypeAPIUrl: getElementValueOrNull("voteTypeAPIUrl"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
+        };
+        rootComponents.push(<ShowController key="1" showControllerContext={showControllerContext} />);
     }
 
 

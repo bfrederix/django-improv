@@ -8,6 +8,57 @@ from channels.serializers import (ChannelSerializer, ChannelAddressSerializer,
                                   VoteStyleSerializer)
 from channels import service as channels_service
 from shows import service as shows_service
+from utilities.api import APIObject
+
+
+class VoteTypeAPIObject(APIObject):
+    field_list = ['id', 'channel', 'name', 'display_name',
+                  'manual_interval_control', 'stripped_intervals', 'style_id',
+                  'ordering', 'options', 'vote_length', 'result_length',
+                  'button_color', 'require_login', 'preshow_selected',
+                  'player_options', 'players_only', 'show_player_pool',
+                  'vote_type_player_pool', 'eliminate_winning_player',
+                  'keep_suggestions', 'active', 'vote_options_name',
+                  'current_interval', 'current_vote_init',
+                  'remaining_intervals', 'created']
+
+    def __init__(self, vote_type, **kwargs):
+        super(VoteTypeAPIObject, self).__init__(vote_type, **kwargs)
+        self.suggestion_pool_id = None
+        show_id = kwargs.get('show_id')
+        if vote_type.suggestion_pool:
+            self.suggestion_pool_id = vote_type.suggestion_pool.id
+        # If requesting data about a specific show's vote type
+        if show_id:
+            show = shows_service.show_or_404(show_id)
+            # If it's player options
+            if vote_type.players_only:
+                # If it uses a pool for the show
+                if vote_type.show_player_pool:
+                    self.available_options = len(show.remaining_show_players())
+                # If it's a pool for a specific vote type
+                elif vote_type.vote_type_player_pool:
+                    self.available_options = \
+                            shows_service.get_show_vote_type_player_pool(vote_type,
+                                                                         show,
+                                                                         count=True,
+                                                                         used=False)
+                # If it's all players for the show
+                else:
+                    self.available_options = len(show.players())
+            # If it's a suggestion pool option
+            elif vote_type.suggestion_pool:
+                self.available_options = shows_service.fetch_suggestions(show_id=show.id,
+                                                                         suggestion_pool_id=vote_type.suggestion_pool.id,
+                                                                         count=True,
+                                                                         used=False)
+            else:
+                raise ValueError("Something went wrong with this Vote Type: {0}".format(
+                                    vote_type.id))
+            # Determine if an item has been voted for
+            self.vote_type_used = vote_type.vote_type_used(show)
+
+
 
 
 class ChannelViewSet(viewsets.ModelViewSet):
@@ -71,8 +122,11 @@ class VoteTypeViewSet(viewsets.ViewSet):
     """
 
     def retrieve(self, request, pk=None):
+        show_id = self.request.query_params.get('show_id')
+        vote_type_kwargs = {'show_id': show_id}
         vote_type = channels_service.vote_type_or_404(pk)
-        serializer = VoteTypeSerializer(vote_type)
+        vote_type_api_obj = VoteTypeAPIObject(vote_type, **vote_type_kwargs)
+        serializer = VoteTypeSerializer(vote_type_api_obj)
         return Response(serializer.data)
 
     def list(self, request):
@@ -88,7 +142,8 @@ class VoteTypeViewSet(viewsets.ViewSet):
             queryset = queryset.exclude(active=False)
         if sort_by_active:
             queryset = queryset.order_by('-active', 'name')
-        serializer = VoteTypeSerializer(queryset, many=True)
+        updated_vote_types = [VoteTypeAPIObject(item) for item in queryset]
+        serializer = VoteTypeSerializer(updated_vote_types, many=True)
         return Response(serializer.data)
 
 

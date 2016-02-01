@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -16,6 +18,7 @@ class Show(models.Model):
     vote_options = models.IntegerField(blank=False, default=3)
 
     created = models.DateTimeField(blank=False)
+    first_vote_start = models.DateTimeField(blank=True, null=True)
 
     # Changes during live show
     current_vote_type = FlexibleForeignKey("channels.VoteType", blank=True, related_name='+',
@@ -30,6 +33,9 @@ class Show(models.Model):
     def __unicode__(self):
         return self.created.strftime(DATE_FORMAT_STR)
 
+    def show_end(self):
+        return self.created + datetime.timedelta(minutes=self.show_length)
+
     def formatted_date(self):
         return self.created.strftime(DATE_FORMAT_STR)
 
@@ -40,7 +46,7 @@ class Show(models.Model):
 
     # All vote types by show id
     def vote_types(self):
-        return [svt.vote_type.id for svt in ShowVoteType.objects.filter(show=self.id)]
+        return [svt.vote_type.id for svt in ShowVoteType.objects.filter(show=self.id).order_by("vote_type__ordering")]
 
     # All players by show id
     def players(self):
@@ -50,15 +56,6 @@ class Show(models.Model):
     def remaining_show_players(self):
         return [sp.player.id for sp in ShowPlayer.objects.filter(show=self.id).exclude(used=True)]
 
-    # The remaining un-used players in the show player pool
-    def remaining_vote_type_players(self):
-        if self.current_vote_type:
-            return [svtpp.player.id \
-                    for svtpp in ShowVoteTypePlayerPool.objects.filter(
-                        show=self.id,
-                        vote_type=self.current_vote_type).exclude(used=True)]
-        else:
-            return []
 
 # Doing this as a Many to Many so I can use BigInts
 class ShowVoteType(models.Model):

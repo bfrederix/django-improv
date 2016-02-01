@@ -277,17 +277,20 @@ class ChannelVoteTypesView(ChannelView):
                             'active': bool(request.POST.get('active', False))}
         vote_type_kwargs.update(
             channels_service.vote_type_style_to_fields(vote_type_kwargs['style']))
-        if vote_type_id and vote_type_kwargs['name']:
+        # If we are editing and the required name and style are met
+        if vote_type_id and vote_type_kwargs['name'] and vote_type_kwargs['style']:
             action = "Vote Type Edited Successfully!"
             vote_type = channels_service.vote_type_or_404(vote_type_id)
             for key, value in vote_type_kwargs.items():
                 setattr(vote_type, key, value)
-        elif vote_type_kwargs['name']:
+        # If we are creating and the required name and style are met
+        elif vote_type_kwargs['name'] and vote_type_kwargs['style']:
             action = "Vote Type Created Successfully!"
             vote_type = VoteType(**vote_type_kwargs)
             vote_type.created = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+        # name and style are REQUIRED
         else:
-            error = 'Vote Type name required'
+            error = 'Vote Type Name and Style required'
 
         if not error:
             vote_type.save()
