@@ -139,7 +139,7 @@ class ShowSuggestionPoolView(ShowView):
                 # Make sure the user has privileges to delete the suggestion
                 # Either they're an admin, or a user matching the user id or session id
                 if context['is_channel_admin'] or \
-                    suggestion.user and suggestion.user.id == user_id or \
+                    suggestion.user_id and suggestion.user_id == user_id or \
                     suggestion.session_id == session_id:
                     # Delete the suggestion
                     suggestion.delete()

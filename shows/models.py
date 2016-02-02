@@ -46,15 +46,17 @@ class Show(models.Model):
 
     # All vote types by show id
     def vote_types(self):
-        return [svt.vote_type.id for svt in ShowVoteType.objects.filter(show=self.id).order_by("vote_type__ordering")]
+        return [svt_vt_id for svt_vt_id in ShowVoteType.objects.filter(show=self.id).values_list('vote_type_id', flat=True)\
+                                                                                    .order_by("vote_type__ordering")]
 
     # All players by show id
     def players(self):
-        return [sp.player.id for sp in ShowPlayer.objects.filter(show=self.id)]
+        return [sp_p_id for sp_p_id in ShowPlayer.objects.filter(show=self.id).values_list('player_id', flat=True)]
 
     # The remaining un-used players in the show player pool
     def remaining_show_players(self):
-        return [sp.player.id for sp in ShowPlayer.objects.filter(show=self.id).exclude(used=True)]
+        return [sp_p_id for sp_p_id in ShowPlayer.objects.filter(show=self.id).exclude(used=True)\
+                                                                                   .values_list('player_id', flat=True)]
 
 
 # Doing this as a Many to Many so I can use BigInts

@@ -27,9 +27,6 @@ class UserProfile(models.Model):
         self.strip_username = self.username.replace(" ", "").lower()
         super(UserProfile, self).save(*args, **kwargs)
 
-    def user_id(self):
-        return self.user.id
-
     def safe_username(self):
         try:
             return self.username.split('@')[0]

@@ -32,21 +32,17 @@ class LeaderboardEntry(models.Model):
     def __unicode__(self):
         return str(self.id)
 
-    def user_id(self):
-        if self.user:
-            return self.user.id
-
     def username(self):
-        user_profile = users_service.fetch_user_profile(self.user.id)
+        user_profile = users_service.fetch_user_profile(self.user_id)
         return user_profile.safe_username()
 
     def show_win(self):
         # Fetch the leaderboard entries sorted by suggestion wins and points
-        leaderboard_entries = LeaderboardEntry.objects.filter(show=self.show).order_by('-wins',
-                                                                                       '-points')
+        leaderboard_entries = LeaderboardEntry.objects.filter(show=self.show_id).order_by('-wins',
+                                                                                          '-points')
         try:
             # If the top user of that show and this user match
-            if leaderboard_entries[0].user.id == self.user.id:
+            if leaderboard_entries[0].user_id == self.user_id:
                 # They won the show!
                 return True
         except (IndexError, AttributeError) as e:
@@ -56,9 +52,9 @@ class LeaderboardEntry(models.Model):
     def save(self, *args, **kwargs):
         # If there is a user attached to the entry
         if self.user:
-            leaderboard_entries = LeaderboardEntry.objects.filter(user=self.user.id)
+            leaderboard_entries = LeaderboardEntry.objects.filter(user=self.user_id)
             # Add them as a channel user and update their leaderboard aggregate stats
-            channels_service.update_channel_user(self.channel, self.user.id, leaderboard_entries)
+            channels_service.update_channel_user(self.channel_id, self.user_id, leaderboard_entries)
         super(LeaderboardEntry, self).save(*args, **kwargs)
 
 

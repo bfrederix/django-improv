@@ -736,9 +736,15 @@ var DropDownSelect = React.createClass({
     var optionList = [];
     var selectID;
     var selectElement;
+    var loadingBarColor;
+    if (this.props.loadingBarColor) {
+        loadingBarColor = this.props.loadingBarColor;
+    } else {
+        loadingBarColor = "#fff";
+    }
     if (!this.state.data){
         return (<div>
-                    <Loading loadingBarColor="#fff"/>
+                    <Loading loadingBarColor={loadingBarColor} />
                 </div>);
     }
     if (!this.props.selectID) {
@@ -1124,7 +1130,8 @@ var PlayerForm = React.createClass({
                                           selectEventHandler={this.handleEditPlayer}
                                           selectID="playerID"
                                           defaultSelected={this.state.editPlayerID}
-                                          defaultText="Select a Player to Edit" />;
+                                          defaultText="Select a Player to Edit"
+                                          loadingBarColor="#000" />;
     formContents.push(<FormGroup key="6"
                                  labelSize="2"
                                  labelContents="Edit Player:"
@@ -1276,7 +1283,8 @@ var SuggestionPoolForm = React.createClass({
     var suggestionPoolEditInput = <DropDownSelect listAPIUrl={this.props.suggestionPoolContext.suggestionPoolListAPIUrl}
                                                   selectEventHandler={this.editEventHandler}
                                                   defaultSelected={this.state.suggestionPoolID}
-                                                  defaultText="Select a Suggestion Pool to Edit" />;
+                                                  defaultText="Select a Suggestion Pool to Edit"
+                                                  loadingBarColor="#000" />;
     formContents.push(<FormGroup key="9"
                                  labelSize="2"
                                  labelContents="Edit Suggestion Pool:"
@@ -1389,7 +1397,8 @@ var VoteTypeForm = React.createClass({
     var suggestionPoolInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.suggestionPoolListAPIUrl}
                                               defaultSelected={this.state.data.suggestion_pool}
                                               defaultText="Select a Suggestion Pool"
-                                              selectID="suggestion_pool" />;
+                                              selectID="suggestion_pool"
+                                              loadingBarColor="#000" />;
     formContents.push(<FormGroup key="3"
                                  labelSize="2"
                                  labelContents="Suggestion Pool:"
@@ -1495,7 +1504,8 @@ var VoteTypeForm = React.createClass({
     var voteTypeEditInput = <DropDownSelect listAPIUrl={this.props.voteTypeContext.voteTypeListAPIUrl}
                                             selectEventHandler={this.editEventHandler}
                                             defaultSelected={this.state.voteTypeID}
-                                            defaultText="Select a Vote Type to Edit" />;
+                                            defaultText="Select a Vote Type to Edit"
+                                            loadingBarColor="#000" />;
     formContents.push(<FormGroup key="16"
                                  labelSize="2"
                                  labelContents="Edit VoteType:"
@@ -1568,7 +1578,8 @@ var ChannelShowForm = React.createClass({
         // Vote Types Dropdown Input
         var voteTypesInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.voteTypeListAPIUrl}
                                              selectID="vote_types"
-                                             multiple="true" />;
+                                             multiple="true"
+                                             loadingBarColor="#000" />;
         formContents.push(<FormGroup key="1"
                                      labelSize="2"
                                      labelContents="Vote Types:"
@@ -1578,7 +1589,8 @@ var ChannelShowForm = React.createClass({
         // Players Dropdown Input
         var playersInput = <DropDownSelect listAPIUrl={this.props.channelShowContext.playerListAPIUrl}
                                            selectID="players"
-                                           multiple="true" />;
+                                           multiple="true"
+                                           loadingBarColor="#000" />;
         formContents.push(<FormGroup key="2"
                                      labelSize="2"
                                      labelContents="Players:"
@@ -1635,6 +1647,7 @@ var ChannelShowForm = React.createClass({
                                         selectEventHandler={this.editEventHandler}
                                         defaultSelected={this.state.showID}
                                         defaultText="Select a Show to Edit"
+                                        loadingBarColor="#000"
                                         convertCreatedTimestamp="True" />;
     formContents.push(<FormGroup key="7"
                                  labelSize="2"

@@ -12,5 +12,5 @@ def fetch_leaderboard_entries_by_show(show_id, leaderboard_order=False):
     return leaderboard_entries
 
 
-def fetch_medals_by_leaderboard_entry(leaderboard_entry_id):
-    return LeaderboardEntryMedal.objects.filter(leaderboard_entry=leaderboard_entry_id)
+def fetch_medal_ids_by_leaderboard_entry(leaderboard_entry_id):
+    return LeaderboardEntryMedal.objects.filter(leaderboard_entry=leaderboard_entry_id).values_list('medal_id', flat=True)

@@ -12,20 +12,20 @@ class RecapAPIObject(APIObject):
     def __init__(self, voted_item, **kwargs):
         super(RecapAPIObject, self).__init__(voted_item, **kwargs)
         # Get all the options for that vote
-        vote_options = shows_service.fetch_vote_options(show=voted_item.show,
-                                                        vote_type=voted_item.vote_type,
-                                                        interval=voted_item.interval)
+        vote_option_ids = shows_service.fetch_vote_option_ids(show_id=voted_item.show_id,
+                                                              vote_type_id=voted_item.vote_type_id,
+                                                              interval=voted_item.interval)
         try:
             # Get the id for the vote options if it exists
-            self.options_id = vote_options[0].id
+            self.options_id = vote_option_ids[0]
         except IndexError:
             pass
         # if there's a player attached to the vote option
-        if voted_item.player:
-            self.player = voted_item.player.id
+        if voted_item.player_id:
+            self.player = voted_item.player_id
         # If the voted item was on a suggestions
-        if voted_item.suggestion:
-            self.winning_suggestion = voted_item.suggestion.id
+        if voted_item.suggestion_id:
+            self.winning_suggestion = voted_item.suggestion_id
         # If it was an interval
         if voted_item.interval is not None:
             self.interval = voted_item.interval
@@ -36,12 +36,12 @@ class OptionSuggestionAPIObject(APIObject):
 
     def __init__(self, option, **kwargs):
         super(OptionSuggestionAPIObject, self).__init__(option, **kwargs)
-        self.suggestion_id = option.suggestion.id
+        self.suggestion_id = option.suggestion_id
         self.used = option.suggestion.used
         self.suggestion = option.suggestion.value
-        user = option.suggestion.user
-        if user:
-            user_profile = users_service.fetch_user_profile(user.id)
+        user_id = option.suggestion.user_id
+        if user_id:
+            user_profile = users_service.fetch_user_profile(user_id)
             self.user_id = user_profile.user_id
             self.username = user_profile.safe_username
 
@@ -52,8 +52,7 @@ class RecapViewSet(viewsets.ViewSet):
     """
 
     def retrieve(self, request, pk=None):
-        show = shows_service.show_or_404(pk)
-        voted_items = shows_service.fetch_voted_items_by_show(show.id,
+        voted_items = shows_service.fetch_voted_items_by_show(pk,
                                                               ordered=True)
         recaps = [RecapAPIObject(item) for item in voted_items]
         serializer = RecapSerializer(recaps, many=True)

@@ -18,7 +18,7 @@
     <input type="hidden" id="showAPIUrl" name="showAPIUrl"
            value="{% url "show-list" %}" readonly>
     <input type="hidden" id="showListAPIUrl" name="showListAPIUrl"
-           value="{% url "show-list" %}?order_by_date=True" readonly>
+           value="{% url "show-list" %}?channel_id={{channel.id}}&order_by_date=True" readonly>
     <input type="hidden" id="voteTypeListAPIUrl" name="voteTypeListAPIUrl"
            value="{% url "vote-type-list" %}?channel_id={{channel.id}}&active_only=True" readonly>
     <input type="hidden" id="playerListAPIUrl" name="playerListAPIUrl"

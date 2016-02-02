@@ -21,7 +21,7 @@ class ShowAPIObject(APIObject):
 
     def __init__(self, show, **kwargs):
         super(ShowAPIObject, self).__init__(show, **kwargs)
-        self.channel_id = show.channel.id
+        self.channel_id = show.channel_id
         self.channel_name = show.channel.name
 
 
@@ -37,19 +37,15 @@ class SuggestionAPIObject(APIObject):
     def __init__(self, suggestion, **kwargs):
         super(SuggestionAPIObject, self).__init__(suggestion, **kwargs)
         self.points = LiveVote.objects.filter(suggestion=suggestion).count()
-        user = getattr(suggestion, 'user', None)
-        if user:
-            self.user_id = user.id
-        else:
-            self.user_id = None
+        self.user_id = getattr(suggestion, 'user_id', None)
         upvote_user_id = kwargs.get('upvote_user_id')
         upvote_session_id = kwargs.get('upvote_session_id')
         if upvote_user_id and upvote_user_id !="None":
-            self.user_already_upvoted = bool(PreshowVote.objects.filter(show=suggestion.show,
+            self.user_already_upvoted = bool(PreshowVote.objects.filter(show=suggestion.show_id,
                                                                         suggestion=suggestion,
                                                                         user=upvote_user_id).count())
         elif upvote_session_id and upvote_session_id !="None":
-            self.user_already_upvoted = bool(PreshowVote.objects.filter(show=suggestion.show,
+            self.user_already_upvoted = bool(PreshowVote.objects.filter(show=suggestion.show_id,
                                                                         suggestion=suggestion,
                                                                         session_id=upvote_session_id).count())
         else:

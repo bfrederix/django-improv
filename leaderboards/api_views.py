@@ -19,11 +19,11 @@ class LeaderboardEntryAPIObject(APIObject):
 
     def __init__(self, leaderboard_entry, **kwargs):
         super(LeaderboardEntryAPIObject, self).__init__(leaderboard_entry, **kwargs)
-        self.show = leaderboard_entry.show.id
+        self.show = leaderboard_entry.show_id
         self.channel_name = leaderboard_entry.channel.name
-        user_profile = users_service.fetch_user_profile(leaderboard_entry.user.id)
+        user_profile = users_service.fetch_user_profile(leaderboard_entry.user_id)
         self.username = user_profile.safe_username
-        self.medals = [lem.medal.id for lem in leaderboards_service.fetch_medals_by_leaderboard_entry(leaderboard_entry)]
+        self.medals = leaderboards_service.fetch_medal_ids_by_leaderboard_entry(leaderboard_entry.id)
 
 
 
@@ -36,8 +36,8 @@ class LeaderboardAPIObject(APIObject):
     def __init__(self, channel_user, **kwargs):
         super(LeaderboardAPIObject, self).__init__(channel_user, **kwargs)
         self.channel_name = channel_user.channel.name
-        user_profile = users_service.fetch_user_profile(channel_user.user.id)
-        self.user_id = channel_user.user.id
+        user_profile = users_service.fetch_user_profile(channel_user.user_id)
+        self.user_id = channel_user.user_id
         self.username = user_profile.safe_username
 
 
@@ -76,8 +76,7 @@ class LeaderboardViewSet(viewsets.ViewSet):
         channel_id = self.request.query_params.get('channel_id')
         page = int(self.request.query_params.get('page', 1))
         offset = LEADERBOARD_MAX_PER_PAGE * (page - 1)
-        channel = channels_service.channel_or_404(channel_id, channel_id=True)
-        queryset = channels_service.fetch_channel_users(channel.id,
+        queryset = channels_service.fetch_channel_users(channel_id,
                                                         leaderboard_sort=True)
         # Start from the page offset
         try:

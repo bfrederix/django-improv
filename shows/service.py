@@ -65,32 +65,32 @@ def fetch_voted_items_by_show(show_id, ordered=False):
     return voted_items
 
 
-def fetch_vote_options(show=None, vote_type=None, interval=None):
+def fetch_vote_option_ids(show_id=None, vote_type_id=None, interval=None):
     kwargs = {}
-    if show:
-       kwargs['show'] = show
-    if vote_type:
-       kwargs['vote_type'] = vote_type
+    if show_id:
+       kwargs['show'] = show_id
+    if vote_type_id:
+       kwargs['vote_type'] = vote_type_id
     if interval is not None:
        kwargs['interval'] = interval
-    return VoteOptions.objects.filter(**kwargs)
+    return VoteOptions.objects.filter(**kwargs).values_list('id', flat=True)
 
 
 def fetch_option_suggestion(vote_option_id):
     return OptionSuggestion.objects.filter(vote_option=vote_option_id)
 
 
-def get_show_vote_type_player_pool(vote_type, show, count=False, used=None):
+def get_show_vote_type_player_pool_ids(vote_type_id, show_id, count=False, used=None):
     """
     Get the players remaining for the vote type in the show
-    :param vote_type: obj
-    :param show: obj
+    :param vote_type_id: int/str
+    :param show_id: int/str
     :param count: bool: Only return the count
     :param used: bool: Decide whether to return used or not used
     :return: List of Player objects
     """
-    svtpp_kwargs = {'show': show,
-                    'vote_type': vote_type}
+    svtpp_kwargs = {'show': show_id,
+                    'vote_type': vote_type_id}
     if used != None:
         svtpp_kwargs['used'] = used
     queryset = ShowVoteTypePlayerPool.objects.filter(**svtpp_kwargs)
@@ -99,14 +99,14 @@ def get_show_vote_type_player_pool(vote_type, show, count=False, used=None):
         return queryset.count()
     # Return the remaining players
     else:
-        return [svtpp.player for svtpp in queryset]
+        return [svtpp_p for svtpp_p in queryset.values_list('player_id', flat=True)]
 
 
 def get_vote_types_suggestion_pools(vote_types):
     suggestion_pools = []
     for vote_type in vote_types:
         # If the vote type has a suggestion pool
-        if vote_type.suggestion_pool:
+        if vote_type.suggestion_pool_id:
             # Add it to the list of suggestion pools for the show
             suggestion_pools.append(vote_type.suggestion_pool)
     return suggestion_pools

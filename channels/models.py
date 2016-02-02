@@ -153,7 +153,7 @@ class VoteType(models.Model):
         """
         if self.players_only:
             return "Players"
-        elif self.suggestion_pool:
+        elif self.suggestion_pool_id:
             return self.suggestion_pool.display_name
         return "Requires either Players or a Suggestion Pool"
 

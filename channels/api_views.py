@@ -24,10 +24,8 @@ class VoteTypeAPIObject(APIObject):
 
     def __init__(self, vote_type, **kwargs):
         super(VoteTypeAPIObject, self).__init__(vote_type, **kwargs)
-        self.suggestion_pool_id = None
+        self.suggestion_pool_id = vote_type.suggestion_pool_id
         show_id = kwargs.get('show_id')
-        if vote_type.suggestion_pool:
-            self.suggestion_pool_id = vote_type.suggestion_pool.id
         # If requesting data about a specific show's vote type
         if show_id:
             show = shows_service.show_or_404(show_id)
@@ -39,17 +37,17 @@ class VoteTypeAPIObject(APIObject):
                 # If it's a pool for a specific vote type
                 elif vote_type.vote_type_player_pool:
                     self.available_options = \
-                            shows_service.get_show_vote_type_player_pool(vote_type,
-                                                                         show,
-                                                                         count=True,
-                                                                         used=False)
+                            shows_service.get_show_vote_type_player_pool_ids(vote_type,
+                                                                             show_id,
+                                                                             count=True,
+                                                                             used=False)
                 # If it's all players for the show
                 else:
                     self.available_options = len(show.players())
             # If it's a suggestion pool option
-            elif vote_type.suggestion_pool:
-                self.available_options = shows_service.fetch_suggestions(show_id=show.id,
-                                                                         suggestion_pool_id=vote_type.suggestion_pool.id,
+            elif self.suggestion_pool_id:
+                self.available_options = shows_service.fetch_suggestions(show_id=show_id,
+                                                                         suggestion_pool_id=self.suggestion_pool_id,
                                                                          count=True,
                                                                          used=False)
             else:
