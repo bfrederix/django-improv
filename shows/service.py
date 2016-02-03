@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 def show_or_404(show_id):
     return get_object_or_404(Show, pk=show_id)
 
-def get_current_show(channel):
+def get_current_show(channel_id):
     now_utc = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
     # Set the longest back we would consider a show still running
     longest_showtime_ago = now_utc - datetime.timedelta(hours=48)
     # Fetch all shows that started within the last 48 hours
-    shows = Show.objects.filter(channel=channel,
+    shows = Show.objects.filter(channel=channel_id,
                                 created__gt=longest_showtime_ago).order_by('-created')
     # If there were shows in the last 48 hours
     if shows:
@@ -120,6 +120,33 @@ def get_vote_type_used(show, vote_type):
         return False
     else:
         return True
+
+
+def get_vote_type_interval_voted(show_id, vote_type_id, interval):
+    return bool(VotedItem.objects.filter(show=show_id,
+                                         vote_type=vote_type_id,
+                                         interval=interval).count())
+
+
+def get_current_voted(show_id, vote_type_id, interval):
+    try:
+        voted_item = VotedItem.objects.get(show=show_id,
+                                           vote_type=vote_type_id,
+                                           interval=interval)
+    except ObjectDoesNotExist:
+        return None
+    else:
+        return voted_item
+
+
+def get_current_voted_player(show_id, vote_type_id, interval):
+    voted_item = get_current_voted(show_id, vote_type_id, interval)
+    return getattr(voted_item, 'player_id', None)
+
+
+def get_current_voted_suggestion(show_id, vote_type_id, interval):
+    voted_item = get_current_voted(show_id, vote_type_id, interval)
+    return getattr(voted_item, 'suggestion_id', None)
 
 
 def suggestions_maxed(show, suggestion_pool, user_id=None, session_id=None):

@@ -48,6 +48,9 @@
         <input type="hidden" id="isChannelAdmin" name="isChannelAdmin"
            value="{{is_channel_admin}}" readonly>
     {% endif %}
+    {% if request.user.is_superuser %}
+        <input type="hidden" id="suggestalot" name="suggestalot" value="true" readonly>
+    {% endif %}
 
 
 {% endblock %}

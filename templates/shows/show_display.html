@@ -1,8 +1,41 @@
-{% extends "base.html" %}
+{% extends "channels/channel_base.html" %}
+
+{% block show-display-selected %} active{% endblock %}
+
+{% block title %}{{channel.display_name}}'s Show Controller{% endblock %}
 
 {% block add_head %}
-	{% include "show_header.html" %}
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}flipclock-0.7.4-beta/flipclock.css">
 {% endblock %}
+
 {% block content %}
-	{% include "show_voting.html" %}
+    <div id="container-fluid" class="container-fluid"></div>
+    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+
+    <input type="hidden" id="rootType" name="rootType" value="show_display" readonly>
+    <input type="hidden" id="teamPhotoUrl" name="teamPhotoUrl" value="{{channel.team_photo_url}}" readonly>
+    {% if current_show %}
+        <input type="hidden" id="showID" name="showID" value="{{current_show.id}}" readonly>
+        <input type="hidden" id="voteTypeAPIUrl" name="voteTypeAPIUrl"
+                   value="{% url "vote-type-list" %}" readonly>
+        <input type="hidden" id="playerAPIUrl" name="playerAPIUrl"
+                   value="{% url "player-list" %}" readonly>
+        <input type="hidden" id="suggestionAPIUrl" name="suggestionAPIUrl"
+                   value="{% url "suggestion-list" %}" readonly>
+        <input type="hidden" id="showAPIUrl" name="showAPIUrl"
+                   value="{% url "show-detail" current_show.id %}" readonly>
+        <input type="hidden" id="liveVoteAPIUrl" name="liveVoteAPIUrl"
+                   value="{% url "live-vote-list" %}" readonly>
+        <input type="hidden" id="showLeaderboardAPIUrl" name="showLeaderboardAPIUrl"
+                   value="{% url "leaderboard-entry-list" %}?channel_id={{channel.id}}&show_id={{current_show.id}}&limit=5" readonly>
+        <input type="hidden" id="channelShowLeaderboardUrl" name="channelShowLeaderboardUrl"
+                   value="{% url "channel_show_leaderboards" channel.name current_show.id %}" readonly>
+    {% endif %}
+{% endblock %}
+
+{% block add_react %}
+    {% include "embedded_utils/react_src.html" %}
+    <script src="{{JS_URL}}flipclock-0.7.4-beta/flipclock.min.js"></script>
+    <script src="{{JS_URL}}jquery.playSound.js"></script>
+    <script src="{{JS_URL}}chroma.min.js"></script>
 {% endblock %}

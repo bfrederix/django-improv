@@ -13,14 +13,18 @@ class ShowSerializer(serializers.Serializer):
     show_length = serializers.IntegerField()
     photo_link = serializers.CharField(required=False)
     embedded_youtube = serializers.CharField(required=False, source="formatted_youtube")
+    show_seconds_remaining = serializers.IntegerField()
     vote_types = serializers.ListField()
+    current_display = serializers.CharField(required=False)
+    current_vote_type = serializers.IntegerField(required=False)
 
     class Meta:
         fields = ('id', 'channel_id', 'channel_name',
                   'name', 'created', 'show_length',
                   'vote_types',
-                  #'current_vote_type', 'current_vote_init',
-                  'locked', 'photo_link', 'embedded_youtube')
+                  'current_vote_type', 'current_display',
+                  'locked', 'photo_link', 'embedded_youtube',
+                  'show_seconds_remaining')
 
 
 class SuggestionsSerializer(serializers.Serializer):
@@ -39,3 +43,10 @@ class SuggestionsSerializer(serializers.Serializer):
         fields = ('id', 'created', 'used', 'points',
                   'voted_on', 'value', 'preshow_value',
                   'user_id', 'session_id', 'user_already_upvoted')
+
+
+class LiveVoteSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+
+    class Meta:
+        fields = ('count',)

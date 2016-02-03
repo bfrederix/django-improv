@@ -51,6 +51,7 @@ class LeaderboardEntryViewSet(viewsets.ViewSet):
         user_id = self.request.query_params.get('user_id')
         channel_id = self.request.query_params.get('channel_id')
         show_id = self.request.query_params.get('show_id')
+        limit = self.request.query_params.get('limit')
         order_by_show_date = self.request.query_params.get('order_by_show_date')
         if user_id:
             kwargs['user'] = user_id
@@ -63,6 +64,9 @@ class LeaderboardEntryViewSet(viewsets.ViewSet):
             queryset = queryset.order_by('-show_date')
         if show_id:
             queryset = queryset.order_by('-wins', '-points')
+        # If there is a limit to the results returned
+        if limit:
+            queryset = queryset[:int(limit)]
         leaderboard_entry_list = [LeaderboardEntryAPIObject(item) for item in queryset]
         serializer = LeaderboardEntrySerializer(leaderboard_entry_list, many=True)
         return Response(serializer.data)

@@ -1,9 +1,14 @@
+import datetime
+import pytz
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 
 from shows.models import Show, Suggestion, LiveVote, PreshowVote
-from shows.serializers import ShowSerializer, SuggestionsSerializer
+from shows.serializers import (ShowSerializer, SuggestionsSerializer,
+                               LiveVoteSerializer)
 from shows import service as shows_service
+from channels import service as channels_service
 from utilities.api import APIObject
 
 
@@ -17,12 +22,21 @@ class ShowAPIObject(APIObject):
                   'formatted_youtube',
                   'formatted_date',
                   'show_end',
-                  'vote_types']
+                  'vote_types',
+                  'show_seconds_remaining']
 
     def __init__(self, show, **kwargs):
         super(ShowAPIObject, self).__init__(show, **kwargs)
         self.channel_id = show.channel_id
         self.channel_name = show.channel.name
+        current_show = shows_service.get_current_show(self.channel_id)
+        # If the Show is the current running show
+        if show.id == getattr(current_show, 'id', None):
+            # Get the current vote state
+            state = channels_service.get_current_vote_state(show.vote_types())
+            # Set the current show fields
+            self.current_display = state.get('display', 'default')
+            self.current_vote_type = state.get('vote_type_id', None)
 
 
 class SuggestionAPIObject(APIObject):
@@ -110,4 +124,28 @@ class SuggestionViewSet(viewsets.ViewSet):
             queryset = queryset.order_by('-preshow_value', 'created')
         updated_suggestions = [SuggestionAPIObject(item, **api_kwargs) for item in queryset]
         serializer = SuggestionsSerializer(updated_suggestions, many=True)
+        return Response(serializer.data)
+
+
+class LiveVoteViewSet(viewsets.ViewSet):
+    """
+    API endpoint that allows live votes to be viewed
+    """
+
+    def list(self, request):
+        kwargs = {}
+        vote_type_id = self.request.query_params.get('vote_type_id')
+        interval = self.request.query_params.get('interval')
+        suggestion_id = self.request.query_params.get('suggestion_id')
+        player_id = self.request.query_params.get('player_id')
+        if vote_type_id:
+            kwargs['vote_type'] = vote_type_id
+        if interval:
+            kwargs['interval'] = int(interval)
+        if suggestion_id:
+            kwargs['suggestion'] = suggestion_id
+        if player_id:
+            kwargs['player'] = player_id
+        count = LiveVote.objects.filter(**kwargs).count()
+        serializer = LiveVoteSerializer({'count': count})
         return Response(serializer.data)

@@ -54,6 +54,11 @@ router.register(r'suggestion',
                 shows_api_views.SuggestionViewSet,
                 'suggestion')
 
+# Live Votes
+router.register(r'live_vote',
+                shows_api_views.LiveVoteViewSet,
+                'live-vote')
+
 # Leaderboard Entries
 router.register(r'leaderboard_entry',
                 leaderboards_api_views.LeaderboardEntryViewSet,

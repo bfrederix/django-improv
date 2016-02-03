@@ -12,64 +12,54 @@ from shows.models import Suggestion, PreshowVote
 from shows import service as shows_service
 from channels import service as channels_service
 from utilities import sessions as session_utils
+from utilities import views as view_utils
 
 
-class ShowView(View):
-
-    def get_default_show_context(self, request, *args, **kwargs):
-        context = {}
-        # Get the channel name and show id from the kwargs
-        channel_name = kwargs.get('channel_name')
-        show_id = kwargs.get('show_id')
-        context['channel'] = channels_service.channel_or_404(channel_name)
-        context['is_channel_admin'] = channels_service.check_is_channel_admin(
-                                            context['channel'],
-                                            getattr(self.request.user, 'id'))
-        # Get the channels that the user is an admin of
-        context['admin_channels'] = channels_service.get_channels_by_admin(
-                                            getattr(self.request.user, 'id'))
-        # Determine if there is a current show for this channel
-        context['current_show'] = shows_service.show_or_404(show_id)
-        # Get the vote types by a list of ids
-        vote_types = channels_service.fetch_vote_types_by_ids(
-                                            context['current_show'].vote_types())
-        # Get the suggestion pools for the current show if it exists
-        context['suggestion_pools'] = shows_service.get_vote_types_suggestion_pools(
-                                            vote_types)
-        return context
-
-
-class ShowControllerView(ShowView):
+class ShowControllerView(view_utils.ShowView):
     template_name = 'shows/show_controller.html'
 
     def get(self, request, *args, **kwargs):
-        context = self.get_default_show_context(request, *args, **kwargs)
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        return render(request,
+                      self.template_name,
+                      context)
+
+    def post(self, request, *args, **kwargs):
+        show_id = kwargs.get('show_id')
+        vote_start = request.POST.get('vote_start')
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        if vote_start:
+            # Set the vote type's next interval start
+            channels_service.start_next_interval(show_id, vote_start)
+            # Make sure the show is locked
+            context['current_show'].locked = True
+            context['current_show'].save()
         return render(request,
                       self.template_name,
                       context)
 
 
-class ShowDisplayView(ShowView):
+class ShowDisplayView(view_utils.ShowView):
     template_name = 'shows/show_display.html'
 
     def get(self, request, *args, **kwargs):
-        context = self.get_default_show_context(request, *args, **kwargs)
+        context = self.get_default_channel_context(request, *args, **kwargs)
         return render(request,
                       self.template_name,
                       context)
 
 
-class ShowLiveVoteView(ShowView):
+class ShowLiveVoteView(view_utils.ShowView):
     template_name = 'shows/show_live_vote.html'
 
     def get(self, request, *args, **kwargs):
-        context = self.get_default_show_context(request, *args, **kwargs)
+        context = self.get_default_channel_context(request, *args, **kwargs)
         return render(request,
                       self.template_name,
                       context)
 
 
-class ShowSuggestionPoolView(ShowView):
+class ShowSuggestionPoolView(view_utils.ShowView):
     template_name = 'shows/show_suggestion_pool.html'
 
     def pool_auth_acceptable(self, suggestion_pool, request, context):
@@ -89,7 +79,7 @@ class ShowSuggestionPoolView(ShowView):
         return True
 
     def get(self, request, *args, **kwargs):
-        context = self.get_default_show_context(request, *args, **kwargs)
+        context = self.get_default_channel_context(request, *args, **kwargs)
         session_id = session_utils.get_or_create_session_id(request)
         # Get the Suggestion pool
         suggestion_pool_id = kwargs.get('suggestion_pool_id')
@@ -118,7 +108,7 @@ class ShowSuggestionPoolView(ShowView):
         user_id = getattr(self.request.user, 'id')
         delete_id = request.POST.get('delete_id')
         suggestion_value = request.POST.get('suggestion_value')
-        context = self.get_default_show_context(request, *args, **kwargs)
+        context = self.get_default_channel_context(request, *args, **kwargs)
         session_id = session_utils.get_or_create_session_id(request)
         # Get the Suggestion pool
         suggestion_pool_id = kwargs.get('suggestion_pool_id')
@@ -145,7 +135,7 @@ class ShowSuggestionPoolView(ShowView):
                     suggestion.delete()
         # Add the new suggestion
         elif suggestion_value and not Suggestion.objects.filter(show=context['current_show'],
-                                                              value=suggestion_value):
+                                                                value=suggestion_value):
             suggestion_kwargs = {'channel': context['channel'],
                                  'show': context['current_show'],
                                  'suggestion_pool': suggestion_pool,
@@ -160,6 +150,20 @@ class ShowSuggestionPoolView(ShowView):
             else:
                 suggestion_kwargs['session_id'] = session_id
             Suggestion.objects.get_or_create(**suggestion_kwargs)
+        # If the superuser needs to make a bunch of suggestions
+        elif request.user and request.user.is_superuser and request.POST.get('suggestalot'):
+            suggestion_kwargs = {'channel': context['channel'],
+                                 'show': context['current_show'],
+                                 'suggestion_pool': suggestion_pool,
+                                 'used': False,
+                                 'voted_on': False,
+                                 'amount_voted_on': 0,
+                                 'user': request.user,
+                                 'preshow_value': 0,
+                                 'created': datetime.datetime.utcnow().replace(tzinfo=pytz.utc)}
+            for i in range(1, 51):
+                suggestion_kwargs['value'] = "Suggestion-{0}".format(i)
+                Suggestion.objects.get_or_create(**suggestion_kwargs)
         elif suggestion_value:
             error = "Suggestion already exists!"
         else:
@@ -182,10 +186,10 @@ class ShowSuggestionPoolView(ShowView):
                       context)
 
 
-class UpvoteSubmitView(ShowView):
+class UpvoteSubmitView(view_utils.ShowView):
 
     def post(self, request, *args, **kwargs):
-        context = self.get_default_show_context(request, *args, **kwargs)
+        context = self.get_default_channel_context(request, *args, **kwargs)
         suggestion_id = request.POST.get('id')
         # If a suggestion was submitted properly
         if suggestion_id:

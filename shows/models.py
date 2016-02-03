@@ -58,6 +58,11 @@ class Show(models.Model):
         return [sp_p_id for sp_p_id in ShowPlayer.objects.filter(show=self.id).exclude(used=True)\
                                                                                    .values_list('player_id', flat=True)]
 
+    def show_seconds_remaining(self):
+        if self.created and self.show_length:
+            # Get the show end
+            show_end = self.created + datetime.timedelta(minutes=self.show_length)
+            return (show_end - self.created).seconds
 
 # Doing this as a Many to Many so I can use BigInts
 class ShowVoteType(models.Model):

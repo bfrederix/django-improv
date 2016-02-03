@@ -20,6 +20,7 @@ class VoteTypeAPIObject(APIObject):
                   'vote_type_player_pool', 'eliminate_winning_player',
                   'keep_suggestions', 'active', 'vote_options_name',
                   'current_interval', 'current_vote_init',
+                  'interval_seconds_remaining', 'vote_seconds_remaining',
                   'remaining_intervals', 'created']
 
     def __init__(self, vote_type, **kwargs):
@@ -55,6 +56,9 @@ class VoteTypeAPIObject(APIObject):
                                     vote_type.id))
             # Determine if an item has been voted for
             self.vote_type_used = vote_type.vote_type_used(show)
+            # Set the voted player and/or suggesiton
+            self.current_voted_player = vote_type.current_voted_player(show_id)
+            self.current_voted_suggestion = vote_type.current_voted_suggestion(show_id)
 
 
 

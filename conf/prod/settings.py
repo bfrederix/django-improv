@@ -1,5 +1,9 @@
 from conf.settings import *
 
+DEBUG = False
+
+TEMPLATE_DEBUG = False
+
 # Database
 
 DATABASES = {

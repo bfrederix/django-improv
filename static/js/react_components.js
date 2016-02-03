@@ -35,8 +35,12 @@ function getElementValueOrNull(elementID){
     }
 }
 
+function showDateUTCToLocal(stringDate) {
+    return moment(moment.utc(stringDate).toDate());
+}
+
 function showDateUTCToLocalFormat(stringDate) {
-    return moment(moment.utc(stringDate).toDate()).format("ddd. MMM. Do, YYYY @hA");
+    return showDateUTCToLocal(stringDate).format("ddd. MMM. Do, YYYY @hA");
 }
 
 function getSpanFormat(spanDate){
@@ -196,6 +200,24 @@ var Slider = React.createClass({
     )
   }
 });
+
+
+var IntervalTimer = React.createClass({
+  componentDidMount: function() {
+      // Counter style examples: "Counter", "MinuteCounter"
+      var clock = $('#' + this.props.timerID).FlipClock(
+          this.props.secondsRemaining, {
+              clockFace: this.props.counterStyle,
+              countdown: true
+      });
+  },
+  render: function() {
+      return (
+        <div id={this.props.timerID}></div>
+      );
+  }
+});
+
 
 var ColorBar = React.createClass({
   getDefaultProps: function() {
@@ -566,11 +588,19 @@ var PlayerImage = React.createClass({
     });
   },
   render: function() {
+    var playerName;
     if (!this.state.data){
         return (<Loading loadingBarColor="#fff" />);
     }
+    if (this.props.showName) {
+        playerName = <button className="btn btn-info btn-lg word-wrap x-large-font btn-shadow text-shadow">{this.state.data.name}</button>
+    }
     return (
-      <img src={this.state.data.photo_url} className="img-responsive img-thumbnail highlight-shadow" />
+        <div>
+            <img src={this.state.data.photo_url} className="img-responsive img-thumbnail highlight-shadow" />
+            <br />
+            {playerName}
+        </div>
     );
   }
 });
@@ -874,7 +904,6 @@ var ChannelCreateEditForm = React.createClass({
     }
   },
   onFormSubmit: function(event) {
-      limitFileSize(event, 'logoFile');
       limitFileSize(event, 'teamPhotoFile');
       validateTextField(event, "name");
       validateTextField(event, "display_name", true);
@@ -920,15 +949,6 @@ var ChannelCreateEditForm = React.createClass({
                                  inputSize="8"
                                  input={DescriptionInput}
                                  helpBlock="Used on the channel's about page" />);
-    // Logo Image Input
-    var logoInput = <div><span className="btn btn-primary btn-file"><input id="logoFile" type="file" name="logoFile"></input></span><Image image_url={this.state.data.logo_url} /></div>;
-    formContents.push(<FormGroup key="5"
-                                 labelSize="2"
-                                 labelContents="Logo Image:"
-                                 inputSize="3"
-                                 input={logoInput}
-                                 helpBlock="Used during shows, must be smaller than 2MB" />);
-
     // Team Photo Input
     var teamPhotoInput = <div><span className="btn btn-primary btn-file"><input id="teamPhotoFile" type="file" name="teamPhotoFile"></input></span><Image image_url={this.state.data.team_photo_url} /></div>;
     formContents.push(<FormGroup key="6"
@@ -2345,7 +2365,8 @@ var ShowRecapPanels = React.createClass({
             if (recapItem.player) {
                 bodyContent = <div className="text-center recap-adjusted-img">
                                   <PlayerImage playerAPIUrl={this.props.recapContext.playerAPIUrl}
-                                               playerID={recapItem.player} />
+                                               playerID={recapItem.player}
+                                               showName="True" />
                               </div>;
             }
             if (recapItem.options_id) {
@@ -2477,6 +2498,7 @@ var ShowSuggestionPoolSuggestion = React.createClass({
 var ShowSuggestionPoolAdd = React.createClass({
   render: function() {
     var maximum;
+    var suggestalot;
     var displayName = this.props.showSuggestionPoolContext.suggestionPoolDisplayName;
     var suggestionInput = <input type="text" className="form-control" name="suggestion_value" />;
     var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font">Add {displayName}</button>
@@ -2485,6 +2507,14 @@ var ShowSuggestionPoolAdd = React.createClass({
         maximum = <div className="bg-info large-font text-shadow">Maximum {displayName} suggestions entered. Please Upvote your favorites, or try another suggestion type.</div>;
         suggestionInput = <input type="text" className="form-control" name="suggestion_value" disabled />;
         submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow large-font" disabled>Add {displayName}</button>;
+    }
+    if (this.props.showSuggestionPoolContext.suggestalot) {
+        suggestalot = (
+            <div className="row text-center">
+                <br />
+                <input type="hidden" id="suggestalot" name="suggestalot" value="true" readOnly></input>
+                <button type="submit" className="btn btn-warning x-large-font">Suggest-a-lot</button>;
+            </div>);
     }
 
     return (
@@ -2505,6 +2535,7 @@ var ShowSuggestionPoolAdd = React.createClass({
                             <div className="row text-center">
                                 {submitButton}
                             </div>
+                            {suggestalot}
                             <CSRFProtect csrfToken={this.props.showSuggestionPoolContext.csrfToken} />
                         </form>
                     </div>
@@ -2704,6 +2735,8 @@ var ShowControllerVoteType = React.createClass({
     var buttonText;
     var optionType = "";
     var availableOptions = this.state.data.available_options;
+    var timerID = "timer-" + this.state.data.id;
+    var intervalTimer;
     // Determine if the vote type is players or options
     if (!this.state.data.players_only) {
         optionType = "Suggestions";
@@ -2714,14 +2747,18 @@ var ShowControllerVoteType = React.createClass({
     var availableText = optionType + ": " + this.state.data.available_options;
     // If the vote type has intervals
     if (this.state.data.intervals) {
+        intervalTimer = <IntervalTimer key={this.state.data.interval_seconds_remaining}
+                                       timerID={timerID}
+                                       secondsRemaining={this.state.data.interval_seconds_remaining}
+                                       counterStyle="MinuteCounter" />;
         // If there are still remaining intervals
         if (this.state.data.remaining_intervals) {
             // If the available options are greater than the remaining intervals
             if (this.state.data.available_options >= this.state.data.remaining_intervals) {
-                buttonText = "Start the " + this.state.data.display_name + " Interval Vote (" + availableOptions + ")  ";
+                buttonText = "Start the " + this.state.data.display_name + " Interval Vote (" + this.state.data.remaining_intervals + ")";
                 voteTypeButton = (
                     <div>
-                        <input key="1" type="hidden" name="vote_start" value={this.state.data.name} />
+                        <input key="1" type="hidden" name="vote_start" value={this.state.data.id} />
                         <input key="2" type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />
                     </div>
                 );
@@ -2745,7 +2782,7 @@ var ShowControllerVoteType = React.createClass({
             buttonText = "Start the " + this.state.data.display_name + " Vote";
             voteTypeButton = (
                 <div>
-                    <input key="1" type="hidden" name="vote_start" value={this.state.data.name} />
+                    <input key="1" type="hidden" name="vote_start" value={this.state.data.id} />
                     <input key="2" type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />
                 </div>
             );
@@ -2757,10 +2794,13 @@ var ShowControllerVoteType = React.createClass({
     }
 
     var voteTypePanelContents = (
-        <form action={this.props.formSubmitUrl} method="post">
+        <div>
             <div className="row">
                 <div className="col-md-6">
                     {voteTypeButton}
+                </div>
+                <div className="col-md-6">
+                    {intervalTimer}
                 </div>
             </div>
             <div className="row">
@@ -2769,8 +2809,13 @@ var ShowControllerVoteType = React.createClass({
                     {availableText}
                 </div>
             </div>
-        </form>
+        </div>
     );
+
+    var voteTypeForm = <Form formStyle="horizontal"
+                             formSubmitUrl={this.props.formSubmitUrl}
+                             formContents={voteTypePanelContents}
+                             csrfToken={this.props.csrfToken} />;
 
     return (
         <Panel key="1"
@@ -2779,7 +2824,7 @@ var ShowControllerVoteType = React.createClass({
                panelHeadingStyle={buttonStyle}
                panelHeadingClasses="x-large-font"
                panelBodyClasses="large-font white-background"
-               bodyContent={voteTypePanelContents} />
+               bodyContent={voteTypeForm} />
     );
   }
 });
@@ -2797,19 +2842,25 @@ var ShowController = React.createClass({
     this.setInterval(this.updateShowController, 20000);
   },
   updateShowController: function() {
-    $.ajax({
-      url: this.props.showControllerContext.showAPIUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
+    if (this.props.showControllerContext.showAPIUrl) {
+        $.ajax({
+          url: this.props.showControllerContext.showAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
   },
   render: function() {
+    if (!this.props.showControllerContext.showAPIUrl) {
+        return (<div>Show has ended</div>);
+    }
     var voteTypePanelList = [];
+    var showRemaining;
     this.counter = 0;
     if (this.state.data) {
         // Create the vote type list
@@ -2823,12 +2874,24 @@ var ShowController = React.createClass({
                                                            csrfToken={this.props.showControllerContext.csrfToken} />);
             return voteTypePanelList;
         }, this);
+        showRemaining = <IntervalTimer key={this.state.data.show_seconds_remaining}
+                                       timerID="show-timer"
+                                       secondsRemaining={this.state.data.show_seconds_remaining}
+                                       counterStyle="HourCounter" />;
     } else {
         voteTypePanelList.push((<div key="load-1"><Loading loadingBarColor="#fff"/></div>));
     }
 
     return (
-        <div>{voteTypePanelList}</div>
+        <div>
+            {voteTypePanelList}
+            <Panel key="show-remaining"
+                   panelWidth="6" panelOffset="3" panelColor="success"
+                   panelHeadingContent="Show Remaining"
+                   panelHeadingClasses="x-large-font"
+                   panelBodyClasses="large-font white-background"
+                   bodyContent={showRemaining} />
+        </div>
     );
   }
 });
@@ -2838,110 +2901,25 @@ var ShowController = React.createClass({
 ////////////////////////////////// SHOW DISPLAY COMPONENTS ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
-var ShowDisplay = React.createClass({
+var LiveVotes = React.createClass({
   getInitialState: function() {
-    // Hide the nav bar
-	$("#top-nav-bar").hide();
-    return {data: []};
-  },
-  loadShowData: function() {
-    var showDataUrl = this.props.showDataUrl;
-    $.ajax({
-      url: showDataUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-  componentDidMount: function() {
-    this.loadShowData();
-    setInterval(this.loadShowData, this.props.pollInterval);
-  },
-  render: function() {
-    var state;
-    state = getURLParameterByName("state") || undefined;
-    // Make sure the current state exists
-    if (this.state.data && this.state.data.current_state !== undefined || state !== undefined){
-        if (state == undefined) {
-            state = this.state.data.current_state['state'];
-        }
-        var showStateDisplay;
-        // Create the user stats
-        if (state == "default") {
-            showStateDisplay = <ShowDefaultDisplay showData={this.state.data} />;
-        } else if (state == "all-players") {
-
-        } else if (state == "player-pool") {
-
-        } else if (state == "player-options") {
-            showStateDisplay = <ShowPlayerOptionsDisplay showData={this.state.data} />;
-        } else if (state == "options") {
-
-        }
-    }
-    return (
-        <div>
-            <div className="row">
-                <div className="col-sm-11">
-                    <h3 className="text-center background-blue">
-                        <a href="/" className="white-link">Host Domain</a>
-                    </h3>
-                </div>
-            </div>
-            {showStateDisplay}
-        </div>
-    );
-  }
-});
-
-var ShowDefaultDisplay = React.createClass({
-  render: function() {
-    if (this.props.showData) {
-        var leaderboardURL = "/leaderboards/show/" + this.props.showData.id + "/";
-        // Create the intervals remaining buttons
-        var remainingVoteTypes = [];
-        this.props.showData.vote_types.map(function (voteType) {
-            remainingVoteTypes.push(<RemainingIntervalsButton voteType={voteType} />);
-            remainingVoteTypes.push(<br/>);
-            return remainingVoteTypes;
-        }, this);
-        return (
-            <div className="col-md-5 col-md-offset-3">
-                <a className="text-center" href={leaderboardURL}>
-                    <div className="btn btn-default btn-block btn-lg btn-shadow text-shadow x-large-font">Leaderboard</div>
-                </a>
-                <br/>
-                <div className="row">
-                    <div className="col-md-8 col-md-offset-2">
-                        <img src="adventure-prov-logo-large.png" className="img-responsive img-thumbnail" />
-                    </div>
-                </div>
-                {remainingVoteTypes}
-            </div>
-        );
-    } else {
-        return (<div></div>);
-    }
-  }
-});
-
-var ShowPlayerOptionsDisplay = React.createClass({
-  render: function() {
-    return (<div>Player-Options</div>);
-  }
-});
-
-var RemainingIntervalsButton = React.createClass({
-  getInitialState: function() {
-    return {data: []};
+    return {data: undefined};
   },
   componentDidMount: function() {
     // Get the vote type data
-    var voteTypeUrl = "/api/v1/vote_type/" + this.props.voteType + "/";
+    var voteTypeUrl = this.props.liveVoteAPIUrl + "?count=True&vote_type_id=" + this.props.voteTypeID;
+    // If there was an interval
+    if (this.props.interval) {
+        voteTypeUrl = voteTypeUrl + "&interval=" + this.props.interval;
+    }
+    // If there was a suggestion
+    if (this.props.suggestionID) {
+        voteTypeUrl = voteTypeUrl + "&suggestion_id=" + this.props.suggestionID;
+    }
+    // If there was a player
+    if (this.props.playerID) {
+        voteTypeUrl = voteTypeUrl + "&player_id=" + this.props.playerID;
+    }
     $.ajax({
       url: voteTypeUrl,
       dataType: 'json',
@@ -2954,15 +2932,285 @@ var RemainingIntervalsButton = React.createClass({
     });
   },
   render: function() {
-    // Make sure the current state exists and has intervals
-    if (this.state.data && this.state.data.intervals !== "") {
+    // If the vote type isn't loaded yet
+    if (!this.state.data) {
+        return (<span></span>);
+    }
+    return (
+        <span>{this.state.data.total}</span>
+    );
+  }
+});
+
+var SuggestionOption = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the vote type data
+    var voteTypeUrl = this.props.suggestionAPIUrl + this.props.suggestionID + "/";
+    $.ajax({
+      url: voteTypeUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    // If the vote type isn't loaded yet
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+    return (
+        <div>
+            <button className="btn btn-block btn-primary btn-lg word-wrap x-large-font btn-shadow text-shadow">{this.props.optionNumber}. {this.state.data.value}</button>
+        </div>
+    );
+  }
+});
+
+var RemainingIntervalsButton = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the vote type data
+    var voteTypeUrl = this.props.voteTypeAPIUrl + this.props.voteTypeID + "/?show_id=" + this.props.showID;
+    $.ajax({
+      url: voteTypeUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    // If the vote type isn't loaded yet
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+    // Make sure the current state has intervals
+    if (this.state.data.intervals) {
         var buttonStyle = {backgroundColor: this.state.data.button_color};
         return (
-            <button className="btn btn-block btn-lg white-input x-large-font btn-shadow text-shadow" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
+            <button className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
         );
     } else {
         return (<div></div>);
     }
+  }
+});
+
+
+var ShowDefaultDisplay = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the show leaderboard data
+    $.ajax({
+      url: this.props.showLeaderboardAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    // Create the intervals remaining buttons
+    var remainingVoteTypes = [];
+    var leaderboardEnties = [];
+    var teamPhoto;
+    var showLeaderboard;
+    this.counter = 1;
+    // Get the remaining vote types buttons
+    this.props.showData.vote_types.map(function (voteTypeID) {
+        remainingVoteTypes.push(
+            <div key={voteTypeID} className="row">
+                <div className="col-md-12">
+                    <RemainingIntervalsButton voteTypeID={voteTypeID}
+                                              showID={this.props.showID}
+                                              voteTypeAPIUrl={this.props.voteTypeAPIUrl} />
+                    <br/>
+                </div>
+            </div>);
+        return remainingVoteTypes;
+    }, this);
+    // Get the current top of the leaderboard
+    if (this.state.data) {
+        this.state.data.map(function (leaderboardEntry) {
+            leaderboardEnties.push(<div className="btn btn-danger btn-block btn-shadow text-shadow large-font">{this.counter}. {leaderboardEntry.username}</div>);
+            this.counter++;
+            return leaderboardEnties;
+        }, this);
+    } else {
+        leaderboardEnties.push(<Loading key="load" loadingBarColor="#fff" />);
+    }
+    if (this.props.teamPhotoUrl) {
+        teamPhoto = (
+            <div key="1" className="col-md-8">
+                <Image image_url={this.props.teamPhotoUrl} />
+            </div>);
+        showLeaderboard = (
+            <div key="2" className="col-md-4">
+                <Panel panelWidth="12" panelColor="primary"
+                   panelHeadingContent="Current Leaders" panelHeadingClasses="large-font"
+                   bodyContent={leaderboardEnties} />
+            </div>);
+    } else if (this.state.data) {
+        showLeaderboard = (
+            <div key="2" className="col-md-12">
+                <Panel panelWidth="12" panelColor="primary"
+                   panelHeadingContent="Current Leaders" panelHeadingClasses="x-large-font"
+                   bodyContent={leaderboardEnties} />
+            </div>);
+    }
+    return (
+        <div>
+            <div key="leaderboard-0" className="row">
+                <div className="col-md-12">
+                    <a className="text-center" href={this.props.showLeaderboardUrl}>
+                        <div className="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font">Leaderboard</div>
+                    </a>
+                    <br/>
+                </div>
+            </div>
+            <div key="team-leader-0" className="row">
+                {teamPhoto}{showLeaderboard}
+            </div>
+            {remainingVoteTypes}
+        </div>
+    );
+  }
+});
+
+var ShowResultDisplay = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the vote type data
+    var voteTypeUrl = this.props.voteTypeAPIUrl + this.props.showData.current_vote_type + "/?show_id=" + this.props.showID;
+    $.ajax({
+      url: voteTypeUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+    var bodyContent;
+    var footerContent = [];
+    var headingStyle = {backgroundColor: this.state.data.button_color};
+    var voteTypeResult = this.state.data.display_name + " Result";
+    // If there was a current voted player for this result
+    if (this.state.data.current_voted_player) {
+        bodyContent = <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
+                                   playerID={this.state.data.current_voted_player}
+                                   showName="True" />
+    }
+    // If there was a current voted suggestion for this result
+    if (this.state.data.current_voted_suggestion) {
+        footerContent.push(
+            <SuggestionOption key="suggestion-option"
+                              suggestionAPIUrl={this.props.suggestionAPIUrl}
+                              suggestionID={this.state.data.current_voted_suggestion} />);
+    }
+    footerContent.push(
+        <button className="btn btn-danger btn-lg word-wrap x-large-font btn-shadow text-shadow">
+            <LiveVotes key="live-votes"
+                       voteTypeID={this.state.data.id}
+                       liveVoteAPIUrl={this.props.liveVoteAPIUrl}
+                       interval={this.state.data.current_interval}
+                       suggestionID={this.state.data.current_voted_suggestion}
+                       playerID={this.state.data.current_voted_player} />
+        </button>);
+
+    return (
+        <Panel panelWidth="12"
+               panelHeadingStyle={headingStyle}
+               panelHeadingContent={voteTypeResult} panelHeadingClasses="xx-large-font"
+               bodyContent={bodyContent}
+               footerContent={footerContent} />
+    );
+  }
+});
+
+
+var ShowDisplay = React.createClass({
+  mixins: [SetIntervalMixin], // Use the setInterval timing mixin
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  loadShowData: function() {
+    if (this.props.showDisplayContext.showAPIUrl) {
+        $.ajax({
+          url: this.props.showDisplayContext.showAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+  },
+  componentDidMount: function() {
+    this.loadShowData();
+    this.setInterval(this.loadShowData, 2000);
+  },
+  render: function() {
+    // If the show has ended
+    if (!this.props.showDisplayContext.showAPIUrl) {
+        return (<div>Show has ended</div>);
+    }
+    // If the vote type isn't loaded yet
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+    var showStateDisplay;
+    // Default Show display
+    if (this.state.data.current_display == "default") {
+        showStateDisplay = <ShowDefaultDisplay showData={this.state.data}
+                                               showID={this.props.showDisplayContext.showID}
+                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
+                                               showLeaderboardAPIUrl={this.props.showDisplayContext.showLeaderboardAPIUrl}
+                                               showLeaderboardUrl={this.props.showDisplayContext.channelShowLeaderboardUrl}
+                                               teamPhotoUrl={this.props.showDisplayContext.teamPhotoUrl} />;
+    } else if (this.state.data.current_display == "voting") {
+
+    } else if (this.state.data.current_display == "result") {
+        showStateDisplay = <ShowResultDisplay showData={this.state.data}
+                                              showID={this.props.showDisplayContext.showID}
+                                              playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
+                                              voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
+                                              liveVoteAPIUrl={this.props.showDisplayContext.liveVoteAPIUrl} />;
+    }
+    return (
+        <div className="row">
+            <div className="col-md-6 col-md-offset-3">
+                {showStateDisplay}
+            </div>
+        </div>
+    );
   }
 });
 
@@ -3101,7 +3349,8 @@ var RootComponent = React.createClass({
             upvoteSubmitUrl: getElementValueOrNull("upvoteSubmitUrl"),
             csrfToken: getElementValueOrNull("csrfToken"),
             action: getElementValueOrNull("action"),
-            error: getElementValueOrNull("error")
+            error: getElementValueOrNull("error"),
+            suggestalot: getElementValueOrNull("suggestalot")
         };
         rootComponents.push(<ShowSuggestionPool key="1" showSuggestionPoolContext={showSuggestionPoolContext} />);
     } else if (rootType == "show_controller") {
@@ -3115,6 +3364,18 @@ var RootComponent = React.createClass({
             error: getElementValueOrNull("error")
         };
         rootComponents.push(<ShowController key="1" showControllerContext={showControllerContext} />);
+    } else if (rootType == "show_display") {
+        var showDisplayContext = {
+            showID: getElementValueOrNull("showID"),
+            teamPhotoUrl: getElementValueOrNull("teamPhotoUrl"),
+            playerAPIUrl: getElementValueOrNull("playerAPIUrl"),
+            suggestionAPIUrl: getElementValueOrNull("suggestionAPIUrl"),
+            showAPIUrl: getElementValueOrNull("showAPIUrl"),
+            liveVoteAPIUrl: getElementValueOrNull("liveVoteAPIUrl"),
+            showLeaderboardAPIUrl: getElementValueOrNull("showLeaderboardAPIUrl"),
+            voteTypeAPIUrl: getElementValueOrNull("voteTypeAPIUrl"),
+        };
+        rootComponents.push(<ShowDisplay key="1" showDisplayContext={showDisplayContext} />);
     }
 
 

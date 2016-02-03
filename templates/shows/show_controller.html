@@ -4,28 +4,29 @@
 
 {% block title %}{{channel.display_name}}'s Show Controller{% endblock %}
 
+{% block add_head %}
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}flipclock-0.7.4-beta/flipclock.css">
+{% endblock %}
+
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>
     <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
 
     <input type="hidden" id="rootType" name="rootType" value="show_controller" readonly>
     <input type="hidden" id="showID" name="showID" value="{{current_show.id}}" readonly>
-    <input type="hidden" id="showAPIUrl" name="showAPIUrl"
-               value="{% url "show-detail" current_show.id %}" readonly>
     <input type="hidden" id="voteTypeAPIUrl" name="voteTypeAPIUrl"
            value="{% url "vote-type-list" %}" readonly>
-    <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
-           value="{% url "show_controller" channel.name current_show.id %}" readonly>
+    {% if current_show %}
+        <input type="hidden" id="showAPIUrl" name="showAPIUrl"
+                   value="{% url "show-detail" current_show.id %}" readonly>
+        <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
+               value="{% url "show_controller" channel.name current_show.id %}" readonly>
+    {% endif %}
     <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
-	{% if action %}
-		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
-	{% endif %}
-    {% if error %}
-		<input type="hidden" id="error" name="error" value="{{error}}" readonly>
-	{% endif %}
 
 {% endblock %}
 
 {% block add_react %}
     {% include "embedded_utils/react_src.html" %}
+    <script src="{{JS_URL}}flipclock-0.7.4-beta/flipclock.min.js"></script>
 {% endblock %}

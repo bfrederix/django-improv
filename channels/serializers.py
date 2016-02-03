@@ -19,7 +19,7 @@ class ChannelSerializer(serializers.HyperlinkedModelSerializer):
         model = Channel
         fields = ('id', 'name', 'display_name', 'is_premium',
                   'short_description', 'description',
-                  'thumbnail_url', 'logo_url', 'team_photo_url',
+                  'thumbnail_url', 'team_photo_url',
                   'website', 'facebook_page', 'address',
                   'buy_tickets_link', 'next_show',
                   'navbar_color', 'background_color')
@@ -53,6 +53,7 @@ class VoteTypeSerializer(serializers.ModelSerializer):
                   'vote_type_player_pool', 'eliminate_winning_player',
                   'keep_suggestions', 'active', 'vote_options_name',
                   'current_interval', 'current_vote_init',
+                  'interval_seconds_remaining', 'vote_seconds_remaining',
                   'remaining_intervals', 'vote_type_used', 'created')
 
 

@@ -4,7 +4,6 @@ import pytz
 import cloudinary.uploader
 
 from django.shortcuts import render, redirect
-from django.views.generic import View
 from django.utils.html import escape, strip_tags
 
 from channels.models import (Channel, ChannelAddress, ChannelOwner,
@@ -12,46 +11,10 @@ from channels.models import (Channel, ChannelAddress, ChannelOwner,
 from channels import service as channels_service
 from players import service as players_service
 from shows import service as shows_service
+from utilities import views as view_utils
 
 
-class ChannelView(View):
-
-    def get_default_channel_context(self, request, *args, **kwargs):
-        context = {}
-        # Get the channel ids from the kwargs
-        channel_name = kwargs.get('channel_name')
-        channel_id = kwargs.get('channel_id')
-        # If a channel name was given
-        if channel_name:
-            context['channel'] = channels_service.channel_or_404(channel_name)
-        # If a channel id was given
-        elif channel_id:
-            context['channel'] = channels_service.channel_or_404(channel_id,
-                                                                 channel_id=True)
-        # If no channel was found
-        else:
-            context['channel'] = None
-        # If a channel was found, see if the user is an admin
-        if context['channel']:
-            context['is_channel_admin'] = channels_service.check_is_channel_admin(
-                                                context['channel'],
-                                                getattr(self.request.user, 'id'))
-        # Get the channels that the user is an admin of
-        context['admin_channels'] = channels_service.get_channels_by_admin(
-                                            getattr(self.request.user, 'id'))
-        # Determine if there is a current show for this channel
-        context['current_show'] = shows_service.get_current_show(context['channel'])
-        if context['current_show']:
-            # Get the vote types by a list of ids
-            vote_types = channels_service.fetch_vote_types_by_ids(
-                                                context['current_show'].vote_types())
-            # Get the suggestion pools for the current show if it exists
-            context['suggestion_pools'] = shows_service.get_vote_types_suggestion_pools(
-                                                vote_types)
-        return context
-
-
-class ChannelHomeView(ChannelView):
+class ChannelHomeView(view_utils.ShowView):
     template_name = 'channels/channel_home.html'
 
     def get(self, request, *args, **kwargs):
@@ -61,7 +24,7 @@ class ChannelHomeView(ChannelView):
                       context)
 
 
-class ChannelCreateEditView(ChannelView):
+class ChannelCreateEditView(view_utils.ShowView):
     template_name = 'channels/channel_create_edit.html'
 
     def get(self, request, *args, **kwargs):
@@ -93,8 +56,7 @@ class ChannelCreateEditView(ChannelView):
                           "city": request.POST.get('city'),
                           "state": request.POST.get('state'),
                           "zipcode": request.POST.get('zipcode')}
-        image_update = {"logo_url": request.FILES.get('logoFile'),
-                        "team_photo_url": request.FILES.get('teamPhotoFile')}
+        image_update = {"team_photo_url": request.FILES.get('teamPhotoFile')}
         if not context['channel']:
             context['channel'] = Channel(**channel_update)
         else:
@@ -142,7 +104,7 @@ class ChannelCreateEditView(ChannelView):
                       context)
 
 
-class ChannelPlayersView(ChannelView):
+class ChannelPlayersView(view_utils.ShowView):
     template_name = 'channels/channel_players.html'
 
     def get(self, request, *args, **kwargs):
@@ -195,7 +157,7 @@ class ChannelPlayersView(ChannelView):
                       context)
 
 
-class ChannelSuggestionPoolsView(ChannelView):
+class ChannelSuggestionPoolsView(view_utils.ShowView):
     template_name = 'channels/channel_suggestion_pools.html'
 
     def get(self, request, *args, **kwargs):
@@ -240,7 +202,7 @@ class ChannelSuggestionPoolsView(ChannelView):
                       context)
 
 
-class ChannelVoteTypesView(ChannelView):
+class ChannelVoteTypesView(view_utils.ShowView):
     template_name = 'channels/channel_vote_types.html'
 
     def get(self, request, *args, **kwargs):
@@ -303,7 +265,7 @@ class ChannelVoteTypesView(ChannelView):
                       context)
 
 
-class ChannelShowsView(ChannelView):
+class ChannelShowsView(view_utils.ShowView):
     template_name = 'channels/channel_shows.html'
 
     def get(self, request, *args, **kwargs):
@@ -352,6 +314,8 @@ class ChannelShowsView(ChannelView):
                                              star_players=star_players,
                                              combined_players=combined_players)
             action = "Show Created Successfully!"
+            # Update the context after creating the show
+            context = self.get_default_channel_context(request, *args, **kwargs)
         if not delete:
             show.embedded_youtube = shows_service.validate_youtube(
                                         request.POST.get('embedded_youtube', ''))
@@ -364,6 +328,8 @@ class ChannelShowsView(ChannelView):
                                                             public_id=show.id,
                                                             invalidate=True)
                 show.photo_link = cloud_response.get('secure_url')
+            # update the show length
+            show.show_length = request.POST.get('show_length')
 
             if not error:
                 show.save()
@@ -376,7 +342,7 @@ class ChannelShowsView(ChannelView):
                       context)
 
 
-class ChannelPreShowView(ChannelView):
+class ChannelPreShowView(view_utils.ShowView):
     template_name = 'channels/channel_pre_show.html'
 
     def get(self, request, *args, **kwargs):

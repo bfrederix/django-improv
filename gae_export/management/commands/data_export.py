@@ -120,7 +120,6 @@ class Command(BaseCommand):
                                                          short_description="Adventure-prov rules!",
                                                          description="Adventure-prov rules for real!",
                                                          thumbnail_url="http://www.fake.com",
-                                                         logo_url="http://www.fake.com",
                                                          team_photo_url="http://www.fake.com",
                                                          website="http://www.fake.com",
                                                          address=channel_address,
