@@ -54,6 +54,11 @@ router.register(r'suggestion',
                 shows_api_views.SuggestionViewSet,
                 'suggestion')
 
+# Vote Options
+router.register(r'vote_option',
+                shows_api_views.VoteOptionViewSet,
+                'vote-option')
+
 # Live Votes
 router.register(r'live_vote',
                 shows_api_views.LiveVoteViewSet,
@@ -73,11 +78,6 @@ router.register(r'leaderboard',
 router.register(r'recap',
                 recaps_api_views.RecapViewSet,
                 'recap')
-
-# Vote Options
-router.register(r'vote_option',
-                recaps_api_views.VoteOptionsViewSet,
-                'vote-option')
 
 # Leaderboard Spans
 router.register(r'leaderboard_span',

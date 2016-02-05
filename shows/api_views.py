@@ -6,9 +6,10 @@ from rest_framework.response import Response
 
 from shows.models import Show, Suggestion, LiveVote, PreshowVote
 from shows.serializers import (ShowSerializer, SuggestionsSerializer,
-                               LiveVoteSerializer)
+                               VoteOptionSerializer, LiveVoteSerializer)
 from shows import service as shows_service
 from channels import service as channels_service
+from users import service as users_service
 from utilities.api import APIObject
 
 
@@ -37,6 +38,39 @@ class ShowAPIObject(APIObject):
             # Set the current show fields
             self.current_display = state.get('display', 'default')
             self.current_vote_type = state.get('vote_type_id', None)
+            # If we're in the voting state
+            if self.current_display == 'voting':
+                vote_type = channels_service.vote_type_or_404(self.current_vote_type)
+                # Get the vote options for this (interval or not)
+                self.vote_options = shows_service.fetch_vote_option_ids(
+                                                                show_id=show.id,
+                                                                vote_type_id=vote_type.id,
+                                                                interval=vote_type.current_interval)
+            # If we're in the result state
+            elif self.current_display == 'result':
+                vote_type = channels_service.vote_type_or_404(self.current_vote_type)
+                current_voted = shows_service.get_current_voted(show.id,
+                                                                vote_type.id,
+                                                                vote_type.current_interval)
+                # If we haven't established a voted option
+                if not current_voted:
+                    # Get the vote options for this (interval or not)
+                    vote_options = shows_service.fetch_vote_options(show_id=show.id,
+                                                                    vote_type_id=vote_type.id,
+                                                                    interval=vote_type.current_interval)
+                    # Determine the winning option
+                    winning_option = shows_service.get_winning_option(vote_type,
+                                                                      vote_options,
+                                                                      show.id,
+                                                                      vote_type.current_interval)
+                    # Set the voted winning option
+                    shows_service.set_voted_option(show.id,
+                                                   vote_type.id,
+                                                   vote_type.current_interval,
+                                                   suggestion=winning_option.suggestion,
+                                                   player=winning_option.player)
+
+
 
 
 class SuggestionAPIObject(APIObject):
@@ -64,6 +98,20 @@ class SuggestionAPIObject(APIObject):
                                                                         session_id=upvote_session_id).count())
         else:
             self.user_already_upvoted = False
+
+
+class VoteOptionAPIObject(APIObject):
+
+    def __init__(self, option, **kwargs):
+        super(VoteOptionAPIObject, self).__init__(option, **kwargs)
+        self.suggestion_id = option.suggestion_id
+        self.used = option.suggestion.used
+        self.suggestion = option.suggestion.value
+        user_id = option.suggestion.user_id
+        if user_id:
+            user_profile = users_service.fetch_user_profile(user_id)
+            self.user_id = user_profile.user_id
+            self.username = user_profile.safe_username
 
 
 class ShowViewSet(viewsets.ViewSet):
@@ -125,6 +173,20 @@ class SuggestionViewSet(viewsets.ViewSet):
         updated_suggestions = [SuggestionAPIObject(item, **api_kwargs) for item in queryset]
         serializer = SuggestionsSerializer(updated_suggestions, many=True)
         return Response(serializer.data)
+
+
+class VoteOptionViewSet(viewsets.ViewSet):
+    """
+    API endpoint that returns leaderboard entries
+    """
+
+    def retrieve(self, request, pk=None):
+        vote_option = shows_service.fetch_option(pk)
+        serializer = VoteOptionSerializer(VoteOptionAPIObject(vote_option))
+        return Response(serializer.data)
+
+    def list(self, request):
+        pass
 
 
 class LiveVoteViewSet(viewsets.ViewSet):

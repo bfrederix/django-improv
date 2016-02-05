@@ -130,9 +130,10 @@ class LiveVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
     vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
+    interval = models.IntegerField(blank=True, null=True)
     player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=True, null=True)
     suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=True, null=True)
-    interval = models.IntegerField(blank=True, null=True)
+
     session_id = models.CharField(blank=False, max_length=255)
     user = models.ForeignKey(User, blank=True, null=True)
 
@@ -149,21 +150,18 @@ class ShowInterval(models.Model):
     def __unicode__(self):
         return str(self.id)
 
-class VoteOptions(models.Model):
+
+class VoteOption(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
     vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
     interval = models.IntegerField(blank=True, null=True)
+    suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=True, null=True)
+    player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=True, null=True)
+
 
     def __unicode__(self):
         return str(self.id)
-    # Perhaps fetch all suggestions by vote option here
-
-
-class OptionSuggestion(models.Model):
-    id = BoundedBigAutoField(primary_key=True)
-    suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=False)
-    vote_option = FlexibleForeignKey("VoteOptions", on_delete=models.CASCADE, blank=False)
 
 
 class VotedItem(models.Model):

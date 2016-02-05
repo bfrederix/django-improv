@@ -193,8 +193,9 @@ class VoteType(models.Model):
         return None
 
     def current_voted_player(self, show_id):
+        result_remaining = self.result_seconds_remaining()
         # Only if we're displaying a result
-        if self.result_seconds_remaining() > 0:
+        if result_remaining != None and result_remaining > 0:
             # Get the current voted player if one exists
             return shows_service.get_current_voted_player(show_id,
                                                           self.id,
@@ -202,8 +203,9 @@ class VoteType(models.Model):
         return None
 
     def current_voted_suggestion(self, show_id):
+        result_remaining = self.result_seconds_remaining()
         # Only if we're displaying a result
-        if self.result_seconds_remaining() > 0:
+        if result_remaining != None and result_remaining > 0:
             # Get the current voted player if one exists
             return shows_service.get_current_voted_suggestion(show_id,
                                                               self.id,
@@ -253,11 +255,11 @@ class VoteType(models.Model):
         if self.current_vote_init:
             now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
             vote_end = self.current_vote_init + datetime.timedelta(seconds=self.vote_length)
-            if now >= vote_end:
-                return 0
+            if now > vote_end:
+                return None
             else:
                 return (vote_end - now).seconds
-        return 0
+        return None
 
     # Get the end of the current vote result
     def result_seconds_remaining(self):
@@ -266,15 +268,15 @@ class VoteType(models.Model):
             vote_end = self.current_vote_init + datetime.timedelta(seconds=self.vote_length)
             result_end = self.current_vote_init + datetime.timedelta(seconds=self.vote_length + self.result_length)
             # if we're past the end of the result viewing
-            if now >= result_end:
-                return 0
+            if now > result_end:
+                return None
             # If we're past the end of the vote
-            elif now > vote_end:
+            elif now >= vote_end:
                 return (result_end - now).seconds
             # We haven't reached the result viewing
             else:
-                return 0
-        return 0
+                return None
+        return None
 
     def __unicode__(self):
         return self.name

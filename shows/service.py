@@ -9,7 +9,7 @@ from django.db.models import Max
 from django.core.exceptions import ObjectDoesNotExist
 
 from shows.models import (Show, Suggestion, VotedItem,
-                          VoteOptions, OptionSuggestion,
+                          VoteOption, LiveVote,
                           ShowVoteType, ShowPlayer,
                           ShowVoteTypePlayerPool, ShowInterval)
 
@@ -65,7 +65,7 @@ def fetch_voted_items_by_show(show_id, ordered=False):
     return voted_items
 
 
-def fetch_vote_option_ids(show_id=None, vote_type_id=None, interval=None):
+def fetch_vote_options(show_id=None, vote_type_id=None, interval=None):
     kwargs = {}
     if show_id:
        kwargs['show'] = show_id
@@ -73,11 +73,42 @@ def fetch_vote_option_ids(show_id=None, vote_type_id=None, interval=None):
        kwargs['vote_type'] = vote_type_id
     if interval is not None:
        kwargs['interval'] = interval
-    return VoteOptions.objects.filter(**kwargs).values_list('id', flat=True)
+    return VoteOption.objects.filter(**kwargs)
 
 
-def fetch_option_suggestion(vote_option_id):
-    return OptionSuggestion.objects.filter(vote_option=vote_option_id)
+def fetch_vote_option_ids(show_id=None, vote_type_id=None, interval=None):
+    return fetch_vote_options(show_id=show_id,
+                              vote_type_id=vote_type_id,
+                              interval=interval).values_list('id', flat=True)
+
+
+def get_winning_option(vote_type, vote_options, show_id, interval):
+    max_count = None
+    most_voted_option = None
+    live_vote_kwargs = {'show': show_id,
+                        'vote_type': vote_type,
+                        'interval': interval}
+
+    # Loop through all the options
+    for vote_option in vote_options:
+        # If it's a players only vote
+        if vote_type.players_only:
+            live_vote_kwargs['player'] = vote_option.player
+        # If the vote has suggestions
+        else:
+            live_vote_kwargs['suggestion'] = vote_option.suggestion
+        # Get the count of live votes for this option
+        vote_count = LiveVote.objects.filter(**live_vote_kwargs).count()
+        # If the vote count is the biggest we've seen so far
+        if max_count == None or vote_count > max_count:
+            # Capture the most voted option and its count
+            most_voted_option = vote_option
+            max_count = vote_count
+    return most_voted_option
+
+
+def fetch_option(vote_option_id):
+    return VoteOption.objects.get(pk=vote_option_id)
 
 
 def get_show_vote_type_player_pool_ids(vote_type_id, show_id, count=False, used=None):
@@ -105,8 +136,9 @@ def get_show_vote_type_player_pool_ids(vote_type_id, show_id, count=False, used=
 def get_vote_types_suggestion_pools(vote_types):
     suggestion_pools = []
     for vote_type in vote_types:
-        # If the vote type has a suggestion pool
-        if vote_type.suggestion_pool_id:
+        # If the vote type has a suggestion pool and it isn't already in the list
+        if vote_type.suggestion_pool_id \
+            and not vote_type.suggestion_pool in suggestion_pools:
             # Add it to the list of suggestion pools for the show
             suggestion_pools.append(vote_type.suggestion_pool)
     return suggestion_pools
@@ -126,6 +158,112 @@ def get_vote_type_interval_voted(show_id, vote_type_id, interval):
     return bool(VotedItem.objects.filter(show=show_id,
                                          vote_type=vote_type_id,
                                          interval=interval).count())
+
+
+def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count):
+    # Make sure there is a proper option count
+    if not option_count:
+        raise ValueError("Option count needs to be higher than 0")
+    # Return un-used suggestion keys, sorted by vote, and only if they've appeared less than twice
+    unused_suggestions = Suggestion.objects.filter(
+                             show=show_id,
+                             suggestion_pool=suggestion_pool_id,
+                             used=False,
+                             amount_voted_on__lt=2).order_by('amount_voted_on',
+                                                             '-preshow_value',
+                                                             'created')[:option_count*2]
+    # If there are less than the option amount left that haven't been voted on twice
+    # Allow suggestions that have been voted on twice already
+    if len(unused_suggestions) < option_count:
+        # Fetch un-used suggestion keys
+        unused_suggestions = Suggestion.objects.filter(
+                                 show=show_id,
+                                 suggestion_pool=suggestion_pool_id,
+                                 used=False).order_by('-preshow_value',
+                                                      'created')[:option_count*2]
+    # Get a randomized sample of the top "options" amount of suggestion
+    random_sample = list(random.sample(
+                            set(unused_suggestions),
+                            min(option_count, len(unused_suggestions))))
+    return random_sample[:option_count]
+
+
+def set_voting_options(show_id, vote_type, interval,
+                       suggestions=[]):
+    vote_option_kwargs = {
+        'show': show_id,
+        'vote_type': vote_type,
+        'interval': interval,
+        'suggestion': None,
+        'player': None}
+    # If there are suggestions
+    if suggestions:
+        # Mark the suggestions as voted on
+        for suggestion in suggestions:
+            suggestion.voted_on = True
+            suggestion.amount_voted_on += 1
+            suggestion.save()
+            # If there is a player attached to the suggestion
+            if vote_type.player_options:
+                # Make sure we've removed suggestion and player from the kwargs
+                # So we don't break the ShowInterval query
+                del vote_option_kwargs['suggestion']
+                del vote_option_kwargs['player']
+                vote_option_kwargs['player'] = ShowInterval.objects.get(
+                                                   **vote_option_kwargs).player
+            vote_option_kwargs['suggestion'] = suggestion
+            # Create the suggestion vote options
+            VoteOption.objects.get_or_create(**vote_option_kwargs)
+    else:
+        # Set just the unused players from the show as options
+        if vote_type.show_player_pool:
+            show_players = ShowPlayer.objects.filter(show=show_id,
+                                                     used=False)
+        # Set just the usused players from this vote type as options
+        elif vote_type.vote_type_player_pool:
+            show_players = ShowVoteTypePlayerPool.objects.filter(show=show_id,
+                                                                 vote_type=vote_type,
+                                                                 used=False)
+        # All Show Players as vote options
+        else:
+            show_players = ShowPlayer.objects.filter(show=show_id)
+        # Set the players as vote options
+        for show_player in show_players:
+            vote_option_kwargs['player'] = show_player.player
+            # Create the suggestion vote options
+            VoteOption.objects.get_or_create(**vote_option_kwargs)
+
+
+def set_voted_option(show_id, vote_type, interval,
+                     suggestion=None, player=None):
+    voted_option_kwargs = {
+        'show': show_id,
+        'vote_type': vote_type,
+        'interval': interval}
+    # If there was a suggestion
+    if suggestion:
+        voted_option_kwargs['suggestion'] = suggestion
+        suggestion.used = True
+        suggestion.save()
+    # If it was a player only vote
+    if player:
+        voted_option_kwargs['player'] = player
+        # If the player was from the show player pool
+        if vote_type.show_player_pool:
+            # Fetch the show player and mark them as used
+            show_player = ShowPlayer.objects.get(show=show_id,
+                                                 player=player)
+            show_player.used = True
+            show_player.save()
+        # If the player was from the vote type player pool
+        elif vote_type.vote_type_player_pool:
+            # Fetch the vote type player and mark them as used
+            vote_type_player = ShowVoteTypePlayerPool.objects.get(show=show_id,
+                                                                  vote_type=vote_type,
+                                                                  player=player)
+            vote_type_player.used = True
+            vote_type_player.save()
+    VotedItem.objects.get_or_create(**voted_option_kwargs)
 
 
 def get_current_voted(show_id, vote_type_id, interval):

@@ -1,7 +1,6 @@
 import datetime
 import pytz
 
-from django.views.generic import View
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -19,7 +18,9 @@ class ShowControllerView(view_utils.ShowView):
     template_name = 'shows/show_controller.html'
 
     def get(self, request, *args, **kwargs):
+        show_id = kwargs.get('show_id')
         context = self.get_default_channel_context(request, *args, **kwargs)
+        context.update({'show_id': int(show_id)})
         return render(request,
                       self.template_name,
                       context)
@@ -29,11 +30,27 @@ class ShowControllerView(view_utils.ShowView):
         vote_start = request.POST.get('vote_start')
         context = self.get_default_channel_context(request, *args, **kwargs)
         if vote_start:
+            # Get the vote type
+            vote_type = channels_service.vote_type_or_404(vote_start)
             # Set the vote type's next interval start
-            channels_service.start_next_interval(show_id, vote_start)
+            next_interval = channels_service.start_next_interval(show_id, vote_type)
+            # if it's a players only vote type
+            if vote_type.players_only:
+                suggestions = []
+            # Otherwise, fetch a randomized (yet sorted) amount of suggestions
+            else:
+                suggestions = shows_service.fetch_randomized_suggestions(show_id,
+                                                                         vote_type.suggestion_pool_id,
+                                                                         vote_type.options)
+            # Set the voting options
+            shows_service.set_voting_options(show_id,
+                                             vote_type,
+                                             next_interval,
+                                             suggestions=suggestions)
             # Make sure the show is locked
             context['current_show'].locked = True
             context['current_show'].save()
+        context.update({'show_id': int(show_id)})
         return render(request,
                       self.template_name,
                       context)
@@ -43,7 +60,9 @@ class ShowDisplayView(view_utils.ShowView):
     template_name = 'shows/show_display.html'
 
     def get(self, request, *args, **kwargs):
+        show_id = kwargs.get('show_id')
         context = self.get_default_channel_context(request, *args, **kwargs)
+        context.update({'show_id': int(show_id)})
         return render(request,
                       self.template_name,
                       context)

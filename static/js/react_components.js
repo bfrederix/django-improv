@@ -3134,9 +3134,71 @@ var ShowResultDisplay = React.createClass({
                               suggestionID={this.state.data.current_voted_suggestion} />);
     }
     footerContent.push(
-        <button className="btn btn-danger btn-lg word-wrap x-large-font btn-shadow text-shadow">
-            <LiveVotes key="live-votes"
-                       voteTypeID={this.state.data.id}
+        <button key="live-votes" className="btn btn-danger btn-lg word-wrap x-large-font btn-shadow text-shadow">
+            <LiveVotes voteTypeID={this.state.data.id}
+                       liveVoteAPIUrl={this.props.liveVoteAPIUrl}
+                       interval={this.state.data.current_interval}
+                       suggestionID={this.state.data.current_voted_suggestion}
+                       playerID={this.state.data.current_voted_player} />
+        </button>);
+
+    return (
+        <Panel panelWidth="12"
+               panelHeadingStyle={headingStyle}
+               panelHeadingContent={voteTypeResult} panelHeadingClasses="xx-large-font"
+               bodyContent={bodyContent}
+               footerContent={footerContent} />
+    );
+  }
+});
+
+
+var ShowVotingDisplay = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the vote type data
+    var voteTypeUrl = this.props.voteTypeAPIUrl + this.props.showData.current_vote_type + "/?show_id=" + this.props.showID;
+    $.ajax({
+      url: voteTypeUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+    var bodyContent;
+    var footerContent = [];
+    var headingStyle = {backgroundColor: this.state.data.button_color};
+    var voteTypeResult = this.state.data.display_name + " Voting";
+    // If we are viewing a vote with player options
+    if (this.state.data.player_options) {
+        bodyContent = <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
+                                   playerID={this.state.data.current_voted_player}
+                                   showName="True" />
+        footerContent.push(
+            <SuggestionOption key="suggestion-option"
+                              suggestionAPIUrl={this.props.suggestionAPIUrl}
+                              suggestionID={this.state.data.current_voted_suggestion} />);
+    }
+    // If there was a current voted suggestion for this result
+    if (this.state.data.current_voted_suggestion) {
+        footerContent.push(
+            <SuggestionOption key="suggestion-option"
+                              suggestionAPIUrl={this.props.suggestionAPIUrl}
+                              suggestionID={this.state.data.current_voted_suggestion} />);
+    }
+    footerContent.push(
+        <button key="live-votes" className="btn btn-danger btn-lg word-wrap x-large-font btn-shadow text-shadow">
+            <LiveVotes voteTypeID={this.state.data.id}
                        liveVoteAPIUrl={this.props.liveVoteAPIUrl}
                        interval={this.state.data.current_interval}
                        suggestionID={this.state.data.current_voted_suggestion}
@@ -3196,7 +3258,11 @@ var ShowDisplay = React.createClass({
                                                showLeaderboardUrl={this.props.showDisplayContext.channelShowLeaderboardUrl}
                                                teamPhotoUrl={this.props.showDisplayContext.teamPhotoUrl} />;
     } else if (this.state.data.current_display == "voting") {
-
+        showStateDisplay = <ShowVotingDisplay showData={this.state.data}
+                                              showID={this.props.showDisplayContext.showID}
+                                              playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
+                                              voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
+                                              liveVoteAPIUrl={this.props.showDisplayContext.liveVoteAPIUrl} />;
     } else if (this.state.data.current_display == "result") {
         showStateDisplay = <ShowResultDisplay showData={this.state.data}
                                               showID={this.props.showDisplayContext.showID}

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from shows.models import (Show, Suggestion, PreshowVote, LiveVote,
-                          ShowInterval, VoteOptions, VotedItem)
+                          ShowInterval, VoteOption, VotedItem)
 
 
 @admin.register(Show)
@@ -30,8 +30,8 @@ class ShowIntervalAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(VoteOptions)
-class VoteOptionsAdmin(admin.ModelAdmin):
+@admin.register(VoteOption)
+class VoteOptionAdmin(admin.ModelAdmin):
     pass
 
 

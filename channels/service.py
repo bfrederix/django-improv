@@ -150,17 +150,17 @@ def vote_type_available_options(vote_type,
         pass
 
 
-def start_next_interval(show_id, vote_type_id):
-    # Fetch the vote type
-    vote_type = VoteType.objects.get(pk=vote_type_id)
+def start_next_interval(show_id, vote_type):
     # Get the next interval
     next_interval = vote_type.get_next_interval(show_id=show_id)
-    #raise IOError(next_interval)
-    # Set the current interval to the next interval
-    vote_type.current_interval = next_interval
-    # Set the start of the vote type's current interval to now
-    vote_type.current_vote_init = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
-    vote_type.save()
+    # If there is a next interval
+    if next_interval != None:
+        # Set the current interval to the next interval
+        vote_type.current_interval = next_interval
+        # Set the start of the vote type's current interval to now
+        vote_type.current_vote_init = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+        vote_type.save()
+    return next_interval
 
 
 def get_current_vote_state(vote_type_ids):
@@ -173,14 +173,15 @@ def get_current_vote_state(vote_type_ids):
     now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
     # Loop through all the available vote types
     for vote_type in VoteType.objects.filter(pk__in=vote_type_ids).order_by('-current_vote_init'):
-        logger.info("current_vote_init: {0}".format(vote_type.current_vote_init))
-        # If there are seconds still remaining on the voting display
-        if vote_type.vote_seconds_remaining() > 0:
-            return {'display': 'voting',
-                    'vote_type_id': vote_type.id}
+        vote_remaining = vote_type.vote_seconds_remaining()
+        result_remaining = vote_type.result_seconds_remaining()
         # If there are seconds still remaining on the result display
-        elif vote_type.result_seconds_remaining() > 0:
+        if result_remaining != None and result_remaining >= 0:
             return {'display': 'result',
+                    'vote_type_id': vote_type.id}
+        # If there are seconds still remaining on the voting display
+        elif vote_remaining != None and vote_remaining >= 0:
+            return {'display': 'voting',
                     'vote_type_id': vote_type.id}
     # Otherwise show the default screen
     return {'display': 'default'}
