@@ -59,10 +59,7 @@ class ShowAPIObject(APIObject):
                                                                     vote_type_id=vote_type.id,
                                                                     interval=vote_type.current_interval)
                     # Determine the winning option
-                    winning_option = shows_service.get_winning_option(vote_type,
-                                                                      vote_options,
-                                                                      show.id,
-                                                                      vote_type.current_interval)
+                    winning_option = shows_service.get_winning_option(vote_options)
                     # Set the voted winning option
                     shows_service.set_voted_option(show,
                                                    vote_type,

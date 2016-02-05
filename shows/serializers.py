@@ -47,7 +47,7 @@ class SuggestionsSerializer(serializers.Serializer):
 
 class VoteOptionSerializer(serializers.Serializer):
     suggestion_id = serializers.IntegerField()
-    used = serializers.BooleanField()
+    used = serializers.BooleanField(required=False)
     suggestion = serializers.IntegerField(required=False, source='suggestion_id')
     suggestion_value = serializers.IntegerField(required=False)
     player = serializers.IntegerField(required=False, source='player_id')
@@ -61,7 +61,8 @@ class VoteOptionSerializer(serializers.Serializer):
         fields = ('id', 'show', 'vote_type', 'interval',
                   'option_number', 'suggestion', 'suggestion_value',
                   'player', 'player_name', 'player_photo',
-                  'user_id', 'username', 'live_votes')
+                  'user_id', 'username', 'live_votes',
+                  'used')
 
 
 class LiveVoteSerializer(serializers.Serializer):

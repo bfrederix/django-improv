@@ -227,7 +227,7 @@ class VoteType(models.Model):
         return len(self.interval_list()[interval_index:]) - 1
 
     def vote_type_used(self, show):
-        return shows_service.get_vote_type_used(show, self)
+        return shows_service.get_vote_type_used(show, self, self.current_interval)
 
     # Get the end of the current interval
     def interval_seconds_remaining(self):

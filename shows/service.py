@@ -138,10 +138,11 @@ def get_vote_types_suggestion_pools(vote_types):
     return suggestion_pools
 
 
-def get_vote_type_used(show, vote_type):
+def get_vote_type_used(show, vote_type, interval):
     try:
         VotedItem.objects.get(show=show,
-                              vote_type=vote_type)
+                              vote_type=vote_type,
+                              interval=interval)
     except ObjectDoesNotExist:
         return False
     else:
@@ -242,12 +243,10 @@ def set_voted_option(show, vote_type, interval,
         'interval': interval}
     # If there was a suggestion
     if suggestion:
-        voted_option_kwargs['suggestion'] = suggestion
         suggestion.used = True
         suggestion.save()
     # If it was a player only vote
     if player:
-        voted_option_kwargs['player'] = player
         # If the player was from the show player pool
         if vote_type.show_player_pool:
             # Fetch the show player and mark them as used
@@ -263,7 +262,12 @@ def set_voted_option(show, vote_type, interval,
                                                                   player=player)
             vote_type_player.used = True
             vote_type_player.save()
-    VotedItem.objects.get_or_create(**voted_option_kwargs)
+    # Create the voted item with the base arguments
+    voted_item = VotedItem.objects.get_or_create(**voted_option_kwargs)
+    # Save these separately so we don't break the use of get_or_create
+    voted_item.player = player
+    voted_item.suggestion = suggestion
+    voted_item.save()
 
 
 def get_current_voted(show_id, vote_type_id, interval):

@@ -3290,7 +3290,7 @@ var ShowVotingDisplay = React.createClass({
     if (!this.state.data) {
         return (<Loading loadingBarColor="#fff" />);
     }
-    var counter = 0;
+    this.counter = 0;
     var votingDisplay = [];
     var footerContent = [];
     var headingStyle = {backgroundColor: this.state.data.button_color};
@@ -3299,11 +3299,13 @@ var ShowVotingDisplay = React.createClass({
     if (this.state.data.players_only) {
         // Create the player list
         var playerOptionList = [];
-        this.props.showData.vote_options.map(function (voteOption) {
+        var rowKey, playerDivKey;
+        this.props.showData.vote_options.map(function (voteOptionID) {
             this.counter++;
+            rowKey = "row-" + this.counter;
             playerOptionList.push(
                 <div key={this.counter} className="col-md-2">
-                    <VoteOptionPlayer voteOptionID={voteOption.id}
+                    <VoteOptionPlayer voteOptionID={voteOptionID}
                                       voteOptionAPIUrl={this.props.voteOptionAPIUrl}
                                       headingStyle={headingStyle} />
                 </div>
@@ -3312,7 +3314,7 @@ var ShowVotingDisplay = React.createClass({
             if (this.counter % 4 == 0) {
                 // Create a row
                 votingDisplay.push(
-                    <div className="row">
+                    <div key={rowKey} className="row">
                         {playerOptionList}
                     </div>
                 );
@@ -3325,50 +3327,44 @@ var ShowVotingDisplay = React.createClass({
         if (playerOptionList) {
             // Create a row for the remainder
             votingDisplay.push(
-                <div className="row">
+                <div key="final-row" className="row">
                     {playerOptionList}
                 </div>
             );
         }
     } else {
+        var bodyContent;
+        var footerContent = [];
         voteTypeHeading = voteTypeHeading + " Voting";
         // If we are viewing a vote with player options
         if (this.state.data.player_options) {
+            // If we are viewing a vote with player options
             bodyContent = <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
                                        playerID={this.state.data.current_voted_player}
                                        showName="True" />
         }
-
-        footerContent.push(
-            <SuggestionOption key="suggestion-option"
-                              suggestionAPIUrl={this.props.suggestionAPIUrl}
-                              suggestionID={this.state.data.current_voted_suggestion} />);
+        this.props.showData.vote_options.map(function (voteOption) {
+            this.counter++;
+            footerContent.push(
+                <VoteOptionSuggestion key={this.counter}
+                                      voteOptionID={voteOption.id}
+                                      voteOptionAPIUrl={this.props.voteOptionAPIUrl} />
+            );
+            return footerContent;
+        }, this);
+        votingDisplay = (
+            <div className="row">
+                <div className="col-md-8 col-md-offset-2">
+                    <Panel panelWidth="12"
+                           panelHeadingContent={voteTypeHeading}
+                           panelHeadingStyle={headingStyle}
+                           panelHeadingClasses="xx-large-font"
+                           bodyContent={bodyContent}
+                           footerContent={footerContent} />
+                </div>
+            </div>
+        );
     }
-    // If we are viewing a vote with player options
-    if (this.state.data.player_options) {
-        bodyContent = <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
-                                   playerID={this.state.data.current_voted_player}
-                                   showName="True" />
-        footerContent.push(
-            <SuggestionOption key="suggestion-option"
-                              suggestionAPIUrl={this.props.suggestionAPIUrl}
-                              suggestionID={this.state.data.current_voted_suggestion} />);
-    }
-    // If there was a current voted suggestion for this result
-    if (this.state.data.current_voted_suggestion) {
-        footerContent.push(
-            <SuggestionOption key="suggestion-option"
-                              suggestionAPIUrl={this.props.suggestionAPIUrl}
-                              suggestionID={this.state.data.current_voted_suggestion} />);
-    }
-    footerContent.push(
-        <button key="live-votes" className="btn btn-danger btn-lg word-wrap x-large-font btn-shadow text-shadow">
-            <LiveVotes voteTypeID={this.state.data.id}
-                       liveVoteAPIUrl={this.props.liveVoteAPIUrl}
-                       interval={this.state.data.current_interval}
-                       suggestionID={this.state.data.current_voted_suggestion}
-                       playerID={this.state.data.current_voted_player} />
-        </button>);
 
     return (
         <div>{votingDisplay}</div>
