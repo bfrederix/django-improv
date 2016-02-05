@@ -28,6 +28,7 @@ class ShowControllerView(view_utils.ShowView):
     def post(self, request, *args, **kwargs):
         show_id = kwargs.get('show_id')
         vote_start = request.POST.get('vote_start')
+        lock_toggle = request.POST.get('lock_toggle')
         context = self.get_default_channel_context(request, *args, **kwargs)
         if vote_start:
             # Get the vote type
@@ -43,13 +44,23 @@ class ShowControllerView(view_utils.ShowView):
                                                                          vote_type.suggestion_pool_id,
                                                                          vote_type.options)
             # Set the voting options
-            shows_service.set_voting_options(show_id,
+            shows_service.set_voting_options(context['current_show'],
                                              vote_type,
                                              next_interval,
                                              suggestions=suggestions)
             # Make sure the show is locked
             context['current_show'].locked = True
             context['current_show'].save()
+        # If a lock toggle request was made
+        elif lock_toggle:
+            # If the show is locked, unlock it
+            if context['current_show'].locked:
+                context['current_show'].locked = False
+            # If the show is unlocked, lock it
+            else:
+                context['current_show'].locked = True
+            context['current_show'].save()
+
         context.update({'show_id': int(show_id)})
         return render(request,
                       self.template_name,

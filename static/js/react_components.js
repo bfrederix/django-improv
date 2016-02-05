@@ -956,7 +956,7 @@ var ChannelCreateEditForm = React.createClass({
                                  labelContents="Team Photo:"
                                  inputSize="3"
                                  input={teamPhotoInput}
-                                 helpBlock="Used on the channel's about page, must be smaller than 2MB" />);
+                                 helpBlock="Used on the channel's about page and show display, must be smaller than 2MB" />);
     // Website Input
     var websiteInput = <input type="text" name="website" defaultValue={this.state.data.website} className="form-control"></input>;
     formContents.push(<FormGroup key="7"
@@ -1685,7 +1685,7 @@ var ChannelShowForm = React.createClass({
     // If a show id has been selected. Add a delete button
     if (this.state.showID) {
         var deleteContents = [];
-        var message = "Are you sure you wish to delete the " + this.state.data.name + " show?";
+        var message = "Are you sure you wish to delete the " + showDateUTCToLocalFormat(this.state.data.created) + " show?";
         // Delete Button
         deleteContents.push(<input key="1" type="button" value="DELETE SHOW" className="btn btn-info btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
         deleteContents.push(<input key="2" type="hidden" name="delete" value={this.state.showID}></input>);
@@ -2754,7 +2754,8 @@ var ShowControllerVoteType = React.createClass({
         // If there are still remaining intervals
         if (this.state.data.remaining_intervals) {
             // If the available options are greater than the remaining intervals
-            if (this.state.data.available_options >= this.state.data.remaining_intervals) {
+            if (this.state.data.available_options >= this.state.data.remaining_intervals ||
+                this.state.data.players_only && !this.state.data.show_player_pool && !this.state.data.vote_type_player_pool) {
                 buttonText = "Start the " + this.state.data.display_name + " Interval Vote (" + this.state.data.remaining_intervals + ")";
                 voteTypeButton = (
                     <div>
@@ -2764,7 +2765,12 @@ var ShowControllerVoteType = React.createClass({
                 );
             // Not enough available options for the vote
             } else {
-                buttonText = "Need more " + this.state.data.vote_options_name + " " + optionType + " (" + availableOptions + ")  ";
+                // Make sure the button text isn't redundant
+                if (this.state.data.vote_options_name !== optionType) {
+                    buttonText = "Need more " + this.state.data.vote_options_name + " " + optionType + " (" + availableOptions + ")  ";
+                } else {
+                    buttonText = "Need more " + this.state.data.vote_options_name + " (" + availableOptions + ")  ";
+                }
                 voteTypeButton = <input disabled="true" type="submit" className="btn btn-block btn-lg word-wrap x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />;
             }
         // No more intervals remain
@@ -2859,10 +2865,36 @@ var ShowController = React.createClass({
     if (!this.props.showControllerContext.showAPIUrl) {
         return (<div>Show has ended</div>);
     }
+    var showLocked;
+    var lockForm;
+    var lockedText;
+    var lockHelpText;
     var voteTypePanelList = [];
     var showRemaining;
     this.counter = 0;
     if (this.state.data) {
+        if (this.state.data.locked) {
+            lockedText = "Unlock";
+            lockHelpText = "The audience currently cannot make new suggestions and are automatically redirected to the live voting page.";
+        } else {
+            lockedText = "Lock";
+            lockHelpText = "The audience currently can make suggestions and use the site without being redirected to the voting page.";
+        }
+        // Create the Show Locked Content
+        showLocked = (
+            <div className="row">
+                <div className="col-md-6">
+                    <input key="1" type="hidden" name="lock_toggle" value="true" />
+                    <input key="2" type="submit" className="btn btn-block btn-danger btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" value={lockedText} />
+                </div>
+                <div className="col-md-6">
+                    <p>{lockHelpText}</p>
+                </div>
+            </div>
+        );
+        lockForm = <Form formSubmitUrl={this.props.showControllerContext.formSubmitUrl}
+                         formContents={showLocked}
+                         csrfToken={this.props.showControllerContext.csrfToken} />
         // Create the vote type list
         this.state.data.vote_types.map(function (voteTypeID) {
             this.counter++;
@@ -2884,6 +2916,12 @@ var ShowController = React.createClass({
 
     return (
         <div>
+            <Panel key="show-locked"
+                   panelWidth="6" panelOffset="3" panelColor="danger"
+                   panelHeadingContent="Suggesting Lock"
+                   panelHeadingClasses="x-large-font"
+                   panelBodyClasses="large-font white-background"
+                   bodyContent={lockForm} />
             {voteTypePanelList}
             <Panel key="show-remaining"
                    panelWidth="6" panelOffset="3" panelColor="success"
@@ -3000,7 +3038,10 @@ var RemainingIntervalsButton = React.createClass({
     if (this.state.data.intervals) {
         var buttonStyle = {backgroundColor: this.state.data.button_color};
         return (
-            <button className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
+            <div>
+                <br/>
+                <button className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
+            </div>
         );
     } else {
         return (<div></div>);
@@ -3041,7 +3082,6 @@ var ShowDefaultDisplay = React.createClass({
                     <RemainingIntervalsButton voteTypeID={voteTypeID}
                                               showID={this.props.showID}
                                               voteTypeAPIUrl={this.props.voteTypeAPIUrl} />
-                    <br/>
                 </div>
             </div>);
         return remainingVoteTypes;
@@ -3076,19 +3116,21 @@ var ShowDefaultDisplay = React.createClass({
             </div>);
     }
     return (
-        <div>
-            <div key="leaderboard-0" className="row">
-                <div className="col-md-12">
-                    <a className="text-center" href={this.props.showLeaderboardUrl}>
-                        <div className="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font">Leaderboard</div>
-                    </a>
-                    <br/>
+        <div className="row">
+            <div className="col-md-6 col-md-offset-3">
+                <div key="leaderboard-0" className="row">
+                    <div className="col-md-12">
+                        <a className="text-center" href={this.props.showLeaderboardUrl}>
+                            <div className="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font">Leaderboard</div>
+                        </a>
+                        <br/>
+                    </div>
                 </div>
+                <div key="team-leader-0" className="row">
+                    {teamPhoto}{showLeaderboard}
+                </div>
+                {remainingVoteTypes}
             </div>
-            <div key="team-leader-0" className="row">
-                {teamPhoto}{showLeaderboard}
-            </div>
-            {remainingVoteTypes}
         </div>
     );
   }
@@ -3152,6 +3194,79 @@ var ShowResultDisplay = React.createClass({
   }
 });
 
+var VoteOptionPlayer = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the vote option data
+    var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
+    $.ajax({
+      url: voteOptionUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+    var heading = this.state.data.option_number + ". " + this.state.data.player_name;
+    var bodyContent = (
+        <div>
+            <img src={this.state.data.player_photo} className="img-responsive img-thumbnail highlight-shadow" />
+            <br />
+            <button className="btn btn-info btn-lg word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
+        </div>
+    );
+    var footerContent = <button className="btn btn-primary btn-lg word-wrap x-large-font btn-shadow text-shadow">{this.state.data.live_votes}</button>;
+
+    return (
+        <Panel panelWidth="12" panelColor="primary"
+               panelHeadingContent={heading}
+               panelHeadingStyle={this.props.headingStyle}
+               panelHeadingClasses="x-large-font"
+               bodyContent={bodyContent}
+               footerContent={footerContent} />
+    );
+  }
+});
+
+var VoteOptionSuggestion = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the vote option data
+    var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
+    $.ajax({
+      url: voteOptionUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+
+    return (
+        <button className="btn btn-primary btn-lg word-wrap x-large-font btn-shadow text-shadow">
+           {this.state.data.option_number}. {this.state.data.suggestion_value} {this.state.data.live_votes}
+        </button>
+    );
+  }
+});
 
 var ShowVotingDisplay = React.createClass({
   getInitialState: function() {
@@ -3175,10 +3290,60 @@ var ShowVotingDisplay = React.createClass({
     if (!this.state.data) {
         return (<Loading loadingBarColor="#fff" />);
     }
-    var bodyContent;
+    var counter = 0;
+    var votingDisplay = [];
     var footerContent = [];
     var headingStyle = {backgroundColor: this.state.data.button_color};
-    var voteTypeResult = this.state.data.display_name + " Voting";
+    var voteTypeHeading = this.state.data.display_name;
+    // If this is a player only display
+    if (this.state.data.players_only) {
+        // Create the player list
+        var playerOptionList = [];
+        this.props.showData.vote_options.map(function (voteOption) {
+            this.counter++;
+            playerOptionList.push(
+                <div key={this.counter} className="col-md-2">
+                    <VoteOptionPlayer voteOptionID={voteOption.id}
+                                      voteOptionAPIUrl={this.props.voteOptionAPIUrl}
+                                      headingStyle={headingStyle} />
+                </div>
+            );
+            // If we've either started our first row, or hit the next row
+            if (this.counter % 4 == 0) {
+                // Create a row
+                votingDisplay.push(
+                    <div className="row">
+                        {playerOptionList}
+                    </div>
+                );
+                //Reset the player option list
+                playerOptionList = [];
+            }
+            return votingDisplay;
+        }, this);
+        // If there are any remaining items left in the player list
+        if (playerOptionList) {
+            // Create a row for the remainder
+            votingDisplay.push(
+                <div className="row">
+                    {playerOptionList}
+                </div>
+            );
+        }
+    } else {
+        voteTypeHeading = voteTypeHeading + " Voting";
+        // If we are viewing a vote with player options
+        if (this.state.data.player_options) {
+            bodyContent = <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
+                                       playerID={this.state.data.current_voted_player}
+                                       showName="True" />
+        }
+
+        footerContent.push(
+            <SuggestionOption key="suggestion-option"
+                              suggestionAPIUrl={this.props.suggestionAPIUrl}
+                              suggestionID={this.state.data.current_voted_suggestion} />);
+    }
     // If we are viewing a vote with player options
     if (this.state.data.player_options) {
         bodyContent = <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
@@ -3206,11 +3371,7 @@ var ShowVotingDisplay = React.createClass({
         </button>);
 
     return (
-        <Panel panelWidth="12"
-               panelHeadingStyle={headingStyle}
-               panelHeadingContent={voteTypeResult} panelHeadingClasses="xx-large-font"
-               bodyContent={bodyContent}
-               footerContent={footerContent} />
+        <div>{votingDisplay}</div>
     );
   }
 });
@@ -3260,9 +3421,8 @@ var ShowDisplay = React.createClass({
     } else if (this.state.data.current_display == "voting") {
         showStateDisplay = <ShowVotingDisplay showData={this.state.data}
                                               showID={this.props.showDisplayContext.showID}
-                                              playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
-                                              liveVoteAPIUrl={this.props.showDisplayContext.liveVoteAPIUrl} />;
+                                              voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl} />;
     } else if (this.state.data.current_display == "result") {
         showStateDisplay = <ShowResultDisplay showData={this.state.data}
                                               showID={this.props.showDisplayContext.showID}
@@ -3271,10 +3431,8 @@ var ShowDisplay = React.createClass({
                                               liveVoteAPIUrl={this.props.showDisplayContext.liveVoteAPIUrl} />;
     }
     return (
-        <div className="row">
-            <div className="col-md-6 col-md-offset-3">
-                {showStateDisplay}
-            </div>
+        <div>
+            {showStateDisplay}
         </div>
     );
   }
@@ -3440,6 +3598,8 @@ var RootComponent = React.createClass({
             liveVoteAPIUrl: getElementValueOrNull("liveVoteAPIUrl"),
             showLeaderboardAPIUrl: getElementValueOrNull("showLeaderboardAPIUrl"),
             voteTypeAPIUrl: getElementValueOrNull("voteTypeAPIUrl"),
+            voteOptionAPIUrl: getElementValueOrNull("voteOptionAPIUrl"),
+            channelShowLeaderboardUrl: getElementValueOrNull("channelShowLeaderboardUrl"),
         };
         rootComponents.push(<ShowDisplay key="1" showDisplayContext={showDisplayContext} />);
     }

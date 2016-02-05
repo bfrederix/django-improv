@@ -32,7 +32,6 @@ class SuggestionsSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     created = serializers.DateTimeField()
     used = serializers.BooleanField()
-    points = serializers.IntegerField()
     voted_on = serializers.BooleanField()
     value = serializers.CharField()
     preshow_value = serializers.IntegerField()
@@ -41,7 +40,7 @@ class SuggestionsSerializer(serializers.Serializer):
     user_already_upvoted = serializers.BooleanField()
 
     class Meta:
-        fields = ('id', 'created', 'used', 'points',
+        fields = ('id', 'created', 'used',
                   'voted_on', 'value', 'preshow_value',
                   'user_id', 'session_id', 'user_already_upvoted')
 
@@ -49,13 +48,20 @@ class SuggestionsSerializer(serializers.Serializer):
 class VoteOptionSerializer(serializers.Serializer):
     suggestion_id = serializers.IntegerField()
     used = serializers.BooleanField()
-    suggestion = serializers.CharField()
+    suggestion = serializers.IntegerField(required=False, source='suggestion_id')
+    suggestion_value = serializers.IntegerField(required=False)
+    player = serializers.IntegerField(required=False, source='player_id')
+    player_name = serializers.CharField(required=False)
+    player_photo = serializers.CharField(required=False)
     user_id = serializers.IntegerField(required=False)
     username = serializers.CharField(required=False)
+    live_votes = serializers.IntegerField()
 
     class Meta:
-        fields = ('show', 'vote_type', 'interval',
-                  'suggestion', 'player')
+        fields = ('id', 'show', 'vote_type', 'interval',
+                  'option_number', 'suggestion', 'suggestion_value',
+                  'player', 'player_name', 'player_photo',
+                  'user_id', 'username', 'live_votes')
 
 
 class LiveVoteSerializer(serializers.Serializer):

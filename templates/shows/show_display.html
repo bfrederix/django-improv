@@ -29,6 +29,8 @@
                        value="{% url "live-vote-list" %}" readonly>
             <input type="hidden" id="showLeaderboardAPIUrl" name="showLeaderboardAPIUrl"
                        value="{% url "leaderboard-entry-list" %}?channel_id={{channel.id}}&show_id={{current_show.id}}&limit=5" readonly>
+            <input type="hidden" id="voteOptionAPIUrl" name="voteOptionAPIUrl"
+                       value="{% url "vote-option-list" %}" readonly>
             <input type="hidden" id="channelShowLeaderboardUrl" name="channelShowLeaderboardUrl"
                        value="{% url "channel_show_leaderboards" channel.name current_show.id %}" readonly>
         {% endif %}

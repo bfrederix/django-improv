@@ -64,8 +64,8 @@ class ShowAPIObject(APIObject):
                                                                       show.id,
                                                                       vote_type.current_interval)
                     # Set the voted winning option
-                    shows_service.set_voted_option(show.id,
-                                                   vote_type.id,
+                    shows_service.set_voted_option(show,
+                                                   vote_type,
                                                    vote_type.current_interval,
                                                    suggestion=winning_option.suggestion,
                                                    player=winning_option.player)
@@ -84,7 +84,6 @@ class SuggestionAPIObject(APIObject):
 
     def __init__(self, suggestion, **kwargs):
         super(SuggestionAPIObject, self).__init__(suggestion, **kwargs)
-        self.points = LiveVote.objects.filter(suggestion=suggestion).count()
         self.user_id = getattr(suggestion, 'user_id', None)
         upvote_user_id = kwargs.get('upvote_user_id')
         upvote_session_id = kwargs.get('upvote_session_id')
@@ -101,17 +100,30 @@ class SuggestionAPIObject(APIObject):
 
 
 class VoteOptionAPIObject(APIObject):
+    field_list = ['id',
+                  'option_number',
+                  'show',
+                  'vote_type',
+                  'interval']
 
     def __init__(self, option, **kwargs):
         super(VoteOptionAPIObject, self).__init__(option, **kwargs)
+        self.player_id = option.player_id
         self.suggestion_id = option.suggestion_id
-        self.used = option.suggestion.used
-        self.suggestion = option.suggestion.value
-        user_id = option.suggestion.user_id
-        if user_id:
-            user_profile = users_service.fetch_user_profile(user_id)
-            self.user_id = user_profile.user_id
-            self.username = user_profile.safe_username
+        self.live_votes = shows_service.get_option_live_votes(option.id)
+        # If there was a suggestion for the option
+        if option.suggestion_id:
+            self.used = option.suggestion.used
+            self.suggestion_value = option.suggestion.value
+            user_id = option.suggestion.user_id
+            if user_id:
+                user_profile = users_service.fetch_user_profile(user_id)
+                self.user_id = user_profile.user_id
+                self.username = user_profile.safe_username
+        # If there was a player for the option
+        if option.player_id:
+            self.player_name = option.player.name
+            self.player_photo = option.player.photo_url
 
 
 class ShowViewSet(viewsets.ViewSet):
@@ -186,6 +198,7 @@ class VoteOptionViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def list(self, request):
+        ### WE NEED THIS FOR THE API URL ###
         pass
 
 
@@ -196,18 +209,9 @@ class LiveVoteViewSet(viewsets.ViewSet):
 
     def list(self, request):
         kwargs = {}
-        vote_type_id = self.request.query_params.get('vote_type_id')
-        interval = self.request.query_params.get('interval')
-        suggestion_id = self.request.query_params.get('suggestion_id')
-        player_id = self.request.query_params.get('player_id')
-        if vote_type_id:
-            kwargs['vote_type'] = vote_type_id
-        if interval:
-            kwargs['interval'] = int(interval)
-        if suggestion_id:
-            kwargs['suggestion'] = suggestion_id
-        if player_id:
-            kwargs['player'] = player_id
+        vote_option_id = self.request.query_params.get('vote_option_id')
+        if vote_option_id:
+            kwargs['vote_option'] = vote_option_id
         count = LiveVote.objects.filter(**kwargs).count()
         serializer = LiveVoteSerializer({'count': count})
         return Response(serializer.data)

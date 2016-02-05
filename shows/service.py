@@ -73,7 +73,7 @@ def fetch_vote_options(show_id=None, vote_type_id=None, interval=None):
        kwargs['vote_type'] = vote_type_id
     if interval is not None:
        kwargs['interval'] = interval
-    return VoteOption.objects.filter(**kwargs)
+    return VoteOption.objects.filter(**kwargs).order_by('option_number')
 
 
 def fetch_vote_option_ids(show_id=None, vote_type_id=None, interval=None):
@@ -81,24 +81,18 @@ def fetch_vote_option_ids(show_id=None, vote_type_id=None, interval=None):
                               vote_type_id=vote_type_id,
                               interval=interval).values_list('id', flat=True)
 
+def get_option_live_votes(vote_option_id):
+    return LiveVote.objects.filter(vote_option=vote_option_id).count()
 
-def get_winning_option(vote_type, vote_options, show_id, interval):
+
+def get_winning_option(vote_options):
     max_count = None
     most_voted_option = None
-    live_vote_kwargs = {'show': show_id,
-                        'vote_type': vote_type,
-                        'interval': interval}
 
     # Loop through all the options
     for vote_option in vote_options:
-        # If it's a players only vote
-        if vote_type.players_only:
-            live_vote_kwargs['player'] = vote_option.player
-        # If the vote has suggestions
-        else:
-            live_vote_kwargs['suggestion'] = vote_option.suggestion
         # Get the count of live votes for this option
-        vote_count = LiveVote.objects.filter(**live_vote_kwargs).count()
+        vote_count = get_option_live_votes(vote_option.id)
         # If the vote count is the biggest we've seen so far
         if max_count == None or vote_count > max_count:
             # Capture the most voted option and its count
@@ -188,16 +182,17 @@ def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count):
     return random_sample[:option_count]
 
 
-def set_voting_options(show_id, vote_type, interval,
+def set_voting_options(show, vote_type, interval,
                        suggestions=[]):
     vote_option_kwargs = {
-        'show': show_id,
+        'show': show,
         'vote_type': vote_type,
         'interval': interval,
         'suggestion': None,
         'player': None}
     # If there are suggestions
     if suggestions:
+        vote_option_kwargs['option_number'] = 1
         # Mark the suggestions as voted on
         for suggestion in suggestions:
             suggestion.voted_on = True
@@ -214,30 +209,35 @@ def set_voting_options(show_id, vote_type, interval,
             vote_option_kwargs['suggestion'] = suggestion
             # Create the suggestion vote options
             VoteOption.objects.get_or_create(**vote_option_kwargs)
+            # Set the option number of the option
+            vote_option_kwargs['option_number'] += 1
     else:
         # Set just the unused players from the show as options
         if vote_type.show_player_pool:
-            show_players = ShowPlayer.objects.filter(show=show_id,
+            show_players = ShowPlayer.objects.filter(show=show,
                                                      used=False)
         # Set just the usused players from this vote type as options
         elif vote_type.vote_type_player_pool:
-            show_players = ShowVoteTypePlayerPool.objects.filter(show=show_id,
+            show_players = ShowVoteTypePlayerPool.objects.filter(show=show,
                                                                  vote_type=vote_type,
                                                                  used=False)
         # All Show Players as vote options
         else:
-            show_players = ShowPlayer.objects.filter(show=show_id)
+            show_players = ShowPlayer.objects.filter(show=show)
+        vote_option_kwargs['option_number'] = 1
         # Set the players as vote options
         for show_player in show_players:
             vote_option_kwargs['player'] = show_player.player
             # Create the suggestion vote options
             VoteOption.objects.get_or_create(**vote_option_kwargs)
+            # Set the option number of the option
+            vote_option_kwargs['option_number'] += 1
 
 
-def set_voted_option(show_id, vote_type, interval,
+def set_voted_option(show, vote_type, interval,
                      suggestion=None, player=None):
     voted_option_kwargs = {
-        'show': show_id,
+        'show': show,
         'vote_type': vote_type,
         'interval': interval}
     # If there was a suggestion
@@ -251,14 +251,14 @@ def set_voted_option(show_id, vote_type, interval,
         # If the player was from the show player pool
         if vote_type.show_player_pool:
             # Fetch the show player and mark them as used
-            show_player = ShowPlayer.objects.get(show=show_id,
+            show_player = ShowPlayer.objects.get(show=show,
                                                  player=player)
             show_player.used = True
             show_player.save()
         # If the player was from the vote type player pool
         elif vote_type.vote_type_player_pool:
             # Fetch the vote type player and mark them as used
-            vote_type_player = ShowVoteTypePlayerPool.objects.get(show=show_id,
+            vote_type_player = ShowVoteTypePlayerPool.objects.get(show=show,
                                                                   vote_type=vote_type,
                                                                   player=player)
             vote_type_player.used = True

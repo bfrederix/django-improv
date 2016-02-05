@@ -216,10 +216,10 @@ class ChannelVoteTypesView(view_utils.ShowView):
         error = None
         action = None
         vote_type_id = request.POST.get('selectID')
-        suggestion_pool_id = int(request.POST.get('suggestion_pool', 0))
+        suggestion_pool_id = request.POST.get('suggestion_pool', 0)
         # If a suggestion pool was selected (and not 0)
         if suggestion_pool_id:
-            suggestion_pool = SuggestionPool.objects.get(pk=suggestion_pool_id)
+            suggestion_pool = SuggestionPool.objects.get(pk=int(suggestion_pool_id))
         # Otherwise set no suggestion pool
         else:
             suggestion_pool = None
