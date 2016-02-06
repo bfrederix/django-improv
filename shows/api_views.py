@@ -64,8 +64,7 @@ class ShowAPIObject(APIObject):
                     shows_service.set_voted_option(show,
                                                    vote_type,
                                                    vote_type.current_interval,
-                                                   suggestion=winning_option.suggestion,
-                                                   player=winning_option.player)
+                                                   winning_option)
 
 
 
@@ -99,8 +98,8 @@ class SuggestionAPIObject(APIObject):
 class VoteOptionAPIObject(APIObject):
     field_list = ['id',
                   'option_number',
-                  'show',
-                  'vote_type',
+                  'show_id',
+                  'vote_type_id',
                   'interval']
 
     def __init__(self, option, **kwargs):

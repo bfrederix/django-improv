@@ -170,9 +170,9 @@ class VoteType(models.Model):
                 if self.current_interval == self.interval_list()[i]:
                     # If a show was supplied, see if the interval was used
                     if show_id:
-                        current_voted = shows_service.get_vote_type_interval_voted(show_id,
-                                                                                   self.id,
-                                                                                   self.current_interval)
+                        current_voted = shows_service.get_vote_type_interval_used(show_id,
+                                                                                  self.id,
+                                                                                  self.current_interval)
                     #logger.info("current_voted: {0}".format(self.current_interval))
                     # If the current interval has already been voted on, or we don't require that
                     if current_voted or current_voted_not_required:
@@ -192,26 +192,6 @@ class VoteType(models.Model):
                 return None
         return None
 
-    def current_voted_player(self, show_id):
-        result_remaining = self.result_seconds_remaining()
-        # Only if we're displaying a result
-        if result_remaining != None and result_remaining > 0:
-            # Get the current voted player if one exists
-            return shows_service.get_current_voted_player(show_id,
-                                                          self.id,
-                                                          self.current_interval)
-        return None
-
-    def current_voted_suggestion(self, show_id):
-        result_remaining = self.result_seconds_remaining()
-        # Only if we're displaying a result
-        if result_remaining != None and result_remaining > 0:
-            # Get the current voted player if one exists
-            return shows_service.get_current_voted_suggestion(show_id,
-                                                              self.id,
-                                                              self.current_interval)
-        return None
-
     def remaining_intervals(self):
         # If a current interval exists, return the entire amount of intervals
         if self.current_interval == None:
@@ -225,9 +205,6 @@ class VoteType(models.Model):
         # Return the length of the list from the current interval to the end
         # Subtract one because where the index starts
         return len(self.interval_list()[interval_index:]) - 1
-
-    def vote_type_used(self, show):
-        return shows_service.get_vote_type_used(show, self, self.current_interval)
 
     # Get the end of the current interval
     def interval_seconds_remaining(self):

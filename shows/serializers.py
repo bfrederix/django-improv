@@ -46,7 +46,11 @@ class SuggestionsSerializer(serializers.Serializer):
 
 
 class VoteOptionSerializer(serializers.Serializer):
-    suggestion_id = serializers.IntegerField()
+    id = serializers.IntegerField()
+    show = serializers.IntegerField(source='show_id')
+    vote_type = serializers.IntegerField(source='vote_type_id')
+    interval = serializers.IntegerField()
+    option_number = serializers.IntegerField()
     used = serializers.BooleanField(required=False)
     suggestion = serializers.IntegerField(required=False, source='suggestion_id')
     suggestion_value = serializers.IntegerField(required=False)

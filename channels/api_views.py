@@ -54,11 +54,22 @@ class VoteTypeAPIObject(APIObject):
             else:
                 raise ValueError("Something went wrong with this Vote Type: {0}".format(
                                     vote_type.id))
-            # Determine if an item has been voted for
-            self.vote_type_used = vote_type.vote_type_used(show)
-            # Set the voted player and/or suggesiton
-            self.current_voted_player = vote_type.current_voted_player(show_id)
-            self.current_voted_suggestion = vote_type.current_voted_suggestion(show_id)
+            # Get the current voted item if it exists
+            voted_item = shows_service.get_current_voted(show_id,
+                                                         vote_type.id,
+                                                         vote_type.current_interval)
+            if voted_item:
+                # Determine if an item has been voted for
+                self.vote_type_used = True
+                # Get the voted player and/or suggestion for this vote type (interval)
+                self.current_voted_player = getattr(voted_item.vote_option,
+                                                    'player_id',
+                                                    None)
+                self.current_voted_suggestion = getattr(voted_item.vote_option,
+                                                        'suggestion_id',
+                                                        None)
+                # Get the live votes for this vote type (interval)
+                self.live_votes = shows_service.get_option_live_votes(voted_item.vote_option_id)
 
 
 

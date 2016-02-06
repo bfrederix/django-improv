@@ -128,7 +128,7 @@ class PreshowVote(models.Model):
 
 class LiveVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    vote_option = FlexibleForeignKey("VoteOption", on_delete=models.CASCADE, blank=False)
+    vote_option = FlexibleForeignKey("VoteOption", on_delete=models.CASCADE, blank=False, null=False)
 
     session_id = models.CharField(blank=False, max_length=255)
     user = models.ForeignKey(User, blank=True, null=True)
@@ -165,8 +165,7 @@ class VotedItem(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
     vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
-    suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=True, null=True)
-    player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=True, null=True)
+    vote_option = FlexibleForeignKey("VoteOption", on_delete=models.CASCADE, blank=False, null=False)
     interval = models.IntegerField(default=None, blank=True, null=True)
 
     def __unicode__(self):

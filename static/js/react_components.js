@@ -204,12 +204,27 @@ var Slider = React.createClass({
 
 var IntervalTimer = React.createClass({
   componentDidMount: function() {
-      // Counter style examples: "Counter", "MinuteCounter"
-      var clock = $('#' + this.props.timerID).FlipClock(
-          this.props.secondsRemaining, {
-              clockFace: this.props.counterStyle,
-              countdown: true
-      });
+      // Counter style examples: "MinuteCounter", "HourCounter"
+      if (this.props.counterStyle) {
+          var clock = $('#' + this.props.timerID).FlipClock(
+              this.props.secondsRemaining, {
+                  clockFace: this.props.counterStyle,
+                  countdown: true
+          });
+      // Just a regular old countdown
+      } else {
+          var clock = $('#' + this.props.timerID).FlipClock(
+              this.props.secondsRemaining, {
+                  clockFace: 'Counter'
+          });
+          // For some reason we have to do this manually :P
+          setTimeout(function() {
+              setInterval(function() {
+                  clock.decrement();
+              }, 1000);
+          });
+      }
+
   },
   render: function() {
       return (
@@ -2939,46 +2954,6 @@ var ShowController = React.createClass({
 ////////////////////////////////// SHOW DISPLAY COMPONENTS ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
-var LiveVotes = React.createClass({
-  getInitialState: function() {
-    return {data: undefined};
-  },
-  componentDidMount: function() {
-    // Get the vote type data
-    var voteTypeUrl = this.props.liveVoteAPIUrl + "?count=True&vote_type_id=" + this.props.voteTypeID;
-    // If there was an interval
-    if (this.props.interval) {
-        voteTypeUrl = voteTypeUrl + "&interval=" + this.props.interval;
-    }
-    // If there was a suggestion
-    if (this.props.suggestionID) {
-        voteTypeUrl = voteTypeUrl + "&suggestion_id=" + this.props.suggestionID;
-    }
-    // If there was a player
-    if (this.props.playerID) {
-        voteTypeUrl = voteTypeUrl + "&player_id=" + this.props.playerID;
-    }
-    $.ajax({
-      url: voteTypeUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-  render: function() {
-    // If the vote type isn't loaded yet
-    if (!this.state.data) {
-        return (<span></span>);
-    }
-    return (
-        <span>{this.state.data.total}</span>
-    );
-  }
-});
 
 var SuggestionOption = React.createClass({
   getInitialState: function() {
@@ -3143,6 +3118,7 @@ var ShowResultDisplay = React.createClass({
   componentDidMount: function() {
     // Get the vote type data
     var voteTypeUrl = this.props.voteTypeAPIUrl + this.props.showData.current_vote_type + "/?show_id=" + this.props.showID;
+    console.log(voteTypeUrl);
     $.ajax({
       url: voteTypeUrl,
       dataType: 'json',
@@ -3159,14 +3135,19 @@ var ShowResultDisplay = React.createClass({
         return (<Loading loadingBarColor="#fff" />);
     }
     var bodyContent;
+    var submittedBy;
     var footerContent = [];
     var headingStyle = {backgroundColor: this.state.data.button_color};
     var voteTypeResult = this.state.data.display_name + " Result";
     // If there was a current voted player for this result
     if (this.state.data.current_voted_player) {
-        bodyContent = <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
-                                   playerID={this.state.data.current_voted_player}
-                                   showName="True" />
+        bodyContent = (
+            <div className="text-center">
+                <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
+                             playerID={this.state.data.current_voted_player}
+                             showName="True" />
+            </div>
+        );
     }
     // If there was a current voted suggestion for this result
     if (this.state.data.current_voted_suggestion) {
@@ -3174,22 +3155,30 @@ var ShowResultDisplay = React.createClass({
             <SuggestionOption key="suggestion-option"
                               suggestionAPIUrl={this.props.suggestionAPIUrl}
                               suggestionID={this.state.data.current_voted_suggestion} />);
+        // If a logged in user submitted the suggestion
+        if (this.state.data.user) {
+            submittedBy = "Submitted by: " + this.state.data.user;
+        } else {
+            submittedBy = "Submitted by: Anonymous";
+        }
     }
     footerContent.push(
-        <button key="live-votes" className="btn btn-danger btn-lg word-wrap x-large-font btn-shadow text-shadow">
-            <LiveVotes voteTypeID={this.state.data.id}
-                       liveVoteAPIUrl={this.props.liveVoteAPIUrl}
-                       interval={this.state.data.current_interval}
-                       suggestionID={this.state.data.current_voted_suggestion}
-                       playerID={this.state.data.current_voted_player} />
-        </button>);
+        <div className="row text-center">
+            <button key="live-votes" className="btn btn-danger btn-lg word-wrap xx-large-font btn-shadow text-shadow">{this.state.data.live_votes} Votes</button>
+            <button key="submitted-by" className="btn btn-primary btn-lg word-wrap xx-large-font btn-shadow text-shadow">{submittedBy}</button>
+        </div>
+    );
 
     return (
-        <Panel panelWidth="12"
-               panelHeadingStyle={headingStyle}
-               panelHeadingContent={voteTypeResult} panelHeadingClasses="xx-large-font"
-               bodyContent={bodyContent}
-               footerContent={footerContent} />
+        <div className="row">
+            <div className="col-md-10 col-md-offset-1">
+                <Panel panelWidth="12"
+                       panelHeadingStyle={headingStyle}
+                       panelHeadingContent={voteTypeResult} panelHeadingClasses="xx-large-font"
+                       bodyContent={bodyContent}
+                       footerContent={footerContent} />
+            </div>
+        </div>
     );
   }
 });
@@ -3218,19 +3207,19 @@ var VoteOptionPlayer = React.createClass({
     }
     var heading = this.state.data.option_number + ". " + this.state.data.player_name;
     var bodyContent = (
-        <div>
+        <div className="text-center">
             <img src={this.state.data.player_photo} className="img-responsive img-thumbnail highlight-shadow" />
             <br />
-            <button className="btn btn-info btn-lg word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
+            <button className="btn btn-info btn-md word-wrap large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
         </div>
     );
-    var footerContent = <button className="btn btn-primary btn-lg word-wrap x-large-font btn-shadow text-shadow">{this.state.data.live_votes}</button>;
+    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap large-font btn-shadow text-shadow">{this.state.data.live_votes}</button>;
 
     return (
         <Panel panelWidth="12" panelColor="primary"
                panelHeadingContent={heading}
                panelHeadingStyle={this.props.headingStyle}
-               panelHeadingClasses="x-large-font"
+               panelHeadingClasses="large-font"
                bodyContent={bodyContent}
                footerContent={footerContent} />
     );
@@ -3297,9 +3286,24 @@ var ShowVotingDisplay = React.createClass({
     var voteTypeHeading = this.state.data.display_name;
     // If this is a player only display
     if (this.state.data.players_only) {
+        var intervalTimer = <IntervalTimer key={this.state.data.vote_seconds_remaining}
+                                           timerID="countdown"
+                                           secondsRemaining={this.state.data.vote_seconds_remaining} />;
         // Create the player list
         var playerOptionList = [];
         var rowKey, playerDivKey;
+        var playersPerRow = 5;
+        // Add the countdown to the first row
+        playerOptionList.push(
+            <div key={this.counter} className="col-md-2">
+                <Panel key="countdown-panel"
+                       panelWidth="12"
+                       panelHeadingContent="Time Remaining"
+                       panelHeadingStyle={headingStyle}
+                       panelHeadingClasses="large-font"
+                       bodyContent={intervalTimer} />
+            </div>
+        );
         this.props.showData.vote_options.map(function (voteOptionID) {
             this.counter++;
             rowKey = "row-" + this.counter;
@@ -3311,7 +3315,7 @@ var ShowVotingDisplay = React.createClass({
                 </div>
             );
             // If we've either started our first row, or hit the next row
-            if (this.counter % 4 == 0) {
+            if (this.counter % playersPerRow == 0) {
                 // Create a row
                 votingDisplay.push(
                     <div key={rowKey} className="row">
@@ -3352,22 +3356,20 @@ var ShowVotingDisplay = React.createClass({
             );
             return footerContent;
         }, this);
-        votingDisplay = (
-            <div className="row">
-                <div className="col-md-8 col-md-offset-2">
-                    <Panel panelWidth="12"
-                           panelHeadingContent={voteTypeHeading}
-                           panelHeadingStyle={headingStyle}
-                           panelHeadingClasses="xx-large-font"
-                           bodyContent={bodyContent}
-                           footerContent={footerContent} />
-                </div>
-            </div>
-        );
+        votingDisplay = <Panel panelWidth="12"
+                               panelHeadingContent={voteTypeHeading}
+                               panelHeadingStyle={headingStyle}
+                               panelHeadingClasses="xx-large-font"
+                               bodyContent={bodyContent}
+                               footerContent={footerContent} />;
     }
 
     return (
-        <div>{votingDisplay}</div>
+        <div className="row">
+            <div className="col-md-10 col-md-offset-1">
+                {votingDisplay}
+            </div>
+        </div>
     );
   }
 });
