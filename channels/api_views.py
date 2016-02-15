@@ -60,7 +60,10 @@ class VoteTypeAPIObject(APIObject):
                                                          vote_type.current_interval)
             if voted_item:
                 # Determine if an item has been voted for
-                self.vote_type_used = True
+                if vote_type.keep_suggestions:
+                    self.vote_type_used = False
+                else:
+                    self.vote_type_used = True
                 # Get the voted player and/or suggestion for this vote type (interval)
                 self.current_voted_player = getattr(voted_item.vote_option,
                                                     'player_id',

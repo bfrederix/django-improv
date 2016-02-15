@@ -608,7 +608,7 @@ var PlayerImage = React.createClass({
         return (<Loading loadingBarColor="#fff" />);
     }
     if (this.props.showName) {
-        playerName = <button className="btn btn-info btn-lg word-wrap x-large-font btn-shadow text-shadow">{this.state.data.name}</button>
+        playerName = <button className="btn btn-info btn-lg word-wrap xx-large-font btn-shadow text-shadow">{this.state.data.name}</button>
     }
     return (
         <div>
@@ -3118,7 +3118,6 @@ var ShowResultDisplay = React.createClass({
   componentDidMount: function() {
     // Get the vote type data
     var voteTypeUrl = this.props.voteTypeAPIUrl + this.props.showData.current_vote_type + "/?show_id=" + this.props.showID;
-    console.log(voteTypeUrl);
     $.ajax({
       url: voteTypeUrl,
       dataType: 'json',
@@ -3135,7 +3134,7 @@ var ShowResultDisplay = React.createClass({
         return (<Loading loadingBarColor="#fff" />);
     }
     var bodyContent;
-    var submittedBy;
+    var submittedByText, submittedByButton;;
     var footerContent = [];
     var headingStyle = {backgroundColor: this.state.data.button_color};
     var voteTypeResult = this.state.data.display_name + " Result";
@@ -3155,17 +3154,21 @@ var ShowResultDisplay = React.createClass({
             <SuggestionOption key="suggestion-option"
                               suggestionAPIUrl={this.props.suggestionAPIUrl}
                               suggestionID={this.state.data.current_voted_suggestion} />);
-        // If a logged in user submitted the suggestion
-        if (this.state.data.user) {
-            submittedBy = "Submitted by: " + this.state.data.user;
-        } else {
-            submittedBy = "Submitted by: Anonymous";
+        // If it's not a players only vote
+        if (!this.state.data.players_only) {
+            // If a logged in user submitted the suggestion
+            if (this.state.data.user) {
+                submittedByText = "Submitted by: " + this.state.data.user;
+            } else {
+                submittedByText = "Submitted by: Anonymous";
+            }
+            submittedByButton = <button key="submitted-by" className="btn btn-primary btn-lg word-wrap xx-large-font btn-shadow text-shadow">{submittedByText}</button>;
         }
     }
     footerContent.push(
-        <div className="row text-center">
+        <div key="submit-votes" className="row text-center">
             <button key="live-votes" className="btn btn-danger btn-lg word-wrap xx-large-font btn-shadow text-shadow">{this.state.data.live_votes} Votes</button>
-            <button key="submitted-by" className="btn btn-primary btn-lg word-wrap xx-large-font btn-shadow text-shadow">{submittedBy}</button>
+            &nbsp;{submittedByButton}
         </div>
     );
 
@@ -3205,21 +3208,20 @@ var VoteOptionPlayer = React.createClass({
     if (!this.state.data) {
         return (<Loading loadingBarColor="#fff" />);
     }
-    var heading = this.state.data.option_number + ". " + this.state.data.player_name;
     var bodyContent = (
         <div className="text-center">
             <img src={this.state.data.player_photo} className="img-responsive img-thumbnail highlight-shadow" />
             <br />
-            <button className="btn btn-info btn-md word-wrap large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
+            <button className="btn btn-info btn-md word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
         </div>
     );
-    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap large-font btn-shadow text-shadow">{this.state.data.live_votes}</button>;
+    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">{this.state.data.live_votes} Votes</button>;
 
     return (
         <Panel panelWidth="12" panelColor="primary"
-               panelHeadingContent={heading}
+               panelHeadingContent={this.state.data.option_number}
                panelHeadingStyle={this.props.headingStyle}
-               panelHeadingClasses="large-font"
+               panelHeadingClasses="xx-large-font text-center"
                bodyContent={bodyContent}
                footerContent={footerContent} />
     );
@@ -3250,7 +3252,7 @@ var VoteOptionSuggestion = React.createClass({
     }
 
     return (
-        <button className="btn btn-primary btn-lg word-wrap x-large-font btn-shadow text-shadow">
+        <button className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow">
            {this.state.data.option_number}. {this.state.data.suggestion_value} {this.state.data.live_votes}
         </button>
     );
@@ -3350,9 +3352,13 @@ var ShowVotingDisplay = React.createClass({
         this.props.showData.vote_options.map(function (voteOption) {
             this.counter++;
             footerContent.push(
-                <VoteOptionSuggestion key={this.counter}
-                                      voteOptionID={voteOption.id}
-                                      voteOptionAPIUrl={this.props.voteOptionAPIUrl} />
+                <div key={this.counter} className="row">
+                    <div className="col-md-12">
+                        <VoteOptionSuggestion voteOptionID={voteOption}
+                                              voteOptionAPIUrl={this.props.voteOptionAPIUrl} />
+                        <br />
+                    </div>
+                </div>
             );
             return footerContent;
         }, this);

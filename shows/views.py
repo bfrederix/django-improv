@@ -35,6 +35,9 @@ class ShowControllerView(view_utils.ShowView):
             vote_type = channels_service.vote_type_or_404(vote_start)
             # Set the vote type's next interval start
             next_interval = channels_service.start_next_interval(show_id, vote_type)
+            # Set the start of the vote type's current interval to now
+            vote_type.current_vote_init = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+            vote_type.save()
             # if it's a players only vote type
             if vote_type.players_only:
                 suggestions = []

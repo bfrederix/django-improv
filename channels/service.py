@@ -163,8 +163,6 @@ def start_next_interval(show_id, vote_type):
     if next_interval != None:
         # Set the current interval to the next interval
         vote_type.current_interval = next_interval
-        # Set the start of the vote type's current interval to now
-        vote_type.current_vote_init = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
         vote_type.save()
     return next_interval
 
