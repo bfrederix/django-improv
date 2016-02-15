@@ -21,7 +21,7 @@ class OptInPreferencesView(View):
     form_class = user_forms.OptInPreferenceForm
     initial = {'site_email_opt_in': False,
                'channels_email_opt_in': True}
-    template_name = 'embedded_utils/opt_in_preferences.html'
+    template_name = 'users/opt_in_preferences.html'
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(initial=self.initial)

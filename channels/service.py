@@ -4,6 +4,7 @@ import pytz
 
 from django.shortcuts import get_object_or_404
 from django.http import Http404
+from django.contrib.auth.models import User
 
 from channels.models import (ChannelAdmin, Channel, ChannelUser,
                              SuggestionPool, VoteType, VOTE_STYLE)
@@ -52,7 +53,12 @@ def check_is_channel_admin(channel_name, user_id):
         ChannelAdmin.objects.get(channel=channel,
                                  user=user_id)
     except ChannelAdmin.DoesNotExist:
-        return False
+        # Check to see if the user is a superuser
+        user = User.objects.get(pk=user_id)
+        if user.is_superuser:
+            return True
+        else:
+            return False
     else:
         return True
 
