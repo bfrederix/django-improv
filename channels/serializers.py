@@ -41,8 +41,7 @@ class VoteTypeSerializer(serializers.ModelSerializer):
     suggestion_pool = serializers.IntegerField(required=False, source='suggestion_pool_id')
     available_options = serializers.IntegerField(required=False)
     vote_type_used = serializers.BooleanField(required=False)
-    current_voted_suggestion = serializers.IntegerField(required=False)
-    current_voted_player = serializers.IntegerField(required=False)
+    voted_option = serializers.IntegerField(required=False)
     live_votes = serializers.IntegerField(required=False)
 
     class Meta:
@@ -58,8 +57,7 @@ class VoteTypeSerializer(serializers.ModelSerializer):
                   'current_interval', 'current_vote_init',
                   'interval_seconds_remaining', 'vote_seconds_remaining',
                   'remaining_intervals', 'vote_type_used', 'created',
-                  'current_voted_suggestion', 'current_voted_player',
-                  'live_votes')
+                  'voted_option', 'live_votes')
 
 
 class VoteStyleSerializer(serializers.Serializer):

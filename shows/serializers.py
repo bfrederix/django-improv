@@ -13,19 +13,22 @@ class ShowSerializer(serializers.Serializer):
     show_length = serializers.IntegerField()
     photo_link = serializers.CharField(required=False)
     embedded_youtube = serializers.CharField(required=False, source="formatted_youtube")
+    running = serializers.BooleanField()
     show_seconds_remaining = serializers.IntegerField()
     vote_types = serializers.ListField()
     current_display = serializers.CharField(required=False)
     current_vote_type = serializers.IntegerField(required=False)
     vote_options = serializers.ListField(required=False)
+    current_player = serializers.IntegerField(required=False)
 
     class Meta:
         fields = ('id', 'channel_id', 'channel_name',
                   'name', 'created', 'show_length',
-                  'vote_types',
+                  'vote_types', 'running',
                   'current_vote_type', 'current_display',
                   'locked', 'photo_link', 'embedded_youtube',
-                  'show_seconds_remaining', 'vote_options')
+                  'show_seconds_remaining', 'vote_options',
+                  'current_player')
 
 
 class SuggestionsSerializer(serializers.Serializer):

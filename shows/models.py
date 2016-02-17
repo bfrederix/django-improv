@@ -140,7 +140,7 @@ class ShowInterval(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=False)
     vote_type = FlexibleForeignKey("channels.VoteType", on_delete=models.CASCADE, blank=False)
-    interval = models.IntegerField(blank=False)
+    interval = models.IntegerField(blank=True, null=True)
     player = FlexibleForeignKey("players.Player", on_delete=models.CASCADE, blank=True, null=True)
 
     def __unicode__(self):

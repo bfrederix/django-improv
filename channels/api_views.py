@@ -58,22 +58,17 @@ class VoteTypeAPIObject(APIObject):
             voted_item = shows_service.get_current_voted(show_id,
                                                          vote_type.id,
                                                          vote_type.current_interval)
+            # If there was a winning voted item
             if voted_item:
                 # Determine if an item has been voted for
                 if vote_type.keep_suggestions:
                     self.vote_type_used = False
                 else:
                     self.vote_type_used = True
-                # Get the voted player and/or suggestion for this vote type (interval)
-                self.current_voted_player = getattr(voted_item.vote_option,
-                                                    'player_id',
-                                                    None)
-                self.current_voted_suggestion = getattr(voted_item.vote_option,
-                                                        'suggestion_id',
-                                                        None)
+                # Get the voted option for this vote type (interval)
+                self.voted_option = voted_item.vote_option_id
                 # Get the live votes for this vote type (interval)
                 self.live_votes = shows_service.get_option_live_votes(voted_item.vote_option_id)
-
 
 
 

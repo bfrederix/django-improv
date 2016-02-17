@@ -44,11 +44,11 @@ class ChannelCreateEditView(view_utils.ShowView):
         next_show = request.POST.get('next_show')
         channel_update = {"name": request.POST.get('name'),
                           "display_name": request.POST.get('display_name'),
-                          "short_description": request.POST.get('short_description'),
-                          "description": request.POST.get('description'),
-                          "website": request.POST.get('website'),
-                          "facebook_page": request.POST.get('facebook_page'),
-                          "buy_tickets_link": request.POST.get('buy_tickets_link'),
+                          "short_description": strip_tags(request.POST.get('short_description', '')),
+                          "description": strip_tags(request.POST.get('description', '')),
+                          "website": strip_tags(request.POST.get('website', '')),
+                          "facebook_page": strip_tags(request.POST.get('facebook_page', '')),
+                          "buy_tickets_link": strip_tags(request.POST.get('buy_tickets_link', '')),
                           "next_show": next_show or None,
                           "navbar_color": request.POST.get('navbar_color'),
                           "background_color": request.POST.get('background_color')}
@@ -333,9 +333,15 @@ class ChannelShowsView(view_utils.ShowView):
 
             if not error:
                 show.save()
-
+        # If we've created a new show
+        if not delete and not show_id:
+            return redirect('show_controller',
+                            channel_name=context['channel'].name,
+                            show_id=show.id)
+        # Make sure to update the current show in context
         context.update(
-            {'action': action,
+            {'current_show': shows_service.get_current_show(context['channel'].id),
+             'action': action,
              'error': error})
         return render(request,
                       self.template_name,

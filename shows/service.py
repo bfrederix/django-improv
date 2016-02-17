@@ -35,6 +35,15 @@ def get_current_show(channel_id):
     return None
 
 
+def get_show_interval(show_id, vote_type_id, interval):
+    try:
+        return ShowInterval.objects.get(show=show_id,
+                                        vote_type=vote_type_id,
+                                        interval=interval)
+    except ObjectDoesNotExist:
+        return None
+
+
 def fetch_suggestions(user_id=None, show_id=None, suggestion_pool_id=None,
                       used=None, count=False):
     kwargs = {}
@@ -181,6 +190,21 @@ def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count):
     return random_sample[:option_count]
 
 
+def set_show_interval_random_player(show, vote_type, interval):
+    try:
+        # Randomly select a player from the show
+        player = ShowPlayer.objects.filter(show=show).order_by('?')[0].player
+    except IndexError:
+        raise IndexError("You must have players to use this vote style.")
+    # Get or create the show interval
+    show_interval, created = ShowInterval.objects.get_or_create(show=show,
+                                                                vote_type=vote_type,
+                                                                interval=interval)
+    # Set the player and save the show interval
+    show_interval.player = player
+    show_interval.save()
+
+
 def set_voting_options(show, vote_type, interval,
                        suggestions=[]):
     vote_option_kwargs = {
@@ -189,6 +213,13 @@ def set_voting_options(show, vote_type, interval,
         'interval': interval,
         'suggestion': None,
         'player': None}
+    # If we are doing a repeatable vote type
+    if vote_type.keep_suggestions:
+        # Get all the vote options of this vote type and delete them
+        vote_options = VoteOption.objects.filter(show=show,
+                                                 vote_type=vote_type,
+                                                 interval=interval)
+        vote_options.delete()
     # If there are suggestions
     if suggestions:
         vote_option_kwargs['option_number'] = 1
@@ -199,12 +230,13 @@ def set_voting_options(show, vote_type, interval,
             suggestion.save()
             # If there is a player attached to the suggestion
             if vote_type.player_options:
-                # Make sure we've removed suggestion and player from the kwargs
-                # So we don't break the ShowInterval query
-                del vote_option_kwargs['suggestion']
-                del vote_option_kwargs['player']
-                vote_option_kwargs['player'] = ShowInterval.objects.get(
-                                                   **vote_option_kwargs).player
+                # If this vote type has intervals
+                if vote_type.intervals:
+                    # Fetch the player from the Show Interval
+                    vote_option_kwargs['player'] = ShowInterval.objects.get(
+                                                       show=vote_option_kwargs['show'],
+                                                       vote_type=vote_option_kwargs['vote_type'],
+                                                       interval=vote_option_kwargs['interval']).player
             vote_option_kwargs['suggestion'] = suggestion
             # Create the suggestion vote options
             VoteOption.objects.get_or_create(**vote_option_kwargs)
@@ -363,6 +395,7 @@ def create_show(channel, vote_types, show_length, players=[],
                         ShowInterval.objects.get_or_create(show=show,
                                                            interval=int(interval),
                                                            vote_type=vote_type)
+
     else:
         raise ValueError("Vote Types are required for a show.")
 

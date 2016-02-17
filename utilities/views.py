@@ -49,7 +49,8 @@ class ShowView(View):
             self.is_channel_admin = False
             self.current_show = None
         # If the current show is locked and the user isn't an admin
-        if getattr(self.current_show, 'locked') and not self.is_channel_admin:
+        if self.current_show and getattr(self.current_show, 'locked') \
+            and not self.is_channel_admin:
             # Get the live vote path
             live_vote_path = reverse('show_live_vote',
                                      kwargs={'channel_name': self.channel.name,

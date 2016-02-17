@@ -11,10 +11,10 @@ from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-VOTE_STYLE = [('options', 'Options'),
-              ('player-options', 'Player Options'),
-              ('repeatable-options', 'Repeatable Options'),
-              ('repeatable-player-options', 'Repeatable Player Options'),
+VOTE_STYLE = [('options', 'Suggestion Options'),
+              ('player-options', 'Player Suggestion Options'),
+              ('repeatable-options', 'Repeatable Suggestion Options'),
+              ('repeatable-player-options', 'Repeatable Player Suggestion Options'),
               ('vote-type-player-survivor', 'Vote Type Player Survivor'),
               ('show-player-survivor', 'Show Player Survivor'),
               ('vote-type-player-selected', 'Vote Type Selected Player Pool'),
@@ -33,6 +33,7 @@ class Channel(models.Model):
     team_photo_url = models.CharField(blank=True, null=True, max_length=500)
     website = models.CharField(blank=True, null=True, max_length=500)
     facebook_page = models.CharField(blank=True, null=True, max_length=500)
+    facebook_pixel = models.IntegerField(default=0, blank=True, null=True)
     buy_tickets_link = models.CharField(blank=True, null=True, max_length=500)
     next_show = models.DateTimeField(blank=True, null=True)
     navbar_color = models.CharField(default="#4596FF", blank=False, max_length=20)

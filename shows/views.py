@@ -1,5 +1,6 @@
 import datetime
 import pytz
+import grequests
 
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
@@ -51,6 +52,12 @@ class ShowControllerView(view_utils.ShowView):
                                              vote_type,
                                              next_interval,
                                              suggestions=suggestions)
+            # If this isn't an interval vote and the vote type has player options
+            if not vote_type.intervals and vote_type.player_options:
+                # Set a random player for the vote options
+                shows_service.set_show_interval_random_player(context['current_show'],
+                                                              vote_type,
+                                                              vote_type.current_interval)
             # Make sure the show is locked
             context['current_show'].locked = True
             context['current_show'].save()
@@ -86,7 +93,28 @@ class ShowLiveVoteView(view_utils.ShowView):
     template_name = 'shows/show_live_vote.html'
 
     def get(self, request, *args, **kwargs):
+        show_id = kwargs.get('show_id')
         context = self.get_default_channel_context(request, *args, **kwargs)
+        if context['current_show']:
+            vote_options = range(1, context['current_show'].vote_options + 1)
+        else:
+            vote_options = []
+        context.update({'show_id': int(show_id),
+                        'vote_options': vote_options})
+        return render(request,
+                      self.template_name,
+                      context)
+
+    def post(self, request, *args, **kwargs):
+        # grequests.post(url, data=post_params_dict)
+        show_id = kwargs.get('show_id')
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        if context['current_show']:
+            vote_options = range(1, context['current_show'].vote_options + 1)
+        else:
+            vote_options = []
+        context.update({'show_id': int(show_id),
+                        'vote_options': vote_options})
         return render(request,
                       self.template_name,
                       context)

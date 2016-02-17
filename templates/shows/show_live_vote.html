@@ -1,0 +1,57 @@
+{% extends "channels/channel_base.html" %}
+
+{% block live-vote-selected %}class="active"{% endblock %}
+
+{% block title %}{{channel.display_name}}'s Live Voting Page{% endblock %}
+
+{% block add_head %}
+    {% if channel.facebook_pixel %}
+        <script>
+            (function() {
+              var _fbq = window._fbq || (window._fbq = []);
+              if (!_fbq.loaded) {
+                var fbds = document.createElement('script');
+                fbds.async = true;
+                fbds.src = '//connect.facebook.net/en_US/fbds.js';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(fbds, s);
+                _fbq.loaded = true;
+              }
+              _fbq.push(['addPixelId', '{{channel.facebook_pixel}}']);
+            })();
+            window._fbq = window._fbq || [];
+            window._fbq.push(['track', 'PixelInitialized', {}]);
+        </script>
+        <noscript><img height="1" width="1" alt="" style="display:none" src="https://www.facebook.com/tr?id={{channel.facebook_pixel}}&amp;ev=PixelInitialized" /></noscript>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if show_id == current_show.id %}
+        <div class="container-fluid">
+            <div class="text-center text-shadow x-large-font">Live Voting Page</div>
+            {% for option in vote_options %}
+                <div class="row">
+                    <div class="col-md-offset-4 col-md-4">
+                        <form action="{% url "show_live_vote" channel.name show_id %}" method="post">
+                            <input type="hidden" name="vote_num" value="{{option}}" />
+                            <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
+                            <input type="submit" class="btn btn-primary btn-block x-large-font btn-shadow text-shadow" value="{{forloop.counter}}"/>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+            {% if channel.facebook_page %}
+                <div class="row">
+                    <div class="col-sm-8 col-sm-offset-2">
+                        <div class="pull-left large-font">Like us on Facebook&nbsp;</div>
+                        <div id="fbiframe" class="fb-like" data-href="{{channel.facebook_page}}" data-layout="button_count" data-action="like"></div>
+                        <br/>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div id="container-fluid" class="container-fluid xx-large-font">This Show has ended.</div>
+    {% endif %}
+{% endblock %}

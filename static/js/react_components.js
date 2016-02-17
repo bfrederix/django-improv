@@ -604,11 +604,12 @@ var PlayerImage = React.createClass({
   },
   render: function() {
     var playerName;
+    var playerNameClasses = "btn btn-info btn-lg word-wrap btn-shadow text-shadow " + this.props.playerNameClasses;
     if (!this.state.data){
         return (<Loading loadingBarColor="#fff" />);
     }
     if (this.props.showName) {
-        playerName = <button className="btn btn-info btn-lg word-wrap xx-large-font btn-shadow text-shadow">{this.state.data.name}</button>
+        playerName = <button className={playerNameClasses}>{this.state.data.name}</button>
     }
     return (
         <div>
@@ -2381,7 +2382,8 @@ var ShowRecapPanels = React.createClass({
                 bodyContent = <div className="text-center recap-adjusted-img">
                                   <PlayerImage playerAPIUrl={this.props.recapContext.playerAPIUrl}
                                                playerID={recapItem.player}
-                                               showName="True" />
+                                               showName="True"
+                                               playerNameClasses="xx-large-font" />
                               </div>;
             }
             if (recapItem.options_id) {
@@ -2759,7 +2761,7 @@ var ShowControllerVoteType = React.createClass({
         optionType = "Players";
     }
     // Show what's available
-    var availableText = optionType + ": " + this.state.data.available_options;
+    var availableText = optionType + " Available: " + this.state.data.available_options;
     // If the vote type has intervals
     if (this.state.data.intervals) {
         intervalTimer = <IntervalTimer key={this.state.data.interval_seconds_remaining}
@@ -2877,15 +2879,21 @@ var ShowController = React.createClass({
     }
   },
   render: function() {
-    if (!this.props.showControllerContext.showAPIUrl) {
-        return (<div>Show has ended</div>);
-    }
+    var voteTypePanelList = [];
     var showLocked;
     var lockForm;
     var lockedText;
     var lockHelpText;
-    var voteTypePanelList = [];
     var showRemaining;
+    // If the show isn't running anymore (show has ended)
+    if (this.state.data && !this.state.data.running) {
+        this.componentWillUnmount();
+        return (<div className="xx-large-font">Show has ended</div>);
+    }
+    // If the data hasn't loaded
+    if (!this.state.data) {
+        voteTypePanelList.push((<div key="load-1"><Loading loadingBarColor="#fff"/></div>));
+    }
     this.counter = 0;
     if (this.state.data) {
         if (this.state.data.locked) {
@@ -2925,8 +2933,6 @@ var ShowController = React.createClass({
                                        timerID="show-timer"
                                        secondsRemaining={this.state.data.show_seconds_remaining}
                                        counterStyle="HourCounter" />;
-    } else {
-        voteTypePanelList.push((<div key="load-1"><Loading loadingBarColor="#fff"/></div>));
     }
 
     return (
@@ -2955,15 +2961,15 @@ var ShowController = React.createClass({
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-var SuggestionOption = React.createClass({
+var VoteOptionPlayer = React.createClass({
   getInitialState: function() {
     return {data: undefined};
   },
   componentDidMount: function() {
-    // Get the vote type data
-    var voteTypeUrl = this.props.suggestionAPIUrl + this.props.suggestionID + "/";
+    // Get the vote option data
+    var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
     $.ajax({
-      url: voteTypeUrl,
+      url: voteOptionUrl,
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
@@ -2974,14 +2980,56 @@ var SuggestionOption = React.createClass({
     });
   },
   render: function() {
-    // If the vote type isn't loaded yet
     if (!this.state.data) {
         return (<Loading loadingBarColor="#fff" />);
     }
-    return (
-        <div>
-            <button className="btn btn-block btn-primary btn-lg word-wrap x-large-font btn-shadow text-shadow">{this.props.optionNumber}. {this.state.data.value}</button>
+    var bodyContent = (
+        <div className="text-center">
+            <img src={this.state.data.player_photo} className="img-responsive img-thumbnail highlight-shadow" />
+            <br />
+            <button className="btn btn-info btn-md word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
         </div>
+    );
+    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">{this.state.data.live_votes} Votes</button>;
+
+    return (
+        <Panel panelWidth="12" panelColor="primary"
+               panelHeadingContent={this.state.data.option_number}
+               panelHeadingStyle={this.props.headingStyle}
+               panelHeadingClasses="xx-large-font text-center"
+               bodyContent={bodyContent}
+               footerContent={footerContent} />
+    );
+  }
+});
+
+var VoteOptionSuggestion = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    // Get the vote option data
+    var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
+    $.ajax({
+      url: voteOptionUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data) {
+        return (<Loading loadingBarColor="#fff" />);
+    }
+
+    return (
+        <button className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow">
+           {this.state.data.option_number}. {this.state.data.suggestion_value} {this.state.data.live_votes}
+        </button>
     );
   }
 });
@@ -3111,15 +3159,15 @@ var ShowDefaultDisplay = React.createClass({
   }
 });
 
-var ShowResultDisplay = React.createClass({
+var ShowResultDisplayVotedOption = React.createClass({
   getInitialState: function() {
     return {data: undefined};
   },
   componentDidMount: function() {
-    // Get the vote type data
-    var voteTypeUrl = this.props.voteTypeAPIUrl + this.props.showData.current_vote_type + "/?show_id=" + this.props.showID;
+    // Get the vote option data
+    var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
     $.ajax({
-      url: voteTypeUrl,
+      url: voteOptionUrl,
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
@@ -3133,32 +3181,40 @@ var ShowResultDisplay = React.createClass({
     if (!this.state.data) {
         return (<Loading loadingBarColor="#fff" />);
     }
+    var playerID = this.props.playerID;
     var bodyContent;
     var submittedByText, submittedByButton;;
     var footerContent = [];
-    var headingStyle = {backgroundColor: this.state.data.button_color};
-    var voteTypeResult = this.state.data.display_name + " Result";
+    var headingStyle = {backgroundColor: this.props.voteTypeData.button_color};
+    var voteTypeResult = this.props.voteTypeData.display_name + " Result";
+    // If there was a player in the voted option, use that player
+    if (this.state.data.player) {
+        playerID = this.state.data.player;
+    }
     // If there was a current voted player for this result
-    if (this.state.data.current_voted_player) {
-        bodyContent = (
-            <div className="text-center">
-                <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
-                             playerID={this.state.data.current_voted_player}
-                             showName="True" />
+    if (playerID) {
+        bodyContent = <div className="text-center">
+                          <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
+                                       playerID={playerID}
+                                       showName="True"
+                                       playerNameClasses="xx-large-font" />
+                      </div>;
+    }
+    // If there was a current voted option for this result
+    if (this.state.data.suggestion) {
+        footerContent.push(
+            <div key="voted-suggestion-div">
+                <button key="voted-suggetion" className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow">
+                    {this.state.data.option_number}. {this.state.data.suggestion_value}
+                </button>
+                <br key="suggestion-br" />
             </div>
         );
-    }
-    // If there was a current voted suggestion for this result
-    if (this.state.data.current_voted_suggestion) {
-        footerContent.push(
-            <SuggestionOption key="suggestion-option"
-                              suggestionAPIUrl={this.props.suggestionAPIUrl}
-                              suggestionID={this.state.data.current_voted_suggestion} />);
         // If it's not a players only vote
-        if (!this.state.data.players_only) {
+        if (!this.props.voteTypeData.players_only) {
             // If a logged in user submitted the suggestion
-            if (this.state.data.user) {
-                submittedByText = "Submitted by: " + this.state.data.user;
+            if (this.state.data.username) {
+                submittedByText = "Submitted by: " + this.state.data.username;
             } else {
                 submittedByText = "Submitted by: Anonymous";
             }
@@ -3186,57 +3242,15 @@ var ShowResultDisplay = React.createClass({
   }
 });
 
-var VoteOptionPlayer = React.createClass({
+var ShowResultDisplay = React.createClass({
   getInitialState: function() {
     return {data: undefined};
   },
   componentDidMount: function() {
-    // Get the vote option data
-    var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
+    // Get the vote type data
+    var voteTypeUrl = this.props.voteTypeAPIUrl + this.props.showData.current_vote_type + "/?show_id=" + this.props.showID;
     $.ajax({
-      url: voteOptionUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-  render: function() {
-    if (!this.state.data) {
-        return (<Loading loadingBarColor="#fff" />);
-    }
-    var bodyContent = (
-        <div className="text-center">
-            <img src={this.state.data.player_photo} className="img-responsive img-thumbnail highlight-shadow" />
-            <br />
-            <button className="btn btn-info btn-md word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
-        </div>
-    );
-    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">{this.state.data.live_votes} Votes</button>;
-
-    return (
-        <Panel panelWidth="12" panelColor="primary"
-               panelHeadingContent={this.state.data.option_number}
-               panelHeadingStyle={this.props.headingStyle}
-               panelHeadingClasses="xx-large-font text-center"
-               bodyContent={bodyContent}
-               footerContent={footerContent} />
-    );
-  }
-});
-
-var VoteOptionSuggestion = React.createClass({
-  getInitialState: function() {
-    return {data: undefined};
-  },
-  componentDidMount: function() {
-    // Get the vote option data
-    var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
-    $.ajax({
-      url: voteOptionUrl,
+      url: voteTypeUrl,
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
@@ -3252,12 +3266,15 @@ var VoteOptionSuggestion = React.createClass({
     }
 
     return (
-        <button className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow">
-           {this.state.data.option_number}. {this.state.data.suggestion_value} {this.state.data.live_votes}
-        </button>
+        <ShowResultDisplayVotedOption voteOptionID={this.state.data.voted_option}
+                                      playerID={this.props.showData.current_player}
+                                      voteTypeData={this.state.data}
+                                      playerAPIUrl={this.props.playerAPIUrl}
+                                      voteOptionAPIUrl={this.props.voteOptionAPIUrl} />
     );
   }
 });
+
 
 var ShowVotingDisplay = React.createClass({
   getInitialState: function() {
@@ -3286,11 +3303,13 @@ var ShowVotingDisplay = React.createClass({
     var footerContent = [];
     var headingStyle = {backgroundColor: this.state.data.button_color};
     var voteTypeHeading = this.state.data.display_name;
+    // Create the timer for the vote
+    var intervalTimer = <IntervalTimer key={this.state.data.vote_seconds_remaining}
+                                       timerID="countdown"
+                                       secondsRemaining={this.state.data.vote_seconds_remaining} />;
+    var playerImage;
     // If this is a player only display
     if (this.state.data.players_only) {
-        var intervalTimer = <IntervalTimer key={this.state.data.vote_seconds_remaining}
-                                           timerID="countdown"
-                                           secondsRemaining={this.state.data.vote_seconds_remaining} />;
         // Create the player list
         var playerOptionList = [];
         var rowKey, playerDivKey;
@@ -3302,7 +3321,7 @@ var ShowVotingDisplay = React.createClass({
                        panelWidth="12"
                        panelHeadingContent="Time Remaining"
                        panelHeadingStyle={headingStyle}
-                       panelHeadingClasses="large-font"
+                       panelHeadingClasses="x-large-font"
                        bodyContent={intervalTimer} />
             </div>
         );
@@ -3344,11 +3363,29 @@ var ShowVotingDisplay = React.createClass({
         voteTypeHeading = voteTypeHeading + " Voting";
         // If we are viewing a vote with player options
         if (this.state.data.player_options) {
-            // If we are viewing a vote with player options
-            bodyContent = <PlayerImage playerAPIUrl={this.props.playerAPIUrl}
-                                       playerID={this.state.data.current_voted_player}
-                                       showName="True" />
+            var playerKey = "player-image-" + this.props.showData.current_player;
+            // Show the timer and player side by side
+            bodyContent = <div key="timer-div" className="row">
+                              <div className="col-md-offset-4 col-md-2 text-center">
+                                  <PlayerImage key={playerKey}
+                                               playerAPIUrl={this.props.playerAPIUrl}
+                                               playerID={this.props.showData.current_player}
+                                               showName="True"
+                                               playerNameClasses="x-large-font" />
+                              </div>
+                              <div className="col-md-3">
+                                  {intervalTimer}
+                              </div>
+                          </div>;
+        // If we just need to show the timer
+        } else {
+            bodyContent = <div className="row">
+                              <div className="col-md-offset-5 col-md-4">
+                                  {intervalTimer}
+                              </div>
+                          </div>;
         }
+
         this.props.showData.vote_options.map(function (voteOption) {
             this.counter++;
             footerContent.push(
@@ -3367,6 +3404,7 @@ var ShowVotingDisplay = React.createClass({
                                panelHeadingStyle={headingStyle}
                                panelHeadingClasses="xx-large-font"
                                bodyContent={bodyContent}
+                               panelBodyClasses="white-background"
                                footerContent={footerContent} />;
     }
 
@@ -3405,13 +3443,14 @@ var ShowDisplay = React.createClass({
     this.setInterval(this.loadShowData, 2000);
   },
   render: function() {
-    // If the show has ended
-    if (!this.props.showDisplayContext.showAPIUrl) {
-        return (<div>Show has ended</div>);
-    }
     // If the vote type isn't loaded yet
     if (!this.state.data) {
         return (<Loading loadingBarColor="#fff" />);
+    }
+    // If the show isn't running anymore (show has ended)
+    if (!this.state.data.running) {
+        this.componentWillUnmount();
+        return (<div className="xx-large-font">Show has ended</div>);
     }
     var showStateDisplay;
     // Default Show display
@@ -3425,6 +3464,7 @@ var ShowDisplay = React.createClass({
     } else if (this.state.data.current_display == "voting") {
         showStateDisplay = <ShowVotingDisplay showData={this.state.data}
                                               showID={this.props.showDisplayContext.showID}
+                                              playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
                                               voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl} />;
     } else if (this.state.data.current_display == "result") {
@@ -3432,7 +3472,7 @@ var ShowDisplay = React.createClass({
                                               showID={this.props.showDisplayContext.showID}
                                               playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
-                                              liveVoteAPIUrl={this.props.showDisplayContext.liveVoteAPIUrl} />;
+                                              voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl} />;
     }
     return (
         <div>

@@ -33,40 +33,54 @@ class ShowAPIObject(APIObject):
         current_show = shows_service.get_current_show(self.channel_id)
         # If the Show is the current running show
         if show.id == getattr(current_show, 'id', None):
+            self.running = True
             # Get the current vote state
             state = channels_service.get_current_vote_state(show.vote_types())
             # Set the current show fields
             self.current_display = state.get('display', 'default')
             self.current_vote_type = state.get('vote_type_id', None)
+
             # If we're in the voting state
             if self.current_display == 'voting':
-                vote_type = channels_service.vote_type_or_404(self.current_vote_type)
+                self.set_default_vote_data(show.id)
                 # Get the vote options for this (interval or not)
                 self.vote_options = shows_service.fetch_vote_option_ids(
                                                                 show_id=show.id,
-                                                                vote_type_id=vote_type.id,
-                                                                interval=vote_type.current_interval)
+                                                                vote_type_id=self.vote_type.id,
+                                                                interval=self.vote_type.current_interval)
             # If we're in the result state
             elif self.current_display == 'result':
-                vote_type = channels_service.vote_type_or_404(self.current_vote_type)
+                self.set_default_vote_data(show.id)
                 current_voted = shows_service.get_current_voted(show.id,
-                                                                vote_type.id,
-                                                                vote_type.current_interval)
+                                                                self.vote_type.id,
+                                                                self.vote_type.current_interval)
                 # If we haven't established a voted option
                 if not current_voted:
                     # Get the vote options for this (interval or not)
                     vote_options = shows_service.fetch_vote_options(show_id=show.id,
-                                                                    vote_type_id=vote_type.id,
-                                                                    interval=vote_type.current_interval)
+                                                                    vote_type_id=self.vote_type.id,
+                                                                    interval=self.vote_type.current_interval)
                     # Determine the winning option
                     winning_option = shows_service.get_winning_option(vote_options)
                     # Set the voted winning option
                     shows_service.set_voted_option(show,
-                                                   vote_type,
-                                                   vote_type.current_interval,
+                                                   self.vote_type,
+                                                   self.vote_type.current_interval,
                                                    winning_option)
+        # Otherwise this show isn't currently running
+        else:
+            self.running = False
 
-
+    def set_default_vote_data(self, show_id):
+        self.vote_type = channels_service.vote_type_or_404(self.current_vote_type)
+        # Get the current show interval
+        show_interval = shows_service.get_show_interval(show_id,
+                                                        self.vote_type.id,
+                                                        self.vote_type.current_interval)
+        # If one exists
+        if show_interval:
+            # Get the player for that interval
+            self.current_player = show_interval.player_id
 
 
 class SuggestionAPIObject(APIObject):
