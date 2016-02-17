@@ -174,7 +174,6 @@ class VoteType(models.Model):
                         current_voted = shows_service.get_vote_type_interval_used(show_id,
                                                                                   self.id,
                                                                                   self.current_interval)
-                    #logger.info("current_voted: {0}".format(self.current_interval))
                     # If the current interval has already been voted on, or we don't require that
                     if current_voted or current_voted_not_required:
                         # Get the next interval
@@ -217,7 +216,6 @@ class VoteType(models.Model):
             if next_interval:
                 # Find the difference between this interval and the next
                 interval_delta = next_interval - self.current_interval
-                logger.info("interval_delta: {0}".format(interval_delta))
                 # Determine when that interval ends
                 interval_end = self.current_vote_init + datetime.timedelta(minutes=interval_delta)
             else:

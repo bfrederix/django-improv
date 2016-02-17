@@ -59,7 +59,8 @@ class LeaderboardEntryViewSet(viewsets.ViewSet):
             kwargs['channel'] = channel_id
         if show_id:
             kwargs['show'] = show_id
-        queryset = LeaderboardEntry.objects.filter(**kwargs)
+        # Make sure we exclude any entries that don't have users attached
+        queryset = LeaderboardEntry.objects.filter(**kwargs).exclude(user=None)
         if order_by_show_date is not None:
             queryset = queryset.order_by('-show_date')
         if show_id:

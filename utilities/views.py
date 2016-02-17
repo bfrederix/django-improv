@@ -51,12 +51,14 @@ class ShowView(View):
         # If the current show is locked and the user isn't an admin
         if self.current_show and getattr(self.current_show, 'locked') \
             and not self.is_channel_admin:
+            url_kwargs = {'channel_name': self.channel.name,
+                          'show_id': self.current_show.id}
             # Get the live vote path
-            live_vote_path = reverse('show_live_vote',
-                                     kwargs={'channel_name': self.channel.name,
-                                             'show_id': self.current_show.id})
-            # If the user isn't on the live vote page, redirect them there
-            if request.path != live_vote_path:
+            live_vote_path = reverse('show_live_vote', kwargs=url_kwargs)
+            # Get the vote receiver path
+            vote_receiver_path = reverse('show_vote_receiver', kwargs=url_kwargs)
+            # If the user isn't voting, redirect them to voting
+            if not request.path in [live_vote_path, vote_receiver_path]:
                 return redirect(live_vote_path)
         return super(ShowView, self).dispatch(request, *args, **kwargs)
 

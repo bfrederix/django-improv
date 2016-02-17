@@ -7,6 +7,7 @@ import pytz
 from django.shortcuts import get_object_or_404
 from django.db.models import Max
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
 
 from shows.models import (Show, Suggestion, VotedItem,
                           VoteOption, LiveVote,
@@ -67,6 +68,57 @@ def suggestion_or_404(suggestion_id):
     return get_object_or_404(Suggestion, pk=suggestion_id)
 
 
+def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count):
+    # Make sure there is a proper option count
+    if not option_count:
+        raise ValueError("Option count needs to be higher than 0")
+    # Return un-used suggestion keys, sorted by vote, and only if they've appeared less than twice
+    unused_suggestions = Suggestion.objects.filter(
+                             show=show_id,
+                             suggestion_pool=suggestion_pool_id,
+                             used=False,
+                             amount_voted_on__lt=2).order_by('amount_voted_on',
+                                                             '-preshow_value',
+                                                             'created')[:option_count*2]
+    # If there are less than the option amount left that haven't been voted on twice
+    # Allow suggestions that have been voted on twice already
+    if len(unused_suggestions) < option_count:
+        # Fetch un-used suggestion keys
+        unused_suggestions = Suggestion.objects.filter(
+                                 show=show_id,
+                                 suggestion_pool=suggestion_pool_id,
+                                 used=False).order_by('-preshow_value',
+                                                      'created')[:option_count*2]
+    # Get a randomized sample of the top "options" amount of suggestion
+    random_sample = list(random.sample(
+                            set(unused_suggestions),
+                            min(option_count, len(unused_suggestions))))
+    return random_sample[:option_count]
+
+
+def update_suggestions_session_to_user(show_id, session_id, user_id):
+    # Make sure we have a show, session_id, and user
+    if not show_id or not session_id or not user_id:
+        return
+    # Try to fetch the suggestions by show and session id
+    try:
+        suggestions = Suggestion.objects.filter(show=show_id,
+                                                session_id=session_id)
+    # No suggestions with that session id
+    except:
+        return
+    # Update the suggestions with the user
+    else:
+        # Get the user by id
+        user = User.objects.get(pk=user_id)
+        for suggestion in suggestions:
+            # Update the user
+            suggestion.user = user
+            # Remove the session id
+            suggestion.session_id = None
+            suggestion.save()
+
+
 def fetch_voted_items_by_show(show_id, ordered=False):
     voted_items = VotedItem.objects.filter(show=show_id)
     if ordered:
@@ -110,8 +162,49 @@ def get_winning_option(vote_options):
     return most_voted_option
 
 
-def fetch_option(vote_option_id):
+def get_option(vote_option_id):
     return VoteOption.objects.get(pk=vote_option_id)
+
+
+def fetch_option(show_id, vote_type_id, interval, option_number):
+    # Get the vote option
+    try:
+        return VoteOption.objects.get(show=show_id,
+                                      vote_type=vote_type_id,
+                                      interval=interval,
+                                      option_number=option_number)
+    except ObjectDoesNotExist:
+        return None
+
+
+def live_votes_exist(show_interval, user_id, session_id):
+    live_vote_kwargs = {'show_interval': show_interval}
+    # If a user exists
+    if user_id:
+        # Only look up the live vote by user
+        live_vote_kwargs['user'] = user_id
+    # Otherwise use the session id
+    else:
+        live_vote_kwargs['session_id'] = session_id
+    try:
+        return bool(LiveVote.objects.filter(**live_vote_kwargs).count())
+    except Exception as e:
+        logger.info(str(e))
+
+
+def create_live_votes(vote_option, show_interval, user, session_id, require_login):
+    # Create a live vote
+    LiveVote(vote_option=vote_option,
+             show_interval=show_interval,
+             user=user,
+             session_id=session_id).save()
+    # If the user is logged in, but not everyone is logged in
+    if user and not require_login:
+        # Create another live vote
+        LiveVote(vote_option=vote_option,
+                 show_interval=show_interval,
+                 user=user,
+                 session_id=session_id).save()
 
 
 def get_show_vote_type_player_pool_ids(vote_type_id, show_id, count=False, used=None):
@@ -162,34 +255,6 @@ def get_vote_type_interval_used(show_id, vote_type_id, interval):
     return bool(get_current_voted(show_id, vote_type_id, interval))
 
 
-def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count):
-    # Make sure there is a proper option count
-    if not option_count:
-        raise ValueError("Option count needs to be higher than 0")
-    # Return un-used suggestion keys, sorted by vote, and only if they've appeared less than twice
-    unused_suggestions = Suggestion.objects.filter(
-                             show=show_id,
-                             suggestion_pool=suggestion_pool_id,
-                             used=False,
-                             amount_voted_on__lt=2).order_by('amount_voted_on',
-                                                             '-preshow_value',
-                                                             'created')[:option_count*2]
-    # If there are less than the option amount left that haven't been voted on twice
-    # Allow suggestions that have been voted on twice already
-    if len(unused_suggestions) < option_count:
-        # Fetch un-used suggestion keys
-        unused_suggestions = Suggestion.objects.filter(
-                                 show=show_id,
-                                 suggestion_pool=suggestion_pool_id,
-                                 used=False).order_by('-preshow_value',
-                                                      'created')[:option_count*2]
-    # Get a randomized sample of the top "options" amount of suggestion
-    random_sample = list(random.sample(
-                            set(unused_suggestions),
-                            min(option_count, len(unused_suggestions))))
-    return random_sample[:option_count]
-
-
 def set_show_interval_random_player(show, vote_type, interval):
     try:
         # Randomly select a player from the show
@@ -219,6 +284,7 @@ def set_voting_options(show, vote_type, interval,
         vote_options = VoteOption.objects.filter(show=show,
                                                  vote_type=vote_type,
                                                  interval=interval)
+        # NOTE: This will delete live votes too
         vote_options.delete()
     # If there are suggestions
     if suggestions:

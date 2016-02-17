@@ -203,7 +203,7 @@ class VoteOptionViewSet(viewsets.ViewSet):
     """
 
     def retrieve(self, request, pk=None):
-        vote_option = shows_service.fetch_option(pk)
+        vote_option = shows_service.get_option(pk)
         serializer = VoteOptionSerializer(VoteOptionAPIObject(vote_option))
         return Response(serializer.data)
 

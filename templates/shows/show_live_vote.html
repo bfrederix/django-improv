@@ -34,8 +34,8 @@
                 <div class="row">
                     <div class="col-md-offset-4 col-md-4">
                         <form action="{% url "show_live_vote" channel.name show_id %}" method="post">
-                            <input type="hidden" name="vote_num" value="{{option}}" />
-                            <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
+                            <input type="hidden" name="option_number" value="{{option}}" />
+                            {% csrf_token %}
                             <input type="submit" class="btn btn-primary btn-block x-large-font btn-shadow text-shadow" value="{{forloop.counter}}"/>
                         </form>
                     </div>

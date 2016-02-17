@@ -2962,10 +2962,11 @@ var ShowController = React.createClass({
 
 
 var VoteOptionPlayer = React.createClass({
+  mixins: [SetIntervalMixin], // Use the setInterval timing mixin
   getInitialState: function() {
     return {data: undefined};
   },
-  componentDidMount: function() {
+  loadPlayerOptionData: function() {
     // Get the vote option data
     var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
     $.ajax({
@@ -2978,6 +2979,10 @@ var VoteOptionPlayer = React.createClass({
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
+  },
+  componentDidMount: function() {
+    this.loadPlayerOptionData();
+    this.setInterval(this.loadPlayerOptionData, 2000);
   },
   render: function() {
     if (!this.state.data) {
@@ -3004,10 +3009,11 @@ var VoteOptionPlayer = React.createClass({
 });
 
 var VoteOptionSuggestion = React.createClass({
+  mixins: [SetIntervalMixin], // Use the setInterval timing mixin
   getInitialState: function() {
     return {data: undefined};
   },
-  componentDidMount: function() {
+  loadSuggestionOptionData: function() {
     // Get the vote option data
     var voteOptionUrl = this.props.voteOptionAPIUrl + this.props.voteOptionID + "/";
     $.ajax({
@@ -3020,6 +3026,10 @@ var VoteOptionSuggestion = React.createClass({
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
+  },
+  componentDidMount: function() {
+    this.loadSuggestionOptionData();
+    this.setInterval(this.loadSuggestionOptionData, 2000);
   },
   render: function() {
     if (!this.state.data) {
@@ -3096,6 +3106,7 @@ var ShowDefaultDisplay = React.createClass({
     var leaderboardEnties = [];
     var teamPhoto;
     var showLeaderboard;
+    var leKey;
     this.counter = 1;
     // Get the remaining vote types buttons
     this.props.showData.vote_types.map(function (voteTypeID) {
@@ -3112,7 +3123,8 @@ var ShowDefaultDisplay = React.createClass({
     // Get the current top of the leaderboard
     if (this.state.data) {
         this.state.data.map(function (leaderboardEntry) {
-            leaderboardEnties.push(<div className="btn btn-danger btn-block btn-shadow text-shadow large-font">{this.counter}. {leaderboardEntry.username}</div>);
+            leKey = 'leaderboard-entry-' + this.counter;
+            leaderboardEnties.push(<div key={leKey} className="btn btn-danger btn-block btn-shadow text-shadow large-font">{this.counter}. {leaderboardEntry.username}</div>);
             this.counter++;
             return leaderboardEnties;
         }, this);
