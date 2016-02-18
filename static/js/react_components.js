@@ -228,7 +228,7 @@ var IntervalTimer = React.createClass({
   },
   render: function() {
       return (
-        <div id={this.props.timerID}></div>
+        <div id={this.props.timerID} className="animated fadeIn"></div>
       );
   }
 });
@@ -465,10 +465,15 @@ var FormLabel = React.createClass({
 
 var Panel = React.createClass({
   render: function() {
+    var panelAnimate = "animated fadeIn";
+    // If a different animation was specified for the panel
+    if (this.props.panelAnimate) {
+        panelAnimate = this.props.panelAnimate;
+    }
     var panelWidth = "col-md-"+this.props.panelWidth;
     var panelOffset = "col-md-offset-"+this.props.panelOffset;
     var colClasses = 'col ' + panelWidth + ' ' + panelOffset;
-    var panelClasses = 'panel panel-' + this.props.panelColor + ' highlight-shadow animated fadeIn';
+    var panelClasses = 'panel panel-' + this.props.panelColor + ' highlight-shadow ' + panelAnimate;
     var panelComponents = [];
     if (this.props.panelHeadingContent) {
         panelComponents.push(<PanelHeader key="1"
@@ -2973,7 +2978,24 @@ var VoteOptionPlayer = React.createClass({
       url: voteOptionUrl,
       dataType: 'json',
       success: function(data) {
-        this.setState({data: data});
+        var nextState = {data: data};
+        // If there was a previous state
+        if (this.state.data) {
+            // Get the difference between the old amount of live votes and the new amount
+            var voteDelta = data.live_votes - this.state.data.live_votes;
+            // If there is a difference
+            if (voteDelta > 0) {
+                // Play the cha-ching sound
+                var chaChing = new Audio(this.props.chaChingFile);
+                chaChing.play();
+                // Set the new state's vote delta
+                nextState['voteDelta'] = voteDelta;
+            } else {
+                // Set the new state's vote delta
+                nextState['voteDelta'] = undefined;
+            }
+        }
+        this.setState(nextState);
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -2986,7 +3008,12 @@ var VoteOptionPlayer = React.createClass({
   },
   render: function() {
     if (!this.state.data) {
-        return (<Loading loadingBarColor="#fff" />);
+        return (<div></div>);
+    }
+    var deltaSpan;
+    // If the live votes changed
+    if (this.state.voteDelta) {
+        deltaSpan = <span className="animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
     }
     var bodyContent = (
         <div className="text-center">
@@ -2995,10 +3022,11 @@ var VoteOptionPlayer = React.createClass({
             <button className="btn btn-info btn-md word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
         </div>
     );
-    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">Votes: {this.state.data.live_votes}</button>;
+    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">{this.state.data.live_votes}{deltaSpan}</button>;
 
     return (
         <Panel panelWidth="12" panelColor="primary"
+               panelAnimate="animated fadeInUpBig"
                panelHeadingContent={this.state.data.option_number}
                panelHeadingStyle={this.props.headingStyle}
                panelHeadingClasses="xx-large-font text-center"
@@ -3020,7 +3048,24 @@ var VoteOptionSuggestion = React.createClass({
       url: voteOptionUrl,
       dataType: 'json',
       success: function(data) {
-        this.setState({data: data});
+        var nextState = {data: data};
+        // If there was a previous state
+        if (this.state.data) {
+            // Get the difference between the old amount of live votes and the new amount
+            var voteDelta = data.live_votes - this.state.data.live_votes;
+            // If there is a difference
+            if (voteDelta > 0) {
+                // Play the cha-ching sound
+                var chaChing = new Audio(this.props.chaChingFile);
+                chaChing.play();
+                // Set the new state's vote delta
+                nextState['voteDelta'] = voteDelta;
+            } else {
+                // Set the new state's vote delta
+                nextState['voteDelta'] = undefined;
+            }
+        }
+        this.setState(nextState);
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -3033,12 +3078,17 @@ var VoteOptionSuggestion = React.createClass({
   },
   render: function() {
     if (!this.state.data) {
-        return (<Loading loadingBarColor="#fff" />);
+        return (<div></div>);
+    }
+    var deltaSpan;
+    // If the live votes changed
+    if (this.state.voteDelta) {
+        deltaSpan = <span className="animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
     }
 
     return (
-        <button className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow">
-           {this.state.data.option_number}. {this.state.data.suggestion_value} {this.state.data.live_votes}
+        <button className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow animated fadeInDown">
+           {this.state.data.option_number}. {this.state.data.suggestion_value} {this.state.data.live_votes}{deltaSpan}
         </button>
     );
   }
@@ -3065,7 +3115,7 @@ var RemainingIntervalsButton = React.createClass({
   render: function() {
     // If the vote type isn't loaded yet
     if (!this.state.data) {
-        return (<Loading loadingBarColor="#fff" />);
+        return (<div></div>);
     }
     // Make sure the current state has intervals
     if (this.state.data.intervals) {
@@ -3073,7 +3123,7 @@ var RemainingIntervalsButton = React.createClass({
         return (
             <div>
                 <br/>
-                <button className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
+                <button className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow animated fadeInDown" style={buttonStyle}>{this.state.data.display_name} Remaining: {this.state.data.remaining_intervals}</button>
             </div>
         );
     } else {
@@ -3124,20 +3174,20 @@ var ShowDefaultDisplay = React.createClass({
     if (this.state.data) {
         this.state.data.map(function (leaderboardEntry) {
             leKey = 'leaderboard-entry-' + this.counter;
-            leaderboardEnties.push(<div key={leKey} className="btn btn-danger btn-block btn-shadow text-shadow large-font">{this.counter}. {leaderboardEntry.username}</div>);
+            leaderboardEnties.push(<div key={leKey} className="btn btn-danger btn-block btn-shadow text-shadow large-font animated fadeInDown">{this.counter}. {leaderboardEntry.username}</div>);
             this.counter++;
             return leaderboardEnties;
         }, this);
     } else {
-        leaderboardEnties.push(<Loading key="load" loadingBarColor="#fff" />);
+        leaderboardEnties.push(<div></div>);
     }
     if (this.props.teamPhotoUrl) {
         teamPhoto = (
-            <div key="1" className="col-md-8">
+            <div key="1" className="col-md-8 animated fadeInLeftBig">
                 <Image image_url={this.props.teamPhotoUrl} />
             </div>);
         showLeaderboard = (
-            <div key="2" className="col-md-4">
+            <div key="2" className="col-md-4 animated fadeInRightBig">
                 <Panel panelWidth="12" panelColor="primary"
                    panelHeadingContent="Current Leaders" panelHeadingClasses="large-font"
                    bodyContent={leaderboardEnties} />
@@ -3156,7 +3206,7 @@ var ShowDefaultDisplay = React.createClass({
                 <div key="leaderboard-0" className="row">
                     <div className="col-md-12">
                         <a className="text-center" href={this.props.showLeaderboardUrl}>
-                            <div className="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font">Leaderboard</div>
+                            <div className="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown">Leaderboard</div>
                         </a>
                         <br/>
                     </div>
@@ -3260,6 +3310,7 @@ var ShowResultDisplayVotedOption = React.createClass({
         <div className="row">
             <div className="col-md-10 col-md-offset-1">
                 <Panel panelWidth="12"
+                       panelAnimate="animated fadeInUpBig"
                        panelHeadingStyle={headingStyle}
                        panelHeadingContent={voteTypeResult} panelHeadingClasses="xx-large-font"
                        bodyContent={bodyContent}
@@ -3364,7 +3415,8 @@ var ShowVotingDisplay = React.createClass({
                 <div key={this.counter} className="col-md-2">
                     <VoteOptionPlayer voteOptionID={voteOptionID}
                                       voteOptionAPIUrl={this.props.voteOptionAPIUrl}
-                                      headingStyle={headingStyle} />
+                                      headingStyle={headingStyle}
+                                      chaChingFile={this.props.chaChingFile} />
                 </div>
             );
             // If we've either started our first row, or hit the next row
@@ -3424,7 +3476,8 @@ var ShowVotingDisplay = React.createClass({
                 <div key={this.counter} className="row">
                     <div className="col-md-12">
                         <VoteOptionSuggestion voteOptionID={voteOption}
-                                              voteOptionAPIUrl={this.props.voteOptionAPIUrl} />
+                                              voteOptionAPIUrl={this.props.voteOptionAPIUrl}
+                                              chaChingFile={this.props.chaChingFile} />
                         <br />
                     </div>
                 </div>
@@ -3432,6 +3485,7 @@ var ShowVotingDisplay = React.createClass({
             return footerContent;
         }, this);
         votingDisplay = <Panel panelWidth="12"
+                               panelAnimate="animated fadeInUpBig"
                                panelHeadingContent={voteTypeHeading}
                                panelHeadingStyle={headingStyle}
                                panelHeadingClasses="xx-large-font"
@@ -3499,7 +3553,8 @@ var ShowDisplay = React.createClass({
                                               playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
                                               voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl}
-                                              votingChimeFile={this.props.showDisplayContext.votingChimeFile} />;
+                                              votingChimeFile={this.props.showDisplayContext.votingChimeFile}
+                                              chaChingFile={this.props.showDisplayContext.chaChingFile} />;
     } else if (this.state.data.current_display == "result") {
         showStateDisplay = <ShowResultDisplay showData={this.state.data}
                                               showID={this.props.showDisplayContext.showID}
@@ -3679,7 +3734,8 @@ var RootComponent = React.createClass({
             voteOptionAPIUrl: getElementValueOrNull("voteOptionAPIUrl"),
             channelShowLeaderboardUrl: getElementValueOrNull("channelShowLeaderboardUrl"),
             guitarChordFile: getElementValueOrNull("guitarChordFile"),
-            votingChimeFile: getElementValueOrNull("votingChimeFile")
+            votingChimeFile: getElementValueOrNull("votingChimeFile"),
+            chaChingFile: getElementValueOrNull("chaChingFile"),
 
         };
         rootComponents.push(<ShowDisplay key="1" showDisplayContext={showDisplayContext} />);

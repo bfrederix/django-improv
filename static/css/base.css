@@ -363,22 +363,36 @@ span.light-gray-bg{
     to { text-shadow: -.1em -.2em .6em #fefcc9, -.15em 0 .6em #feec85, .1em -.25em .6em #ffae34, -.15em -.45em .5em #ec760c, .1em -.5em .6em #cd4606, 0 -.8em .6em #973716, -.2em -1em .8em #451b0e; }
 }
 
-/* Pulse */
+/* Pulse Animation */
 
 .pulse-mod {
     -moz-animation-iteration-count: 3;
     -ms-animation-iteration-count: 3;
     -o-animation-iteration-count: 3;
     -webkit-animation-iteration-count: 3;
+    animation-iteration-count: 3;
 }
 
-/* Bounce */
+/* Bounce Animation */
 
 .shake-mod {
     -moz-animation-delay: 1s;
     -ms-animation-delay: 1s;
     -o-animation-delay: 1s;
     -webkit-animation-delay: 1s;
+    animation-delay: 1s;
+}
+
+/* Fade Out Right Animation */
+
+.fadeOutRight-mod {
+    color: E8E235;
+    text-shadow: 2px 2px 2px #333;
+    -moz-animation-delay: .25s;
+    -ms-animation-delay: .25s;
+    -o-animation-delay: .25s;
+    -webkit-animation-delay: .25s;
+    animation-delay: .25s;
 }
 
 /* Loading Animation */
