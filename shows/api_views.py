@@ -123,13 +123,16 @@ class VoteOptionAPIObject(APIObject):
         self.live_votes = shows_service.get_option_live_votes(option.id)
         # If there was a suggestion for the option
         if option.suggestion_id:
-            self.used = option.suggestion.used
-            self.suggestion_value = option.suggestion.value
-            user_id = option.suggestion.user_id
+            suggestion = option.suggestion
+            self.used = suggestion.used
+            self.suggestion_value = suggestion.value
+            user_id = suggestion.user_id
             if user_id:
                 user_profile = users_service.fetch_user_profile(user_id)
                 self.user_id = user_profile.user_id
                 self.username = user_profile.safe_username
+                self.user_wins = shows_service.show_user_winning_suggestion_count(suggestion.show_id,
+                                                                                  user_id)
         # If there was a player for the option
         if option.player_id:
             self.player_name = option.player.name

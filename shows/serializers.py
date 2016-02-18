@@ -61,6 +61,7 @@ class VoteOptionSerializer(serializers.Serializer):
     player_photo = serializers.CharField(required=False)
     user_id = serializers.IntegerField(required=False)
     username = serializers.CharField(required=False)
+    user_wins = serializers.IntegerField(required=False)
     live_votes = serializers.IntegerField()
 
     class Meta:
@@ -68,7 +69,7 @@ class VoteOptionSerializer(serializers.Serializer):
                   'option_number', 'suggestion', 'suggestion_value',
                   'player', 'player_name', 'player_photo',
                   'user_id', 'username', 'live_votes',
-                  'used')
+                  'used', 'user_wins')
 
 
 class LiveVoteSerializer(serializers.Serializer):

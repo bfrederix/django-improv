@@ -468,7 +468,7 @@ var Panel = React.createClass({
     var panelWidth = "col-md-"+this.props.panelWidth;
     var panelOffset = "col-md-offset-"+this.props.panelOffset;
     var colClasses = 'col ' + panelWidth + ' ' + panelOffset;
-    var panelClasses = 'panel panel-' + this.props.panelColor + ' highlight-shadow';
+    var panelClasses = 'panel panel-' + this.props.panelColor + ' highlight-shadow animated fadeIn';
     var panelComponents = [];
     if (this.props.panelHeadingContent) {
         panelComponents.push(<PanelHeader key="1"
@@ -606,13 +606,13 @@ var PlayerImage = React.createClass({
     var playerName;
     var playerNameClasses = "btn btn-info btn-lg word-wrap btn-shadow text-shadow " + this.props.playerNameClasses;
     if (!this.state.data){
-        return (<Loading loadingBarColor="#fff" />);
+        return (<div></div>);
     }
     if (this.props.showName) {
         playerName = <button className={playerNameClasses}>{this.state.data.name}</button>
     }
     return (
-        <div>
+        <div className="animated fadeIn">
             <img src={this.state.data.photo_url} className="img-responsive img-thumbnail highlight-shadow" />
             <br />
             {playerName}
@@ -2995,7 +2995,7 @@ var VoteOptionPlayer = React.createClass({
             <button className="btn btn-info btn-md word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
         </div>
     );
-    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">{this.state.data.live_votes} Votes</button>;
+    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">Votes: {this.state.data.live_votes}</button>;
 
     return (
         <Panel panelWidth="12" panelColor="primary"
@@ -3199,6 +3199,7 @@ var ShowResultDisplayVotedOption = React.createClass({
     var footerContent = [];
     var headingStyle = {backgroundColor: this.props.voteTypeData.button_color};
     var voteTypeResult = this.props.voteTypeData.display_name + " Result";
+    var liveVotesClasses = "btn btn-danger btn-lg word-wrap xx-large-font btn-shadow text-shadow";
     // If there was a player in the voted option, use that player
     if (this.state.data.player) {
         playerID = this.state.data.player;
@@ -3216,7 +3217,7 @@ var ShowResultDisplayVotedOption = React.createClass({
     if (this.state.data.suggestion) {
         footerContent.push(
             <div key="voted-suggestion-div">
-                <button key="voted-suggetion" className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow">
+                <button key="voted-suggetion" className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow animated shake shake-mod">
                     {this.state.data.option_number}. {this.state.data.suggestion_value}
                 </button>
                 <br key="suggestion-br" />
@@ -3224,18 +3225,30 @@ var ShowResultDisplayVotedOption = React.createClass({
         );
         // If it's not a players only vote
         if (!this.props.voteTypeData.players_only) {
+            var buttonClasses = "btn btn-primary btn-lg word-wrap xx-large-font btn-shadow text-shadow";
             // If a logged in user submitted the suggestion
             if (this.state.data.username) {
+                // If the user has more than one win
+                if (this.state.data.user_wins > 1) {
+                    // Use the fire class
+                    buttonClasses = buttonClasses + " fire";
+                } else {
+                    // Pulse class
+                    buttonClasses = buttonClasses + " animated pulse pulse-mod";
+                }
                 submittedByText = "Submitted by: " + this.state.data.username;
             } else {
                 submittedByText = "Submitted by: Anonymous";
             }
-            submittedByButton = <button key="submitted-by" className="btn btn-primary btn-lg word-wrap xx-large-font btn-shadow text-shadow">{submittedByText}</button>;
+            submittedByButton = <button key="submitted-by" className={buttonClasses}>{submittedByText}</button>;
         }
+    // If there was no voted option, only player
+    } else {
+        liveVotesClasses = liveVotesClasses + " animated pulse pulse-mod";
     }
     footerContent.push(
         <div key="submit-votes" className="row text-center">
-            <button key="live-votes" className="btn btn-danger btn-lg word-wrap xx-large-font btn-shadow text-shadow">{this.state.data.live_votes} Votes</button>
+            <button key="live-votes" className={liveVotesClasses}>{this.state.data.live_votes} Votes</button>
             &nbsp;{submittedByButton}
         </div>
     );

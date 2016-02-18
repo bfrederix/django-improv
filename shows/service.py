@@ -119,6 +119,12 @@ def update_suggestions_session_to_user(show_id, session_id, user_id):
             suggestion.save()
 
 
+def show_user_winning_suggestion_count(show_id, user_id):
+    return Suggestion.objects.filter(show=show_id,
+                                     user=user_id,
+                                     used=True).count()
+
+
 def fetch_voted_items_by_show(show_id, ordered=False):
     voted_items = VotedItem.objects.filter(show=show_id)
     if ordered:
