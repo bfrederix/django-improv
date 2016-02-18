@@ -3183,6 +3183,9 @@ var ShowResultDisplayVotedOption = React.createClass({
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
+        // Play the result guitar chord
+        var guitarChord = new Audio(this.props.guitarChordFile);
+        guitarChord.play();
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -3295,7 +3298,8 @@ var ShowResultDisplay = React.createClass({
                                       playerID={this.props.showData.current_player}
                                       voteTypeData={this.state.data}
                                       playerAPIUrl={this.props.playerAPIUrl}
-                                      voteOptionAPIUrl={this.props.voteOptionAPIUrl} />
+                                      voteOptionAPIUrl={this.props.voteOptionAPIUrl}
+                                      guitarChordFile={this.props.guitarChordFile} />
     );
   }
 });
@@ -3313,6 +3317,9 @@ var ShowVotingDisplay = React.createClass({
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
+        // Play the result guitar chord
+        var votingChime = new Audio(this.props.votingChimeFile);
+        votingChime.play();
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -3491,13 +3498,15 @@ var ShowDisplay = React.createClass({
                                               showID={this.props.showDisplayContext.showID}
                                               playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
-                                              voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl} />;
+                                              voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl}
+                                              votingChimeFile={this.props.showDisplayContext.votingChimeFile} />;
     } else if (this.state.data.current_display == "result") {
         showStateDisplay = <ShowResultDisplay showData={this.state.data}
                                               showID={this.props.showDisplayContext.showID}
                                               playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
-                                              voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl} />;
+                                              voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl}
+                                              guitarChordFile={this.props.showDisplayContext.guitarChordFile} />;
     }
     return (
         <div>
@@ -3669,6 +3678,9 @@ var RootComponent = React.createClass({
             voteTypeAPIUrl: getElementValueOrNull("voteTypeAPIUrl"),
             voteOptionAPIUrl: getElementValueOrNull("voteOptionAPIUrl"),
             channelShowLeaderboardUrl: getElementValueOrNull("channelShowLeaderboardUrl"),
+            guitarChordFile: getElementValueOrNull("guitarChordFile"),
+            votingChimeFile: getElementValueOrNull("votingChimeFile")
+
         };
         rootComponents.push(<ShowDisplay key="1" showDisplayContext={showDisplayContext} />);
     }

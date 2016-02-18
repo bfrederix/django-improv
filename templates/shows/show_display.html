@@ -16,6 +16,10 @@
 
         <input type="hidden" id="rootType" name="rootType" value="show_display" readonly>
         <input type="hidden" id="teamPhotoUrl" name="teamPhotoUrl" value="{{channel.team_photo_url}}" readonly>
+        <input type="hidden" id="guitarChordFile" name="guitarChordFile"
+               value="{{AUDIO_URL}}power_chord.mp3" readonly>
+        <input type="hidden" id="votingChimeFile" name="votingChimeFile"
+               value="{{AUDIO_URL}}action-chime.mp3" readonly>
         {% if current_show %}
             <input type="hidden" id="showID" name="showID" value="{{current_show.id}}" readonly>
             <input type="hidden" id="voteTypeAPIUrl" name="voteTypeAPIUrl"
