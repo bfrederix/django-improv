@@ -10,6 +10,7 @@ class Player(models.Model):
     photo_url = models.CharField(blank=False, max_length=500)
     star = models.BooleanField(default=False, blank=True)
     active = models.BooleanField(default=True, blank=False)
+    archived = models.BooleanField(blank=False, default=False)
 
     created = models.DateTimeField(blank=True, null=True)
 

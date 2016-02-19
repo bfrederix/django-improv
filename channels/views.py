@@ -36,9 +36,18 @@ class ChannelCreateEditView(view_utils.ShowView):
     def post(self, request, *args, **kwargs):
         action = None
         channel_id = kwargs.get('channel_id')
-        if channel_id:
-            action = "Channel Edited Successfully!"
+        delete = request.POST.get('delete')
         context = self.get_default_channel_context(request, *args, **kwargs)
+        # If we're deleting the channel
+        if delete:
+            # Archive it
+            context['channel'].archived = True
+            context['channel'].save()
+            # redirect to the home
+            return redirect('dumpedit_home')
+        # If we're editing the channel
+        elif channel_id:
+            action = "Channel Edited Successfully!"
 
         error = None
         next_show = request.POST.get('next_show')
@@ -118,15 +127,24 @@ class ChannelPlayersView(view_utils.ShowView):
         error = None
         action = None
         player_id = request.POST.get('playerID')
+        delete = request.POST.get('delete')
         player_name = escape(request.POST.get('player_name', ''))
         active = bool(request.POST.get('active', False))
         star = bool(request.POST.get('star', False))
-        if player_id and player_name:
+        # If we're deleting the player
+        if delete:
+            action = "Player Deleted Successfully!"
+            player = players_service.player_or_404(delete)
+            # Archive the player
+            player.archived = True
+        # If we're editing the player
+        elif player_id and player_name:
             action = "Player Edited Successfully!"
             player = players_service.player_or_404(player_id)
             player.name = player_name
             player.active = active
             player.star = star
+        # If we're creating the player
         elif player_name:
             action = "Player Created Successfully!"
             player = players_service.create_player(player_name,
@@ -171,6 +189,7 @@ class ChannelSuggestionPoolsView(view_utils.ShowView):
         error = None
         action = None
         suggestion_pool_id = request.POST.get('selectID')
+        delete = request.POST.get('delete')
         suggestion_pool_kwargs = {'channel': context['channel'],
                                   'name': escape(request.POST.get('name', '')),
                                   'display_name': escape(request.POST.get('display_name', '')),
@@ -179,11 +198,19 @@ class ChannelSuggestionPoolsView(view_utils.ShowView):
                                   'require_login': bool(request.POST.get('require_login', False)),
                                   'active': bool(request.POST.get('active', False)),
                                   'admin_only': bool(request.POST.get('admin_only', False))}
-        if suggestion_pool_id and suggestion_pool_kwargs['name']:
+        # If we're deleting the suggestion pool
+        if delete:
+            action = "Suggestion Pool Deleted Successfully!"
+            suggestion_pool = channels_service.suggestion_pool_or_404(delete)
+            # Archive the suggestion pool
+            suggestion_pool.archived = True
+        # If we're editing the suggestion pool
+        elif suggestion_pool_id and suggestion_pool_kwargs['name']:
             action = "Suggestion Pool Edited Successfully!"
             suggestion_pool = channels_service.suggestion_pool_or_404(suggestion_pool_id)
             for key, value in suggestion_pool_kwargs.items():
                 setattr(suggestion_pool, key, value)
+        # If we're creating the suggestion pool
         elif suggestion_pool_kwargs['name']:
             action = "Suggestion Pool Created Successfully!"
             suggestion_pool = SuggestionPool(**suggestion_pool_kwargs)
@@ -216,6 +243,7 @@ class ChannelVoteTypesView(view_utils.ShowView):
         error = None
         action = None
         vote_type_id = request.POST.get('selectID')
+        delete = request.POST.get('delete')
         suggestion_pool_id = request.POST.get('suggestion_pool', 0)
         # If a suggestion pool was selected (and not 0)
         if suggestion_pool_id:
@@ -223,24 +251,32 @@ class ChannelVoteTypesView(view_utils.ShowView):
         # Otherwise set no suggestion pool
         else:
             suggestion_pool = None
-        vote_type_kwargs = {'channel': context['channel'],
-                            'name': escape(request.POST.get('name', '')),
-                            'display_name': escape(request.POST.get('display_name', '')),
-                            'suggestion_pool': suggestion_pool,
-                            'intervals': request.POST.get('intervals', '').strip(),
-                            'manual_interval_control': bool(request.POST.get('manual_interval_control', False)),
-                            'style': channels_service.vote_style_or_404(int(request.POST.get('style')))[0],
-                            'ordering': int(request.POST.get('ordering', 0)),
-                            'options': int(request.POST.get('options', 3)),
-                            'vote_length': int(request.POST.get('vote_length', 25)),
-                            'result_length': int(request.POST.get('result_length', 10)),
-                            'button_color': request.POST.get('button_color'),
-                            'require_login': bool(request.POST.get('require_login', False)),
-                            'active': bool(request.POST.get('active', False))}
-        vote_type_kwargs.update(
-            channels_service.vote_type_style_to_fields(vote_type_kwargs['style']))
+        # We don't need these if we're deleting
+        if not delete:
+            vote_type_kwargs = {'channel': context['channel'],
+                                'name': escape(request.POST.get('name', '')),
+                                'display_name': escape(request.POST.get('display_name', '')),
+                                'suggestion_pool': suggestion_pool,
+                                'intervals': request.POST.get('intervals', '').strip(),
+                                'manual_interval_control': bool(request.POST.get('manual_interval_control', False)),
+                                'style': channels_service.vote_style_or_404(int(request.POST.get('style')))[0],
+                                'ordering': int(request.POST.get('ordering', 0)),
+                                'options': int(request.POST.get('options', 3)),
+                                'vote_length': int(request.POST.get('vote_length', 25)),
+                                'result_length': int(request.POST.get('result_length', 10)),
+                                'button_color': request.POST.get('button_color'),
+                                'require_login': bool(request.POST.get('require_login', False)),
+                                'active': bool(request.POST.get('active', False))}
+            vote_type_kwargs.update(
+                channels_service.vote_type_style_to_fields(vote_type_kwargs['style']))
+        # If we're deleting the vote type
+        if delete:
+            action = "Vote Type Deleted Successfully!"
+            vote_type = channels_service.vote_type_or_404(delete)
+            # Archive the vote type
+            vote_type.archived = True
         # If we are editing and the required name and style are met
-        if vote_type_id and vote_type_kwargs['name'] and vote_type_kwargs['style']:
+        elif vote_type_id and vote_type_kwargs['name'] and vote_type_kwargs['style']:
             action = "Vote Type Edited Successfully!"
             vote_type = channels_service.vote_type_or_404(vote_type_id)
             for key, value in vote_type_kwargs.items():

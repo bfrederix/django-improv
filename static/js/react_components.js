@@ -1072,11 +1072,36 @@ var ChannelCreateEditForm = React.createClass({
                                  input={submitButton} />);
 
     // The entire Form
-    var bodyContent = <Form formStyle="horizontal"
-                            formSubmitUrl={this.props.channelCreateEditContext.formSubmitUrl}
-                            formContents={formContents}
-                            onFormSubmit={this.onFormSubmit}
-                            csrfToken={this.props.channelCreateEditContext.csrfToken} />
+    var bodyContent = [<Form key="form-1"
+                             formStyle="horizontal"
+                             formSubmitUrl={this.props.channelCreateEditContext.formSubmitUrl}
+                             formContents={formContents}
+                             onFormSubmit={this.onFormSubmit}
+                             csrfToken={this.props.channelCreateEditContext.csrfToken} />];
+
+    // If we're on the edit channel page. Add a delete button
+    if (this.props.channelCreateEditContext.channelID) {
+        var deleteContents = [];
+        var message = "Are you sure you wish to delete the " + this.state.data.display_name + " Channel?";
+        // Delete Button
+        deleteContents.push(<div key="spacing-div"><br /><br /><br /></div>);
+        deleteContents.push(<input key="1" type="button" value="DELETE CHANNEL" className="btn btn-warning btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
+        deleteContents.push(<input key="2" type="hidden" name="delete" value={this.props.channelCreateEditContext.channelID}></input>);
+        deleteContents.push(<ModalConfirm key="3"
+                                          modalID="confirm-delete"
+                                          submitID="submit-delete"
+                                          formID="deleteForm"
+                                          action="Delete"
+                                          dismiss="Cancel"
+                                          header="Delete Channel"
+                                          message={message} />);
+        bodyContent.push(<Form key="form-2"
+                               formID="deleteForm"
+                               formSubmitUrl={this.props.channelCreateEditContext.formSubmitUrl}
+                               formContents={deleteContents}
+                               csrfToken={this.props.channelCreateEditContext.csrfToken} />);
+    }
+
     return (
         <div key={this.state.key}>
             <br/>
@@ -1179,6 +1204,8 @@ var PlayerForm = React.createClass({
                                  inputSize="4"
                                  input={playerEditInput}
                                  helpBlock="Select a player if you wish to edit them" />);
+
+    // If we're editing a player, show their photo
     if (this.state.editPlayerID) {
         formContents.push(<div key="7" className="row">
                             <div className="col-md-4 col-md-offset-2">
@@ -1187,11 +1214,35 @@ var PlayerForm = React.createClass({
                             </div>
                           </div>);
     }
-    var bodyContent = <Form formStyle="horizontal"
-                            formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
-                            formContents={formContents}
-                            onFormSubmit={this.onFormSubmit}
-                            csrfToken={this.props.addPlayerContext.csrfToken} />
+    var bodyContent = [<Form key="form-1"
+                             formStyle="horizontal"
+                             formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
+                             formContents={formContents}
+                             onFormSubmit={this.onFormSubmit}
+                             csrfToken={this.props.addPlayerContext.csrfToken} />];
+
+    // If we're editing a player, add a delete button
+    if (this.state.editPlayerID) {
+        var deleteContents = [];
+        var message = "Are you sure you wish to delete " + this.state.data.name + "?";
+        // Delete Button
+        deleteContents.push(<input key="1" type="button" value="DELETE PLAYER" className="btn btn-info btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
+        deleteContents.push(<input key="2" type="hidden" name="delete" value={this.state.editPlayerID}></input>);
+        deleteContents.push(<ModalConfirm key="3"
+                                          modalID="confirm-delete"
+                                          submitID="submit-delete"
+                                          formID="deleteForm"
+                                          action="Delete"
+                                          dismiss="Cancel"
+                                          header="Delete Player"
+                                          message={message} />);
+        bodyContent.push(<Form key="form-2"
+                               formID="deleteForm"
+                               formSubmitUrl={this.props.addPlayerContext.formSubmitUrl}
+                               formContents={deleteContents}
+                               csrfToken={this.props.addPlayerContext.csrfToken} />);
+    }
+
     return (
         <div key={this.state.key}>
             <FormLabel action={this.props.addPlayerContext.action}
@@ -1333,11 +1384,35 @@ var SuggestionPoolForm = React.createClass({
                                  input={suggestionPoolEditInput}
                                  helpBlock="Select a Suggestion Pool if you wish to edit it" />);
 
-    var bodyContent = <Form formStyle="horizontal"
-                            formSubmitUrl={this.props.suggestionPoolContext.formSubmitUrl}
-                            formContents={formContents}
-                            onFormSubmit={this.onFormSubmit}
-                            csrfToken={this.props.suggestionPoolContext.csrfToken} />
+    var bodyContent = [<Form key="form-1"
+                             formStyle="horizontal"
+                             formSubmitUrl={this.props.suggestionPoolContext.formSubmitUrl}
+                             formContents={formContents}
+                             onFormSubmit={this.onFormSubmit}
+                             csrfToken={this.props.suggestionPoolContext.csrfToken} />];
+
+    // If we're editing a suggestion pool, add a delete button
+    if (this.state.suggestionPoolID) {
+        var deleteContents = [];
+        var message = "Are you sure you wish to delete the " + this.state.data.name + " suggestion pool?";
+        // Delete Button
+        deleteContents.push(<input key="1" type="button" value="DELETE SUGGESTION POOL" className="btn btn-info btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
+        deleteContents.push(<input key="2" type="hidden" name="delete" value={this.state.suggestionPoolID}></input>);
+        deleteContents.push(<ModalConfirm key="3"
+                                          modalID="confirm-delete"
+                                          submitID="submit-delete"
+                                          formID="deleteForm"
+                                          action="Delete"
+                                          dismiss="Cancel"
+                                          header="Delete Suggestion Pool"
+                                          message={message} />);
+        bodyContent.push(<Form key="form-2"
+                               formID="deleteForm"
+                               formSubmitUrl={this.props.suggestionPoolContext.formSubmitUrl}
+                               formContents={deleteContents}
+                               csrfToken={this.props.suggestionPoolContext.csrfToken} />);
+    }
+
     return (
         <div key={this.state.key}>
             <FormLabel action={this.props.suggestionPoolContext.action}
@@ -1554,11 +1629,35 @@ var VoteTypeForm = React.createClass({
                                  input={voteTypeEditInput}
                                  helpBlock="Select a Vote Type if you wish to edit it" />);
 
-    var bodyContent = <Form formStyle="horizontal"
-                            formSubmitUrl={this.props.voteTypeContext.formSubmitUrl}
-                            formContents={formContents}
-                            onFormSubmit={this.onFormSubmit}
-                            csrfToken={this.props.voteTypeContext.csrfToken} />
+    var bodyContent = [<Form key="form-1"
+                             formStyle="horizontal"
+                             formSubmitUrl={this.props.voteTypeContext.formSubmitUrl}
+                             formContents={formContents}
+                             onFormSubmit={this.onFormSubmit}
+                             csrfToken={this.props.voteTypeContext.csrfToken} />];
+
+    // If we're editing a vote type, add a delete button
+    if (this.state.voteTypeID) {
+        var deleteContents = [];
+        var message = "Are you sure you wish to delete the " + this.state.data.name + " vote type?";
+        // Delete Button
+        deleteContents.push(<input key="1" type="button" value="DELETE VOTE TYPE" className="btn btn-info btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
+        deleteContents.push(<input key="2" type="hidden" name="delete" value={this.state.voteTypeID}></input>);
+        deleteContents.push(<ModalConfirm key="3"
+                                          modalID="confirm-delete"
+                                          submitID="submit-delete"
+                                          formID="deleteForm"
+                                          action="Delete"
+                                          dismiss="Cancel"
+                                          header="Delete Vote Type"
+                                          message={message} />);
+        bodyContent.push(<Form key="form-2"
+                               formID="deleteForm"
+                               formSubmitUrl={this.props.voteTypeContext.formSubmitUrl}
+                               formContents={deleteContents}
+                               csrfToken={this.props.voteTypeContext.csrfToken} />);
+    }
+
     return (
         <div key={this.state.key}>
             <FormLabel action={this.props.voteTypeContext.action}
@@ -1722,7 +1821,6 @@ var ChannelShowForm = React.createClass({
                                formID="deleteForm"
                                formSubmitUrl={this.props.channelShowContext.formSubmitUrl}
                                formContents={deleteContents}
-                               onFormSubmit={this.onFormSubmit}
                                csrfToken={this.props.channelShowContext.csrfToken} />);
     }
     return (

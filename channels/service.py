@@ -65,7 +65,7 @@ def check_is_channel_admin(channel_name, user_id):
 
 def get_channels_by_admin(user_id):
     channels = []
-    channel_admins = ChannelAdmin.objects.filter(user=user_id)
+    channel_admins = ChannelAdmin.objects.filter(user=user_id).exclude(channel__archived=True)
     for channel_admin in channel_admins:
         channels.append(channel_admin.channel)
     return channels

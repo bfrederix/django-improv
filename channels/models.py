@@ -26,7 +26,6 @@ class Channel(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     name = models.CharField(blank=False, max_length=50, unique=True)
     display_name = models.CharField(blank=False, max_length=100)
-    is_premium = models.BooleanField(blank=False, default=False)
     short_description = models.CharField(blank=True, null=True, max_length=100)
     description = models.TextField(blank=True, null=True)
     thumbnail_url = models.CharField(blank=True, null=True, max_length=500)
@@ -39,6 +38,9 @@ class Channel(models.Model):
     navbar_color = models.CharField(default="#4596FF", blank=False, max_length=20)
     background_color = models.CharField(default="#000000", blank=False, max_length=20)
     address = FlexibleForeignKey("ChannelAddress", blank=True, null=True)
+    is_premium = models.BooleanField(blank=False, default=False)
+    premium_end_date = models.DateTimeField(blank=True, null=True)
+    archived = models.BooleanField(blank=False, default=False)
 
     created = models.DateTimeField(blank=False)
 
@@ -93,6 +95,7 @@ class SuggestionPool(models.Model):
     require_login = models.BooleanField(blank=False, default=False)
     active = models.BooleanField(default=True, blank=False)
     admin_only = models.BooleanField(default=True, blank=False)
+    archived = models.BooleanField(blank=False, default=False)
 
     created = models.DateTimeField(blank=False)
 
@@ -127,6 +130,7 @@ class VoteType(models.Model):
     keep_suggestions = models.BooleanField(blank=False, default=False)
     # Vote Type is active or not
     active = models.BooleanField(default=True, blank=False)
+    archived = models.BooleanField(blank=False, default=False)
 
     # Dynamic
     current_interval = models.IntegerField(default=None, blank=True, null=True)

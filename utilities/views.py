@@ -40,6 +40,9 @@ class ShowView(View):
             self.channel = None
         # If a channel was found
         if self.channel:
+            # If the channel has been "deleted"
+            if self.channel.archived:
+                return redirect("dumpedit_home")
             # See if the user is an admin
             self.is_channel_admin = channels_service.check_is_channel_admin(self.channel,
                                                                             getattr(self.request.user, 'id'))

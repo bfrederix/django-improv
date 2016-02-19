@@ -79,7 +79,7 @@
       							Admin <span class="caret"></span>
     						</a>
     						<ul class="dropdown-menu">
-    							<li {% block channel-shows-selected %}{% endblock %}><a href="{% url "channel_shows" channel.name %}">Create/Edit/Delete Shows</a></li>
+    							<li {% block channel-shows-selected %}{% endblock %}><a href="{% url "channel_shows" channel.name %}">Create/Edit Shows</a></li>
     							<li {% block vote-type-selected %}{% endblock %}><a href="{% url "channel_vote_types" channel.name %}">Create/Edit Vote Types</a></li>
     							<li {% block suggestion-pool-selected %}{% endblock %}><a href="{% url "channel_suggestion_pools" channel.name %}">Create/Edit Suggestion Pools</a></li>
 								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Create/Edit Players</a></li>

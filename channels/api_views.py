@@ -117,7 +117,7 @@ class SuggestionPoolViewSet(viewsets.ViewSet):
         else:
             if channel_id:
                 kwargs['channel'] = channel_id
-            queryset = SuggestionPool.objects.filter(**kwargs)
+            queryset = SuggestionPool.objects.filter(**kwargs).exclude(archived=True)
             # Exclude non-active suggestion pools
             if active_only:
                 queryset = queryset.exclude(active=False)
@@ -147,7 +147,7 @@ class VoteTypeViewSet(viewsets.ViewSet):
         active_only = self.request.query_params.get('active_only')
         if channel_id:
             kwargs['channel'] = channel_id
-        queryset = VoteType.objects.filter(**kwargs)
+        queryset = VoteType.objects.filter(**kwargs).exclude(archived=True)
         # Exclude non-active suggestion pools
         if active_only:
             queryset = queryset.exclude(active=False)

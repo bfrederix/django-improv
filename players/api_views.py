@@ -23,7 +23,7 @@ class PlayerViewSet(viewsets.ViewSet):
         active_only = self.request.query_params.get('active_only')
         if channel_id:
             kwargs['channel'] = channel_id
-        queryset = Player.objects.filter(**kwargs)
+        queryset = Player.objects.filter(**kwargs).exclude(archived=True)
         # If we should sort by whether the user is active or not
         if sort_by_active:
             queryset = queryset.order_by('-active', 'star')
