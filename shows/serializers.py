@@ -63,13 +63,17 @@ class VoteOptionSerializer(serializers.Serializer):
     username = serializers.CharField(required=False)
     user_wins = serializers.IntegerField(required=False)
     live_votes = serializers.IntegerField()
+    min_votes = serializers.IntegerField()
+    max_votes = serializers.IntegerField()
+    vote_options_count = serializers.IntegerField()
 
     class Meta:
         fields = ('id', 'show', 'vote_type', 'interval',
                   'option_number', 'suggestion', 'suggestion_value',
                   'player', 'player_name', 'player_photo',
                   'user_id', 'username', 'live_votes',
-                  'used', 'user_wins')
+                  'used', 'user_wins', 'min_votes', 'max_votes',
+                  'vote_options_count')
 
 
 class LiveVoteSerializer(serializers.Serializer):

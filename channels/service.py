@@ -64,12 +64,24 @@ def check_is_channel_admin(channel_name, user_id):
 
 
 def get_channels_by_admin(user_id):
+    # If there isn't a user
+    if not user_id:
+        return []
     channels = []
     channel_admins = ChannelAdmin.objects.filter(user=user_id).exclude(channel__archived=True)
     for channel_admin in channel_admins:
         channels.append(channel_admin.channel)
     return channels
 
+def get_channels_by_user(user_id):
+    # If there isn't a user
+    if not user_id:
+        return []
+    channels = []
+    channel_users = ChannelUser.objects.filter(user=user_id).exclude(channel__archived=True)
+    for channel_user in channel_users:
+        channels.append(channel_user.channel)
+    return channels
 
 def channel_user_count(channel_id):
     return ChannelUser.objects.filter(channel=channel_id).count()

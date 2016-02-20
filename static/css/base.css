@@ -387,6 +387,7 @@ span.light-gray-bg{
 
 .fadeOutRight-mod {
     color: E8E235;
+    position: absolute;
     text-shadow: 2px 2px 2px #333;
     -moz-animation-delay: .25s;
     -ms-animation-delay: .25s;

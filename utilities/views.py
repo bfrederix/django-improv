@@ -16,6 +16,11 @@ class ShowView(View):
         # Get the channels that the user is an admin of
         context['admin_channels'] = channels_service.get_channels_by_admin(
                                             getattr(self.request.user, 'id'))
+        # If they aren't an admin of any channels
+        if not context['admin_channels']:
+            # Get the channels that the user is part of
+            context['user_channels'] = channels_service.get_channels_by_user(
+                                            getattr(self.request.user, 'id'))
         if self.current_show:
             # Get the vote types by a list of ids
             vote_types = channels_service.fetch_vote_types_by_ids(

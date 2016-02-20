@@ -40,9 +40,8 @@
                         {% if is_channel_admin %}
                             <li {% block show-controller-selected %}{% endblock %}><a href="{% url "show_controller" channel.name current_show.id %}"><strong>Show Controller</strong></a></li>
                             <li {% block show-display-selected %}{% endblock %}><a href="{% url "show_display" channel.name current_show.id %}"><strong>Show Display</strong></a></li>
-                        {% else %}
-                            <li {% block show-live-vote %}{% endblock %}><a href="{% url "show_live_vote" channel.name current_show.id %}"><strong>Live Vote!</strong></a></li>
                         {% endif %}
+					  	<li {% block show-live-vote %}{% endblock %}><a href="{% url "show_live_vote" channel.name current_show.id %}"><strong>Live Vote!</strong></a></li>
                         <li class="dropdown{% block show-suggestions-selected %}{% endblock %}">
                             <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                                 <strong>Suggestions <span class="caret"></span></strong>
@@ -109,6 +108,21 @@
 								{% endfor %}
 							</ul>
                         </li>
+					{% else %}
+					    {% if user_channels %}
+					        <li class="dropdown">
+								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+									My Channels <span class="caret"></span>
+								</a>
+								<ul class="dropdown-menu remove-text-shadow">
+									{% for user_channel in user_channels %}
+										<li {% if channel.id == user_channel.id %}class="active"{% endif %}>
+											<a href="{% url "channel_home" user_channel.name %}"><strong>{{user_channel.display_name}}</strong></a>
+										</li>
+									{% endfor %}
+								</ul>
+							</li>
+					  	{% endif %}
 				    {% endif %}
 				    {% if not request.user.is_authenticated %}
 				        <li class="dropdown">

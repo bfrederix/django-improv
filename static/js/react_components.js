@@ -2,6 +2,8 @@
 //////////////////////////////////// UTILITY FUNCTIONS/////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+var HEAT_MAP_COLORS = ['#53B6D4', '#FF3333'];
+
 function getURLPathArgByPosition(position) {
     // Default to getting the userID from the url
     var pathArray = window.location.pathname.split( '/' );
@@ -535,6 +537,18 @@ var PanelFooter = React.createClass({
       <div className={panelFooterClasses}>
         {this.props.footerContent}
       </div>
+    );
+  }
+});
+
+var Badge = React.createClass({
+  render: function() {
+    var badgeStyle = {backgroundColor: this.props.badgeColor,
+                      color: "#fff"};
+    return (
+      <span className="badge xx-large-font text-shadow" style={badgeStyle}>
+        &nbsp;{this.props.content}&nbsp;
+      </span>
     );
   }
 });
@@ -3108,10 +3122,15 @@ var VoteOptionPlayer = React.createClass({
     if (!this.state.data) {
         return (<div></div>);
     }
+    // Create the scale for the vote count colors
+	var scale = chroma.scale(HEAT_MAP_COLORS).domain(
+	    [this.state.data.min_votes, this.state.data.max_votes],
+	    this.state.data.vote_options_count).out('hex');
+	var liveVotesColor = scale(this.state.data.live_votes);
     var deltaSpan;
     // If the live votes changed
     if (this.state.voteDelta) {
-        deltaSpan = <span className="animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
+        deltaSpan = <span className="xx-large-font animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
     }
     var bodyContent = (
         <div className="text-center">
@@ -3120,7 +3139,7 @@ var VoteOptionPlayer = React.createClass({
             <button className="btn btn-info btn-md word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
         </div>
     );
-    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">{this.state.data.live_votes}{deltaSpan}</button>;
+    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow"><Badge badgeColor={liveVotesColor} content={this.state.data.live_votes} />{deltaSpan}</button>;
 
     return (
         <Panel panelWidth="12" panelColor="primary"
@@ -3178,15 +3197,20 @@ var VoteOptionSuggestion = React.createClass({
     if (!this.state.data) {
         return (<div></div>);
     }
+    // Create the scale for the vote count colors
+	var scale = chroma.scale(HEAT_MAP_COLORS).domain(
+	    [this.state.data.min_votes, this.state.data.max_votes],
+	    this.state.data.vote_options_count).out('hex');
+	var liveVotesColor = scale(this.state.data.live_votes);
     var deltaSpan;
     // If the live votes changed
     if (this.state.voteDelta) {
-        deltaSpan = <span className="animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
+        deltaSpan = <span className="xx-large-font animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
     }
 
     return (
         <button className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow animated fadeInDown">
-           {this.state.data.option_number}. {this.state.data.suggestion_value} {this.state.data.live_votes}{deltaSpan}
+           {this.state.data.option_number}. {this.state.data.suggestion_value} <Badge badgeColor={liveVotesColor} content={this.state.data.live_votes} />{deltaSpan}
         </button>
     );
   }
@@ -3251,7 +3275,7 @@ var ShowDefaultDisplay = React.createClass({
   render: function() {
     // Create the intervals remaining buttons
     var remainingVoteTypes = [];
-    var leaderboardEnties = [];
+    var leaderboardEntries = [];
     var teamPhoto;
     var showLeaderboard;
     var leKey;
@@ -3272,12 +3296,12 @@ var ShowDefaultDisplay = React.createClass({
     if (this.state.data) {
         this.state.data.map(function (leaderboardEntry) {
             leKey = 'leaderboard-entry-' + this.counter;
-            leaderboardEnties.push(<div key={leKey} className="btn btn-danger btn-block btn-shadow text-shadow large-font animated fadeInDown">{this.counter}. {leaderboardEntry.username}</div>);
+            leaderboardEntries.push(<div key={leKey} className="btn btn-danger btn-block btn-shadow text-shadow large-font animated fadeInDown">{this.counter}. {leaderboardEntry.username}</div>);
             this.counter++;
-            return leaderboardEnties;
+            return leaderboardEntries;
         }, this);
     } else {
-        leaderboardEnties.push(<div></div>);
+        leaderboardEntries.push(<div key="le-empty"></div>);
     }
     if (this.props.teamPhotoUrl) {
         teamPhoto = (
@@ -3288,14 +3312,14 @@ var ShowDefaultDisplay = React.createClass({
             <div key="2" className="col-md-4 animated fadeInRightBig">
                 <Panel panelWidth="12" panelColor="primary"
                    panelHeadingContent="Current Leaders" panelHeadingClasses="large-font"
-                   bodyContent={leaderboardEnties} />
+                   bodyContent={leaderboardEntries} />
             </div>);
     } else if (this.state.data) {
         showLeaderboard = (
             <div key="2" className="col-md-12">
                 <Panel panelWidth="12" panelColor="primary"
                    panelHeadingContent="Current Leaders" panelHeadingClasses="x-large-font"
-                   bodyContent={leaderboardEnties} />
+                   bodyContent={leaderboardEntries} />
             </div>);
     }
     return (

@@ -25,11 +25,20 @@ def fetch_medal_ids_by_leaderboard_entry(leaderboard_entry_id):
 
 
 def get_or_create_leaderboard_entry(channel, show, user, session_id):
-    leaderboard_entry, created = LeaderboardEntry.objects.get_or_create(channel=channel,
-                                                                        show=show,
-                                                                        show_date=show.created,
-                                                                        user=user,
-                                                                        session_id=session_id)
+    leaderboard_entry_kwargs = {'channel': channel,
+                                'show': show}
+    # If there is a user
+    if user:
+        leaderboard_entry_kwargs['user'] = user
+    # If they have a session
+    elif session_id:
+        leaderboard_entry_kwargs['session_id'] = session_id
+    try:
+        return LeaderboardEntry.objects.get(**leaderboard_entry_kwargs)
+    except ObjectDoesNotExist:
+        leaderboard_entry_kwargs['show_date'] = show.created
+        leaderboard_entry = LeaderboardEntry(**leaderboard_entry_kwargs)
+        leaderboard_entry.save()
     return leaderboard_entry
 
 

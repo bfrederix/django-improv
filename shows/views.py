@@ -125,7 +125,7 @@ class ShowLiveVoteView(view_utils.ShowView):
             # Get the current vote type
             vote_type = context['current_show'].current_vote_type
             # If there is a current vote type, and the vote type requires login
-            if vote_type and vote_type.require_login:
+            if vote_type and vote_type.require_login and not getattr(request.user, 'id'):
                 # Redirect the user to the login page
                 redirect_url = "{0}?next={1}".format(reverse('user_login'), request.path)
                 return HttpResponseRedirect(redirect_url)
@@ -141,6 +141,20 @@ class ShowLiveVoteView(view_utils.ShowView):
         show_id = kwargs.get('show_id')
         channel_name = kwargs.get('channel_name')
         option_number = request.POST.get('option_number')
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        # If there's a current show
+        if context['current_show']:
+            # Get a list of the max numbered vote options
+            vote_options = range(1, context['current_show'].vote_options + 1)
+            # Get the current vote type
+            vote_type = context['current_show'].current_vote_type
+            # If there is a current vote type, and the vote type requires login
+            if vote_type and vote_type.require_login and not getattr(request.user, 'id'):
+                # Redirect the user to the login page
+                redirect_url = "{0}?next={1}".format(reverse('user_login'), request.path)
+                return HttpResponseRedirect(redirect_url)
+        else:
+            vote_options = []
         # If they chose an option
         if option_number:
             # Get the vote receiver url
@@ -163,11 +177,6 @@ class ShowLiveVoteView(view_utils.ShowView):
                                    headers={'Referer': live_vote_url})
             # Send the post
             logger.info(grequests.map([gpost], exception_handler=async_exception_handler))
-        context = self.get_default_channel_context(request, *args, **kwargs)
-        if context['current_show']:
-            vote_options = range(1, context['current_show'].vote_options + 1)
-        else:
-            vote_options = []
         context.update({'show_id': int(show_id),
                         'vote_options': vote_options})
         return render(request,
@@ -209,13 +218,11 @@ class ShowVoteReceiverView(view_utils.ShowView):
             user = User.objects.get(pk=user_id)
         else:
             user = None
-        logger.info("HERE: 2")
         # Create a leaderboard entry if it doesn't exist
         leaderboards_service.get_or_create_leaderboard_entry(context['channel'],
                                                              context['current_show'],
                                                              user,
                                                              session_id)
-        logger.info("HERE: 3")
         # Get the current vote type
         vote_type = context['current_show'].current_vote_type
         # Get the show interval
@@ -226,29 +233,23 @@ class ShowVoteReceiverView(view_utils.ShowView):
         live_vote_exists = shows_service.live_votes_exist(show_interval,
                                                           user_id,
                                                           session_id)
-        logger.info("HERE: 4")
         # If a live vote already exists, preceed no further
         if live_vote_exists:
             return HttpResponse('Already Voted')
-        logger.info("HERE: 5")
         # If the vote type is logged in users only and the user isn't logged in
         if vote_type.require_login and not user:
             return HttpResponseServerError("You must be logged in to vote")
-        logger.info("HERE: 6")
         # Get the vote option
         vote_option = shows_service.fetch_option(show_id,
                                                  vote_type.id,
                                                  vote_type.current_interval,
                                                  option_number)
-        logger.info("HERE: 7")
         # Create the live vote(s)
         shows_service.create_live_votes(vote_option, show_interval, user, session_id, vote_type.require_login)
-        logger.info("HERE: 8")
 
         # If it has a suggestion and it's not repeatable suggestions
         # create/update the leaderboard entry
         if vote_option.suggestion_id and not vote_type.keep_suggestions:
-            logger.info("HERE: 9")
             # Get the suggestion from the vote option
             suggestion = vote_option.suggestion
             # Create/update leaderboard entry
@@ -258,20 +259,16 @@ class ShowVoteReceiverView(view_utils.ShowView):
                                                               suggestion.user,
                                                               suggestion.session_id,
                                                               vote_type.require_login)
-            logger.info("HERE: 10")
             # If the user is authenticated, add their user id to their suggestions
             # (remove the session id too)
             shows_service.update_suggestions_session_to_user(context['current_show'].id,
                                                              session_id,
                                                              user_id)
-            logger.info("HERE: 11")
             # If the user is authenticated, add their user id to their leaderboard entry
             # (remove the session id too)
             leaderboards_service.update_leaderboard_entry_session_to_user(context['current_show'].id,
                                                                           session_id,
                                                                           user_id)
-            logger.info("HERE: 12")
-        logger.info("HERE: END")
         return HttpResponse('Vote Received')
 
 

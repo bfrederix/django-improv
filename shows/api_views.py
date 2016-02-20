@@ -120,7 +120,6 @@ class VoteOptionAPIObject(APIObject):
         super(VoteOptionAPIObject, self).__init__(option, **kwargs)
         self.player_id = option.player_id
         self.suggestion_id = option.suggestion_id
-        self.live_votes = shows_service.get_option_live_votes(option.id)
         # If there was a suggestion for the option
         if option.suggestion_id:
             suggestion = option.suggestion
@@ -137,7 +136,29 @@ class VoteOptionAPIObject(APIObject):
         if option.player_id:
             self.player_name = option.player.name
             self.player_photo = option.player.photo_url
-
+        # Get the live votes for all the current vote options
+        current_vote_options = shows_service.fetch_vote_options(show_id=option.show_id,
+                                                                vote_type_id=option.vote_type_id,
+                                                                interval=option.interval)
+        self.vote_options_count = len(current_vote_options)
+        self.min_votes = 0
+        self.max_votes = 0
+        for vote_option in current_vote_options:
+            # Get the live votes for this option
+            live_votes = shows_service.get_option_live_votes(vote_option.id)
+            # If we haven't established a min count
+            if self.min_votes == 0:
+                self.min_votes = live_votes
+            # If this option's live votes are less than the current minimum votes
+            if live_votes < self.min_votes:
+                self.min_votes = live_votes
+            # If this option's live votes are greater than the current maximum votes
+            if live_votes > self.max_votes:
+                self.max_votes = live_votes
+            # If this is the option requested
+            if vote_option.id == option.id:
+                # Set its live votes to be returned by the api
+                self.live_votes = live_votes
 
 class ShowViewSet(viewsets.ViewSet):
     """

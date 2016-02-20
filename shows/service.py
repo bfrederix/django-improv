@@ -192,10 +192,9 @@ def live_votes_exist(show_interval, user_id, session_id):
     # Otherwise use the session id
     else:
         live_vote_kwargs['session_id'] = session_id
-    try:
-        return bool(LiveVote.objects.filter(**live_vote_kwargs).count())
-    except Exception as e:
-        logger.info(str(e))
+    logger.info(live_vote_kwargs)
+    logger.info(LiveVote.objects.filter(**live_vote_kwargs).count())
+    return bool(LiveVote.objects.filter(**live_vote_kwargs).count())
 
 
 def create_live_votes(vote_option, show_interval, user, session_id, require_login):
