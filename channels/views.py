@@ -258,6 +258,7 @@ class ChannelVoteTypesView(view_utils.ShowView):
                                 'display_name': escape(request.POST.get('display_name', '')),
                                 'suggestion_pool': suggestion_pool,
                                 'intervals': request.POST.get('intervals', '').strip(),
+                                'preshow_selected': bool(request.POST.get('preshow_selected', False)),
                                 'manual_interval_control': bool(request.POST.get('manual_interval_control', False)),
                                 'style': channels_service.vote_style_or_404(int(request.POST.get('style')))[0],
                                 'ordering': int(request.POST.get('ordering', 0)),

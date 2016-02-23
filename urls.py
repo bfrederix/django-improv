@@ -18,14 +18,14 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 
-from utilities import views as util_views
+from utilities import views as view_utils
 from api_router import router
 
 urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + [
     url(r'^api/v1/', include(router.urls)),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^robots\.txt$', util_views.robots_txt, name="robots"),
-    url(r'^loaderio-9b6fa50492da1609dc61b9198b767688.txt$', util_views.loader_io, name="loader_io"),
+    url(r'^robots\.txt$', view_utils.robots_txt, name="robots"),
+    url(r'^loaderio-9b6fa50492da1609dc61b9198b767688.txt$', view_utils.loader_io, name="loader_io"),
     url(r'^auth/logout/$', 'django.contrib.auth.views.logout', name='auth_logout'),
     url(r'^auth/', include('rest_framework_social_oauth2.urls')),
     url(r'^users/', include('users.urls')),

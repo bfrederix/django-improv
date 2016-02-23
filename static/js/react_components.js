@@ -2891,12 +2891,26 @@ var ShowControllerVoteType = React.createClass({
             if (this.state.data.available_options >= this.state.data.remaining_intervals ||
                 this.state.data.players_only && !this.state.data.show_player_pool && !this.state.data.vote_type_player_pool) {
                 buttonText = "Start the " + this.state.data.display_name + " Interval Vote (" + this.state.data.remaining_intervals + ")";
+                // Create the start vote type button
                 voteTypeButton = (
                     <div>
                         <input key="1" type="hidden" name="vote_start" value={this.state.data.id} />
                         <input key="2" type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />
                     </div>
                 );
+                // If interval control is automatic
+                if (!this.state.data.manual_interval_control) {
+                    // if there is a current interval
+                    if (this.state.data.current_interval ||
+                        this.state.data.current_interval == 0) {
+                        // Disable the start vote type button
+                        voteTypeButton = (
+                            <div>
+                                <input disabled="true" type="submit" className="btn btn-block btn-lg word-wrap x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />
+                            </div>
+                        );
+                    }
+                }
             // Not enough available options for the vote
             } else {
                 // Make sure the button text isn't redundant

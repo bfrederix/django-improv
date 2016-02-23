@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -9,6 +11,10 @@ from channels.serializers import (ChannelSerializer, ChannelAddressSerializer,
 from channels import service as channels_service
 from shows import service as shows_service
 from utilities.api import APIObject
+from utilities import views as view_utils
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class VoteTypeAPIObject(APIObject):
@@ -69,7 +75,17 @@ class VoteTypeAPIObject(APIObject):
                 self.voted_option = voted_item.vote_option_id
                 # Get the live votes for this vote type (interval)
                 self.live_votes = shows_service.get_option_live_votes(voted_item.vote_option_id)
-
+            # If intervals are automatic
+            # and we have a current interval
+            # and there are still intervals remaining
+            # and the current interval has ended
+            if not vote_type.manual_interval_control \
+                and vote_type.current_interval != None \
+                and vote_type.remaining_intervals() \
+                and vote_type.interval_seconds_remaining() == 0:
+                logger.info("Starting new interval")
+                # Start the next interval for the show for the given vote type
+                view_utils.start_new_interval(show, vote_type)
 
 
 class ChannelViewSet(viewsets.ModelViewSet):

@@ -1,13 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
-
 
 class UserProfile(models.Model):
     # Their django user
     user = models.OneToOneField(User)
-    # Id pulled from the social service they created their account with
+    # Id pulled from the social platform they created their account with
     social_id = models.CharField(blank=True, null=True, max_length=100)
     username = models.CharField(blank=False, max_length=100, unique=True)
     first_name = models.CharField(blank=True, null=True, max_length=100)

@@ -88,6 +88,10 @@ def channel_user_count(channel_id):
 
 
 def update_channel_user(channel_id, user_id, leaderboard_entries):
+    # If no user id was specified
+    if not user_id:
+        # Do nothing
+        return
     user_id = int(user_id)
     # Add the user as a ChannelUser
     channel_user, created = ChannelUser.objects.get_or_create(channel=channel_id, user=user_id)
@@ -168,9 +172,9 @@ def vote_type_available_options(vote_type,
         pass
 
 
-def start_next_interval(show_id, vote_type):
+def start_next_interval(unused_intervals, vote_type):
     # Get the next interval
-    next_interval = vote_type.get_next_interval(show_id=show_id)
+    next_interval = vote_type.get_next_interval(unused_intervals=unused_intervals)
     # If there is a next interval
     if next_interval != None:
         # Set the current interval to the next interval
@@ -186,7 +190,6 @@ def get_current_vote_state(vote_type_ids):
     :return: {'display': 'default/voting/result',
               'vote_type_id': vote_type_id}
     """
-    now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
     # Loop through all the available vote types
     for vote_type in VoteType.objects.filter(pk__in=vote_type_ids).order_by('-current_vote_init'):
         vote_remaining = vote_type.vote_seconds_remaining()

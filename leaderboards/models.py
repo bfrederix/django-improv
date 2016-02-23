@@ -1,10 +1,9 @@
+# DO NOT IMPORT SERVICES HERE
+
 from django.db import models
 from django.contrib.auth.models import User
 
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
-
-from users import service as users_service
-from channels import service as channels_service
 
 
 class Medal(models.Model):
@@ -32,10 +31,6 @@ class LeaderboardEntry(models.Model):
     def __unicode__(self):
         return str(self.id)
 
-    def username(self):
-        user_profile = users_service.fetch_user_profile(self.user_id)
-        return user_profile.safe_username()
-
     def show_win(self):
         # Fetch the leaderboard entries sorted by suggestion wins and points
         leaderboard_entries = LeaderboardEntry.objects.filter(show=self.show_id).order_by('-wins',
@@ -48,14 +43,6 @@ class LeaderboardEntry(models.Model):
         except (IndexError, AttributeError) as e:
             pass
         return False
-
-    def save(self, *args, **kwargs):
-        # If there is a user attached to the entry
-        if self.user:
-            leaderboard_entries = LeaderboardEntry.objects.filter(user=self.user_id)
-            # Add them as a channel user and update their leaderboard aggregate stats
-            channels_service.update_channel_user(self.channel_id, self.user_id, leaderboard_entries)
-        super(LeaderboardEntry, self).save(*args, **kwargs)
 
 
 class LeaderboardEntryMedal(models.Model):

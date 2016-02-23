@@ -1,3 +1,5 @@
+# DO NOT IMPORT SERVICES IN MODELS
+
 import datetime
 import logging
 import pytz
@@ -5,7 +7,6 @@ import pytz
 from django.db import models
 from django.contrib.auth.models import User
 
-from shows import service as shows_service
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 logging.basicConfig(level=logging.INFO)
@@ -166,20 +167,18 @@ class VoteType(models.Model):
             return self.suggestion_pool.display_name
         return "Requires either Players or a Suggestion Pool"
 
-    def get_next_interval(self, show_id=None, current_voted_not_required=False):
+    def get_next_interval(self, current_voted_not_required=False, unused_intervals=[]):
         current_voted = False
         # If given an interval
         if self.current_interval != None:
             # Loop through the intervals in order
             for i in range(0, len(self.interval_list())):
+                # If the current interval matches an interval in the list
                 if self.current_interval == self.interval_list()[i]:
-                    # If a show was supplied, see if the interval was used
-                    if show_id:
-                        current_voted = shows_service.get_vote_type_interval_used(show_id,
-                                                                                  self.id,
-                                                                                  self.current_interval)
-                    # If the current interval has already been voted on, or we don't require that
-                    if current_voted or current_voted_not_required:
+                    # If we don't require a current voted interval
+                    # OR if the current interval has already been voted on
+                    if current_voted_not_required \
+                        or not self.current_interval in unused_intervals:
                         # Get the next interval
                         try:
                             return int(self.interval_list()[i+1])
@@ -224,6 +223,7 @@ class VoteType(models.Model):
                 interval_end = self.current_vote_init + datetime.timedelta(minutes=interval_delta)
             else:
                 return 0
+            # If the we're past the end of the interval
             if now >= interval_end:
                 return 0
             else:
@@ -232,7 +232,8 @@ class VoteType(models.Model):
 
     # Get the end of the current vote
     def vote_seconds_remaining(self):
-        if self.current_vote_init:
+        # If this vote has been initialized, and this isn't a pre-show selected vote
+        if self.current_vote_init and not self.preshow_selected:
             now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
             vote_end = self.current_vote_init + datetime.timedelta(seconds=self.vote_length)
             if now > vote_end:
@@ -245,8 +246,16 @@ class VoteType(models.Model):
     def result_seconds_remaining(self):
         if self.current_vote_init:
             now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
-            vote_end = self.current_vote_init + datetime.timedelta(seconds=self.vote_length)
-            result_end = self.current_vote_init + datetime.timedelta(seconds=self.vote_length + self.result_length)
+            # If this isn't a pre-show selected vote
+            if not self.preshow_selected:
+                vote_end = self.current_vote_init + datetime.timedelta(seconds=self.vote_length)
+                result_end = self.current_vote_init + datetime.timedelta(seconds=self.vote_length + self.result_length)
+            # This is a pre-show selected vote
+            else:
+                # Set the vote end to current vote init (since we won't be voting
+                vote_end = self.current_vote_init
+                # Set the result end to the current vote init plus result length
+                result_end = self.current_vote_init + datetime.timedelta(seconds=self.result_length)
             # if we're past the end of the result viewing
             if now > result_end:
                 return None

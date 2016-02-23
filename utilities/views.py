@@ -1,3 +1,9 @@
+# NEVER CALL THIS FROM A SERVICE OR MODEL, ONLY FROM VIEWS/API VIEWS/URLS
+
+import datetime
+import logging
+import pytz
+
 from django.http import HttpResponse
 from django.views.generic import View
 from django.shortcuts import redirect
@@ -5,6 +11,9 @@ from django.core.urlresolvers import reverse
 
 from channels import service as channels_service
 from shows import service as shows_service
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ShowView(View):
@@ -69,6 +78,46 @@ class ShowView(View):
             if not request.path in [live_vote_path, vote_receiver_path]:
                 return redirect(live_vote_path)
         return super(ShowView, self).dispatch(request, *args, **kwargs)
+
+
+def start_new_interval(show, vote_type):
+    """
+    Start the next interval for the show of the given vote type
+    :return: None
+    """
+    # Get the unused intervals for this vote type
+    unused_intervals = shows_service.get_unused_interval_list(show.id, vote_type)
+    logger.info(unused_intervals)
+    # Set the vote type's next interval start
+    next_interval = channels_service.start_next_interval(unused_intervals, vote_type)
+    # Set the start of the vote type's current interval to now
+    vote_type.current_vote_init = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+    vote_type.save()
+    # if it's a players only vote type
+    if vote_type.players_only:
+        suggestions = []
+    # Otherwise, fetch a randomized (yet sorted) amount of suggestions
+    else:
+        suggestions = shows_service.fetch_randomized_suggestions(show.id,
+                                                                 vote_type.suggestion_pool_id,
+                                                                 vote_type.options)
+    # Set the voting options
+    # NOTE: Live Votes get deleted for repeateable
+    shows_service.set_voting_options(show,
+                                     vote_type,
+                                     next_interval,
+                                     suggestions=suggestions)
+    # If this isn't an interval vote and the vote type has player options
+    if not vote_type.intervals and vote_type.player_options:
+        # Set a random player for the vote options
+        shows_service.set_show_interval_random_player(show,
+                                                      vote_type,
+                                                      vote_type.current_interval)
+    # Make sure the show is locked
+    show.locked = True
+    # Set the show's current vote type
+    show.current_vote_type = vote_type
+    show.save()
 
 
 def robots_txt(request):

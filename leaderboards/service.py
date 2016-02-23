@@ -10,7 +10,12 @@ logger = logging.getLogger(__name__)
 
 
 def fetch_leaderboard_entries_by_user(user_id):
-    return LeaderboardEntry.objects.filter(user=user_id)
+    # if a user was specified
+    if user_id:
+        return LeaderboardEntry.objects.filter(user=user_id)
+    # Return an empty list
+    else:
+        return []
 
 
 def fetch_leaderboard_entries_by_show(show_id, leaderboard_order=False):
@@ -74,7 +79,6 @@ def update_leaderboard_entry_session_to_user(show_id, session_id, user_id):
         leaderboard_entry.user = user
         # Remove the session id
         leaderboard_entry.session_id = None
-        # This will update the ChannelUser leaderboard data implicitly
         leaderboard_entry.save()
 
 
@@ -99,5 +103,4 @@ def add_leaderboard_entry_points(channel, show, user, session_id, require_login)
     leaderboard_entry = LeaderboardEntry.objects.get(**le_kwargs)
     # Add the points to the entry
     leaderboard_entry.points += points
-    # NOTE: ChannelUser data gets updated as part of the LeaderboardEntry save method
     leaderboard_entry.save()

@@ -245,6 +245,21 @@ def get_vote_types_suggestion_pools(vote_types):
     return suggestion_pools
 
 
+def get_unused_interval_list(show_id, vote_type):
+    intervals = vote_type.interval_list()
+    # If there aren't any intervals
+    if not intervals:
+        return []
+    # Get all the used intervals for this vote type's intervals
+    used_intervals = VotedItem.objects.filter(
+                                 show=show_id,
+                                 vote_type=vote_type,
+                                 interval__in=intervals).values_list('interval', flat=True)
+    logger.info(used_intervals)
+    # Return all unused intervals
+    return [interval for interval in intervals if interval not in used_intervals]
+
+
 def get_current_voted(show_id, vote_type_id, interval):
     try:
         voted_item = VotedItem.objects.get(show=show_id,

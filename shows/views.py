@@ -5,7 +5,7 @@ import grequests
 
 from django.shortcuts import render
 from django.http import (JsonResponse, HttpResponseRedirect, HttpResponse,
-                         HttpResponseServerError)
+                         HttpResponseServerError, HttpResponseNotFound)
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -51,39 +51,16 @@ class ShowControllerView(view_utils.ShowView):
         vote_start = request.POST.get('vote_start')
         lock_toggle = request.POST.get('lock_toggle')
         context = self.get_default_channel_context(request, *args, **kwargs)
-        if vote_start:
+        # If there isn't a show
+        if not context['current_show']:
+            # Do nothing
+            pass
+        # If we are starting a vote type
+        elif vote_start:
             # Get the vote type
             vote_type = channels_service.vote_type_or_404(vote_start)
-            # Set the vote type's next interval start
-            next_interval = channels_service.start_next_interval(show_id, vote_type)
-            # Set the start of the vote type's current interval to now
-            vote_type.current_vote_init = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
-            vote_type.save()
-            # if it's a players only vote type
-            if vote_type.players_only:
-                suggestions = []
-            # Otherwise, fetch a randomized (yet sorted) amount of suggestions
-            else:
-                suggestions = shows_service.fetch_randomized_suggestions(show_id,
-                                                                         vote_type.suggestion_pool_id,
-                                                                         vote_type.options)
-            # Set the voting options
-            # NOTE: Live Votes get deleted for repeateable
-            shows_service.set_voting_options(context['current_show'],
-                                             vote_type,
-                                             next_interval,
-                                             suggestions=suggestions)
-            # If this isn't an interval vote and the vote type has player options
-            if not vote_type.intervals and vote_type.player_options:
-                # Set a random player for the vote options
-                shows_service.set_show_interval_random_player(context['current_show'],
-                                                              vote_type,
-                                                              vote_type.current_interval)
-            # Make sure the show is locked
-            context['current_show'].locked = True
-            # Set the show's current vote type
-            context['current_show'].current_vote_type = vote_type
-            context['current_show'].save()
+            # Start the next interval for the show for the given vote type
+            view_utils.start_new_interval(context['current_show'], vote_type)
         # If a lock toggle request was made
         elif lock_toggle:
             # If the show is locked, unlock it
@@ -176,7 +153,7 @@ class ShowLiveVoteView(view_utils.ShowView):
                                    data=vote_post_data,
                                    headers={'Referer': live_vote_url})
             # Send the post
-            logger.info(grequests.map([gpost], exception_handler=async_exception_handler))
+            grequests.map([gpost], exception_handler=async_exception_handler)
         context.update({'show_id': int(show_id),
                         'vote_options': vote_options})
         return render(request,
@@ -198,7 +175,6 @@ class ShowVoteReceiverView(view_utils.ShowView):
                                      request.META['HTTP_HOST'],
                                      channel_name,
                                      show_id)
-        logger.info("HERE: 1")
         # Make sure they came from the correct referrer
         if live_vote_url != request.META.get('HTTP_REFERER'):
             return HttpResponseServerError('Vote Failed')
@@ -216,6 +192,7 @@ class ShowVoteReceiverView(view_utils.ShowView):
         # Get the user if they exist
         if user_id:
             user = User.objects.get(pk=user_id)
+            user_id = int(user_id)
         else:
             user = None
         # Create a leaderboard entry if it doesn't exist
@@ -253,7 +230,6 @@ class ShowVoteReceiverView(view_utils.ShowView):
             # Get the suggestion from the vote option
             suggestion = vote_option.suggestion
             # Create/update leaderboard entry
-            # NOTE: ChannelUser data gets updated as part of the LeaderboardEntry save method
             leaderboards_service.add_leaderboard_entry_points(context['channel'],
                                                               context['current_show'],
                                                               suggestion.user,
@@ -269,6 +245,10 @@ class ShowVoteReceiverView(view_utils.ShowView):
             leaderboards_service.update_leaderboard_entry_session_to_user(context['current_show'].id,
                                                                           session_id,
                                                                           user_id)
+            # Fetch the leaderboard entries for the user
+            leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_user(user_id)
+            # Add the user as a channel user and update their leaderboard aggregate stats
+            channels_service.update_channel_user(context['channel'].id, user_id, leaderboard_entries)
         return HttpResponse('Vote Received')
 
 
@@ -362,6 +342,7 @@ class ShowSuggestionPoolView(view_utils.ShowView):
                                  'created': datetime.datetime.utcnow().replace(tzinfo=pytz.utc)}
             if user_id:
                 suggestion_kwargs['user'] = request.user
+                user_id = int(user_id)
             else:
                 suggestion_kwargs['session_id'] = session_id
             Suggestion.objects.get_or_create(**suggestion_kwargs)
@@ -400,10 +381,13 @@ class ShowSuggestionPoolView(view_utils.ShowView):
                                                          user_id)
         # If the user is authenticated, add their user id to their leaderboard entry
         # (remove the session id too)
-        # NOTE: ChannelUser gets implicitly updated here as part of the LeaderboardEntry save method
         leaderboards_service.update_leaderboard_entry_session_to_user(context['current_show'].id,
                                                                       session_id,
                                                                       user_id)
+        # Fetch the leaderboard entries for the user
+        leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_user(user_id)
+        # Add the user as a channel user and update their leaderboard aggregate stats
+        channels_service.update_channel_user(context['channel'].id, user_id, leaderboard_entries)
         context.update({'action': action,
                         'error': error,
                         'suggestion_pool': suggestion_pool,
