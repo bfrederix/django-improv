@@ -153,7 +153,8 @@ class ShowLiveVoteView(view_utils.ShowView):
                                    data=vote_post_data,
                                    headers={'Referer': live_vote_url})
             # Send the post
-            grequests.map([gpost], exception_handler=async_exception_handler)
+            logger.info(grequests.map([gpost], exception_handler=async_exception_handler))
+            #grequests.map([gpost], exception_handler=async_exception_handler)
         context.update({'show_id': int(show_id),
                         'vote_options': vote_options})
         return render(request,
@@ -216,6 +217,7 @@ class ShowVoteReceiverView(view_utils.ShowView):
         # If the vote type is logged in users only and the user isn't logged in
         if vote_type.require_login and not user:
             return HttpResponseServerError("You must be logged in to vote")
+        logger.info("Here 1")
         # Get the vote option
         vote_option = shows_service.fetch_option(show_id,
                                                  vote_type.id,
@@ -223,7 +225,7 @@ class ShowVoteReceiverView(view_utils.ShowView):
                                                  option_number)
         # Create the live vote(s)
         shows_service.create_live_votes(vote_option, show_interval, user, session_id, vote_type.require_login)
-
+        logger.info("Here 2")
         # If it has a suggestion and it's not repeatable suggestions
         # create/update the leaderboard entry
         if vote_option.suggestion_id and not vote_type.keep_suggestions:
@@ -240,6 +242,7 @@ class ShowVoteReceiverView(view_utils.ShowView):
             shows_service.update_suggestions_session_to_user(context['current_show'].id,
                                                              session_id,
                                                              user_id)
+            logger.info("Here 3")
             # If the user is authenticated, add their user id to their leaderboard entry
             # (remove the session id too)
             leaderboards_service.update_leaderboard_entry_session_to_user(context['current_show'].id,
@@ -247,8 +250,10 @@ class ShowVoteReceiverView(view_utils.ShowView):
                                                                           user_id)
             # Fetch the leaderboard entries for the user
             leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_user(user_id)
+            logger.info("Here 4")
             # Add the user as a channel user and update their leaderboard aggregate stats
             channels_service.update_channel_user(context['channel'].id, user_id, leaderboard_entries)
+        logger.info("Here END")
         return HttpResponse('Vote Received')
 
 

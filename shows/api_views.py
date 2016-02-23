@@ -42,6 +42,7 @@ class ShowAPIObject(APIObject):
 
             # If we're in the voting state
             if self.current_display == 'voting':
+                # Gets the vote type and current player if they exist
                 self.set_default_vote_data(show.id)
                 # Get the vote options for this (interval or not)
                 self.vote_options = shows_service.fetch_vote_option_ids(
@@ -61,7 +62,8 @@ class ShowAPIObject(APIObject):
                                                                     vote_type_id=self.vote_type.id,
                                                                     interval=self.vote_type.current_interval)
                     # Determine the winning option
-                    winning_option = shows_service.get_winning_option(vote_options)
+                    winning_option = shows_service.get_winning_option(self.vote_type,
+                                                                      vote_options)
                     # Set the voted winning option
                     shows_service.set_voted_option(show,
                                                    self.vote_type,

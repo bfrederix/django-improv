@@ -152,20 +152,41 @@ def get_option_live_votes(vote_option_id):
     return LiveVote.objects.filter(vote_option=vote_option_id).count()
 
 
-def get_winning_option(vote_options):
+def get_winning_option(vote_type, vote_options):
     max_count = None
-    most_voted_option = None
+    min_count = None
+    use_max = True
+    voted_option = None
+
+    # If this is a players only vote
+    if vote_type.players_only:
+        # If this is a player pool vote
+        player_pool = vote_type.show_player_pool or vote_type.vote_type_player_pool
+        # If player pool, and the lowest votes should be selected
+        if player_pool and not vote_type.eliminate_winning_player:
+            # Use the lowest voted player
+            use_max = False
 
     # Loop through all the options
     for vote_option in vote_options:
         # Get the count of live votes for this option
         vote_count = get_option_live_votes(vote_option.id)
-        # If the vote count is the biggest we've seen so far
-        if max_count == None or vote_count > max_count:
-            # Capture the most voted option and its count
-            most_voted_option = vote_option
-            max_count = vote_count
-    return most_voted_option
+        # If we want the max voted item
+        if use_max:
+            # If the vote count is the biggest we've seen so far
+            if max_count == None or vote_count > max_count:
+                # Capture the most voted option and its count
+                voted_option = vote_option
+                max_count = vote_count
+        # If we want the minimum voted item
+        else:
+            # If the vote count is the biggest we've seen so far
+            if min_count == None or vote_count < min_count:
+                # Capture the most voted option and its count
+                voted_option = vote_option
+                min_count = vote_count
+
+    return voted_option
 
 
 def get_option(vote_option_id):
