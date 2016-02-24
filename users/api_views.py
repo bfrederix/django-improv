@@ -54,10 +54,10 @@ class UserProfileViewSet(viewsets.ViewSet):
 
 class UsernameViewSet(viewsets.ViewSet):
     """
-    API endpoint that gets a list of users by a query value
+    API endpoint that gets a list of usernames by a query value
     """
 
     def list(self, request):
         query = self.request.query_params.get('q', '').lower()
-        queryset = UserProfile.objects.filter(strip_username__contains=query)[:10]
+        queryset = UserProfile.objects.filter(strip_username__icontains=query)[:10]
         return Response([q.username for q in queryset])

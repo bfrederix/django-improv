@@ -65,6 +65,21 @@ function limitFileSize(event, elementID) {
     }
 }
 
+function validateChannelName() {
+    var field = document.getElementById("name");
+    // Names should only be lower case or have dashes
+    var re = /^[a-z0-9-]+$/;
+
+    // If the name is invalid
+    if (!re.test(field.value) || field.value.length === 0) {
+        $('#name').parent('div').addClass('has-error');
+        return false;
+    } else {
+        $('#name').parent('div').removeClass('has-error');
+        return true;
+    }
+}
+
 function validateTextField(event, elementID, allowSpaces, customMessage) {
     var field = document.getElementById(elementID);
     var re;
@@ -73,6 +88,7 @@ function validateTextField(event, elementID, allowSpaces, customMessage) {
     } else {
         re = /^[\w-]+$/;
     }
+    // If the field is invalid
     if (!re.test(field.value) || field.value.length === 0) {
         $('#'+elementID).parent('div').addClass('has-error');
         if (customMessage) {
@@ -435,6 +451,7 @@ var FormGroup = React.createClass({
                 {this.props.input}
                 {helpBlock}
             </div>
+            {this.props.inputValidLabel}
         </div>
     );
   }
@@ -944,8 +961,41 @@ var ChannelCreateEditForm = React.createClass({
       validateTextField(event, "name");
       validateTextField(event, "display_name", true);
   },
+  validateName: function(event) {
+      // Wait a milisecond
+      window.setTimeout((function(){
+          var valid = validateChannelName();
+          // Create the API url for checking if the name exists
+          var channelNameAPIUrl = this.props.channelCreateEditContext.channelNameAPIUrl + event.target.value;
+          $.ajax({
+              url: channelNameAPIUrl,
+              dataType: 'json',
+              success: function(data) {
+                  // If the name is already taken
+                  if (data == true) {
+                      this.setState({
+                           data: this.state.data,
+                           key: this.state.key,
+                           validName: valid,
+                           nameTaken: true});
+                  // If the name is available
+                  } else {
+                      this.setState({
+                           data: this.state.data,
+                           key: this.state.key,
+                           validName: valid,
+                           nameTaken: false});
+                  }
+              }.bind(this),
+              error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+              }.bind(this)
+          });
+      }).bind(this), 100);
+  },
   render: function() {
     var actionText;
+    var nameValidLabel;
     if (this.props.channelCreateEditContext.channelID) { 
         actionText = "Edit Channel";
      } else {
@@ -955,13 +1005,24 @@ var ChannelCreateEditForm = React.createClass({
     // Premium features key
     formContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
     // Name Input
-    var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
+    var nameInput = <input type="text" id="name" name="name" onKeyDown={this.validateName} defaultValue={this.state.data.name} className="form-control" autoComplete="off"></input>;
+    // If the name is invalid
+    if (this.state.validName == false) {
+        nameValidLabel = <div className="alert alert-danger pull-left" role="alert"><span className="glyphicon glyphicon-remove" aria-hidden="true"></span> Invalid name</div>;
+    // If the name is already taken
+    } else if (this.state.nameTaken) {
+        nameValidLabel = <div className="alert alert-danger pull-left" role="alert"><span className="glyphicon glyphicon-remove" aria-hidden="true"></span> Name taken</div>;
+    // If this isn't the initial load of the form
+    } else if (this.state.validName !== undefined) {
+        nameValidLabel = <div className="alert alert-success pull-left" role="alert"><span className="glyphicon glyphicon-ok" aria-hidden="true"></span> Name available!</div>;
+    }
     formContents.push(<FormGroup key="1"
                                  labelSize="2"
                                  labelContents="Url Name*:"
                                  inputSize="5"
                                  input={nameInput}
-                                 helpBlock="Required: Used as the url address and can only be letters, numbers, hyphens or underscores" />);
+                                 inputValidLabel={nameValidLabel}
+                                 helpBlock="Required: Used as the url address and can only be lowercase letters, numbers, or hyphens" />);
     // Display Name Input
     var displayNameInput = <input type="text" id="display_name" name="display_name" defaultValue={this.state.data.display_name} className="form-control"></input>;
     formContents.push(<FormGroup key="2"
@@ -3769,6 +3830,7 @@ var RootComponent = React.createClass({
             channelID: getElementValueOrNull("channelID"),
             isPremium: getElementValueOrNull("isPremium"),
             channelAPIUrl: getElementValueOrNull("channelAPIUrl"),
+            channelNameAPIUrl: getElementValueOrNull("channelNameAPIUrl"),
             userID: getElementValueOrNull("userID"),
             formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
             csrfToken: getElementValueOrNull("csrfToken"),

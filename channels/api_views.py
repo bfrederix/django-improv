@@ -2,6 +2,7 @@ import logging
 
 from rest_framework import viewsets
 from rest_framework.response import Response
+from django.core.exceptions import ObjectDoesNotExist
 
 from channels.models import (Channel, ChannelAddress, SuggestionPool,
                              VoteType, VOTE_STYLE)
@@ -194,3 +195,20 @@ class VoteStyleViewSet(viewsets.ViewSet):
             vote_styles.append({'id': count, 'name': display_name})
         serializer = VoteStyleSerializer(vote_styles, many=True)
         return Response(serializer.data)
+
+
+class ChannelNameViewSet(viewsets.ViewSet):
+    """
+    API endpoint that gets a list of channel names by a query value
+    """
+
+    def list(self, request):
+        exists = False
+        query = self.request.query_params.get('q', '').lower()
+        try:
+            Channel.objects.get(name=query)
+        except ObjectDoesNotExist:
+            exists = False
+        else:
+            exists = True
+        return Response(exists)

@@ -25,6 +25,7 @@ VOTE_STYLE = [('options', 'Suggestion Options'),
 
 class Channel(models.Model):
     id = BoundedBigAutoField(primary_key=True)
+    # name should always be lowercase
     name = models.CharField(blank=False, max_length=50, unique=True)
     display_name = models.CharField(blank=False, max_length=100)
     short_description = models.CharField(blank=True, null=True, max_length=100)

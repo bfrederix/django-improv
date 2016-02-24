@@ -9,6 +9,8 @@
     <input type="hidden" id="rootType" name="rootType" value="channel-create-edit" readonly>
     <input type="hidden" id="userID" name="userID" value="{{request.user.id}}" readonly>
     <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
+    <input type="hidden" id="channelNameAPIUrl" name="channelNameAPIUrl"
+               value="{% url "channel-name-list" %}?q=" readonly>
 	{% if action %}
 		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
 	{% endif %}

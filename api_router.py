@@ -34,6 +34,11 @@ router.register(r'channel_address',
                 channels_api_views.ChannelAddressViewSet,
                 'channel-address')
 
+# Channel Names
+router.register(r'channel_name',
+                channels_api_views.ChannelNameViewSet,
+                'channel-name')
+
 # Player
 router.register(r'player',
                 players_api_views.PlayerViewSet,
