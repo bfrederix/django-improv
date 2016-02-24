@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -5,8 +7,11 @@ from users import service as users_service
 from leaderboards import service as leaderboards_service
 from shows import service as shows_service
 from users.models import UserProfile
-from users.serializers import UserProfileSerializer
+from users.serializers import UserProfileSerializer, UsernameSerializer
 from utilities.api import APIObject
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class UserAPIObject(APIObject):
@@ -45,3 +50,14 @@ class UserProfileViewSet(viewsets.ViewSet):
         queryset = UserProfile.objects.all()
         serializer = UserProfileSerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class UsernameViewSet(viewsets.ViewSet):
+    """
+    API endpoint that gets a list of users by a query value
+    """
+
+    def list(self, request):
+        query = self.request.query_params.get('q', '').lower()
+        queryset = UserProfile.objects.filter(strip_username__contains=query)[:10]
+        return Response([q.username for q in queryset])

@@ -83,10 +83,9 @@
                             {% endif %}
                         {% endfor %}
 					{% endif %}
-                    <a class="text-center" href="{% url "channel_recaps" channel.name %}">
-                        <div class="btn btn-warning btn-block btn-lg btn-shadow text-shadow x-large-font">Show Recaps</div>
-                    </a>
-                    <br />
+                    {% if channel.future_next_show %}
+                        <div class="alert alert-info x-large-font text-center text-shadow" role="alert">Our next show is {{channel.next_show|date:"l N dS @ P"}}</div>
+                    {% endif %}
                     {% if channel.is_premium %}
                         {% if channel.buy_tickets_link %}
                             <a class="text-center" href="{{channel.buy_tickets_link}}">
@@ -104,6 +103,10 @@
                         <br/>
                         <div class="btn btn-success btn-block btn-lg btn-shadow text-shadow x-large-font disabled"><img src="{{IMAGE_URL}}star-sprite.png" /> Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                     {% endif %}
+                    <br />
+                    <a class="text-center" href="{% url "channel_recaps" channel.name %}">
+                        <div class="btn btn-warning btn-block btn-lg btn-shadow text-shadow x-large-font">Show Recaps</div>
+                    </a>
                     <br/>
 				</div>
 			</div>

@@ -3,7 +3,6 @@ from rest_framework.response import Response
 
 from recaps.serializers import RecapSerializer
 from shows import service as shows_service
-from users import service as users_service
 from utilities.api import APIObject
 
 
@@ -11,20 +10,31 @@ class RecapAPIObject(APIObject):
 
     def __init__(self, voted_item, **kwargs):
         super(RecapAPIObject, self).__init__(voted_item, **kwargs)
+        # Get the show interval
+        show_interval = shows_service.get_show_interval(voted_item.show_id,
+                                                        voted_item.vote_type_id,
+                                                        voted_item.interval)
         # Get all the options for that vote
-        self.vote_option_ids = shows_service.fetch_vote_option_ids(show_id=voted_item.show_id,
-                                                              vote_type_id=voted_item.vote_type_id,
-                                                              interval=voted_item.interval)
-        # if there's a player attached to the vote option
-        if voted_item.player_id:
-            self.player = voted_item.player_id
-        # If the voted item was on a suggestions
-        if voted_item.suggestion_id:
-            self.winning_suggestion = voted_item.suggestion_id
+        self.vote_options = shows_service.fetch_vote_option_ids(
+                                   show_id=voted_item.show_id,
+                                   vote_type_id=voted_item.vote_type_id,
+                                   interval=voted_item.interval)
+        # Get the vote type
+        voted_vote_type = voted_item.vote_type
+        # Get the voted option
+        voted_option = voted_item.vote_option
+        # Set the winning option
+        self.winning_option = voted_option.id
+        # if there's a player attached to the voted option
+        if voted_option.player_id:
+            self.player = voted_option.player_id
         # If it was an interval
         if voted_item.interval is not None:
             self.interval = voted_item.interval
-        self.vote_type = voted_item.vote_type.display_name
+        # Get the vote type display name
+        self.vote_type = voted_vote_type.display_name
+        # Get if the vote was a players only vote
+        self.players_only = voted_vote_type.players_only
 
 
 class RecapViewSet(viewsets.ViewSet):

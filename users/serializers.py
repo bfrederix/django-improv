@@ -16,3 +16,7 @@ class UserProfileSerializer(serializers.Serializer):
         fields = ('user_id', 'username', 'created',
                   'site_email_opt_in', 'channels_email_opt_in',
                   'points', 'wins', 'suggestions', 'medals',)
+
+
+class UsernameSerializer(serializers.Serializer):
+    pass

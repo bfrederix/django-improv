@@ -45,6 +45,13 @@ class Channel(models.Model):
 
     created = models.DateTimeField(blank=False)
 
+    def future_next_show(self):
+        now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+        # Make sure the next show exists and is in the future
+        if self.next_show and self.next_show > now:
+            return self.next_show
+        return None
+
     def __unicode__(self):
         return self.name
 

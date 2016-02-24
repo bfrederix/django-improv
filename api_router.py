@@ -14,6 +14,11 @@ router.register(r'user',
                 users_api_views.UserProfileViewSet,
                 'user')
 
+# Usernames
+router.register(r'username',
+                users_api_views.UsernameViewSet,
+                'username')
+
 # Shows
 router.register(r'show',
                 shows_api_views.ShowViewSet,

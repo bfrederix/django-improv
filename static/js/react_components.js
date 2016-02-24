@@ -543,10 +543,11 @@ var PanelFooter = React.createClass({
 
 var Badge = React.createClass({
   render: function() {
+    var badgeClasses = "badge " + this.props.badgeClasses;
     var badgeStyle = {backgroundColor: this.props.badgeColor,
                       color: "#fff"};
     return (
-      <span className="badge xx-large-font text-shadow" style={badgeStyle}>
+      <span className={badgeClasses} style={badgeStyle}>
         &nbsp;{this.props.content}&nbsp;
       </span>
     );
@@ -2408,65 +2409,6 @@ var ShowMedia = React.createClass({
   }
 });
 
-var ShowRecapPanelOptions = React.createClass({
-  getInitialState: function() {
-    return {data: undefined};
-  },
-  componentDidMount: function() {
-    var recapOptionsUrl = this.props.recapContext.voteOptionAPIUrl + this.props.optionsID + "/";
-    $.ajax({
-      url: recapOptionsUrl,
-      dataType: 'json',
-      success: function(data) {
-        this.setState({data: data});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
-  },
-  render: function() {
-    if (!this.state.data){
-        return (<div>
-                    <Loading loadingBarColor="#fff"/>
-                </div>);
-    }
-
-    var suggestionList = []
-    for (var i = 0; i < this.state.data.length; i++) {
-        var suggestion = this.state.data[i];
-        var buttonClass = "btn-primary";
-        var starImage = "";
-        var user;
-        if (this.props.winningSuggestion == suggestion.suggestion_id) {
-            buttonClass = "btn-danger";
-            starImage = <StarImage />;
-        }
-        if (suggestion.user_id) {
-            var userUrl = this.props.recapContext.usersUrl + suggestion.user_id + "/?channel_name=" + this.props.recapContext.channelName;
-            user = <a href={userUrl} className="recap-user-link">{suggestion.username}</a>;
-        }
-        else {
-            user = "Anonymous";
-        }
-        var suggestionClass = "btn " + buttonClass + " btn-block large-font vote-option btn-shadow text-shadow";
-        var suggestionCount = i + 1;
-        suggestionList.push(<div key={i} id={suggestion.suggestion_id} className={suggestionClass}>
-                                 {suggestionCount}. {suggestion.suggestion}{starImage}
-                                 <br/>
-                                 Submitted by: {user}
-                            </div>)
-    }
-
-    return (
-        <div key="1" className="row">
-            <div className="col-sm-12">
-                {suggestionList}
-            </div>
-        </div>
-    );
-  }
-});
 
 var ShowRecapPanels = React.createClass({
   getInitialState: function() {
@@ -2494,28 +2436,54 @@ var ShowRecapPanels = React.createClass({
         this.state.data.map(function (recapItem) {
             this.counter++;
             var bodyContent;
-            var footerContent;
+            var footerContent = [];
+            // If a player was attached to this vote
             if (recapItem.player) {
-                bodyContent = <div className="text-center recap-adjusted-img">
-                                  <PlayerImage playerAPIUrl={this.props.recapContext.playerAPIUrl}
-                                               playerID={recapItem.player}
-                                               showName="True"
-                                               playerNameClasses="xx-large-font" />
-                              </div>;
+                bodyContent = (
+                    <div className="row">
+                        <div className="col-md-offset-4 col-md-4 text-center recap-adjusted-img">
+                            <PlayerImage playerAPIUrl={this.props.recapContext.playerAPIUrl}
+                                         playerID={recapItem.player}
+                                         showName="True"
+                                         playerNameClasses="x-large-font" />
+                        </div>
+                    </div>
+                );
             }
-            if (recapItem.options_id) {
-                footerContent = <ShowRecapPanelOptions recapContext={this.props.recapContext}
-                                                       winningSuggestion={recapItem.winning_suggestion}
-                                                       optionsID={recapItem.options_id} />;
+            this.voteOptionCounter = 0;
+            // If this wasn't a players only vote
+            if (!recapItem.players_only) {
+                // Create the suggestion list
+                recapItem.vote_options.map(function (voteOption) {
+                    var winningOption;
+                    this.voteOptionCounter++;
+                    // See if this is the winning option
+                    if (voteOption == recapItem.winning_option) {
+                        winningOption = "true";
+                    }
+                    footerContent.push(
+                        <div key={this.voteOptionCounter} className="row">
+                            <div className="col-md-12">
+                                <VoteOptionSuggestion voteOptionID={voteOption}
+                                                      voteOptionAPIUrl={this.props.recapContext.voteOptionAPIUrl}
+                                                      usersUrl={this.props.recapContext.usersUrl}
+                                                      channelName={this.props.recapContext.channelName}
+                                                      recap="true"
+                                                      winner={winningOption} />
+                                <br />
+                            </div>
+                        </div>
+                    );
+                    return footerContent;
+                }, this);
             }
-
             var brCounter = this.counter + 'br';
             panelList.push(<Panel key={this.counter}
                                   panelWidth="6" panelOffset="3" panelColor="info"
                                   panelHeadingContent={recapItem.vote_type} panelHeadingClasses="x-large-font"
                                   panelBodyClasses="large-font black-font"
                                   bodyContent={bodyContent}
-                                  panelFooterClasses="black-background"
+                                  panelFooterClasses="white-background"
                                   footerContent={footerContent} />);
             return panelList;
         }, this);
@@ -3205,7 +3173,10 @@ var VoteOptionSuggestion = React.createClass({
   },
   componentDidMount: function() {
     this.loadSuggestionOptionData();
-    this.setInterval(this.loadSuggestionOptionData, 2000);
+    // If we should update this on regular 2 second intervals (not a recap)
+    if (!this.props.recap) {
+        this.setInterval(this.loadSuggestionOptionData, 2000);
+    }
   },
   render: function() {
     if (!this.state.data) {
@@ -3217,14 +3188,42 @@ var VoteOptionSuggestion = React.createClass({
 	    this.state.data.vote_options_count).out('hex');
 	var liveVotesColor = scale(this.state.data.live_votes);
     var deltaSpan;
+    var submittedBy;
+    var optionButtonClasses;
+    var badgeClasses;
+    // If this is a recap option
+    if (this.props.recap) {
+        var submittedBy;
+        optionButtonClasses = "btn btn-block word-wrap x-large-font btn-shadow text-shadow animated fadeInDown";
+        // If this was the winning option
+        if (this.props.winner) {
+            optionButtonClasses = optionButtonClasses + " btn-warning";
+        } else {
+            optionButtonClasses = optionButtonClasses + " btn-primary";
+        }
+        badgeClasses = "x-large-font text-shadow";
+        // If there is a user attached to the option
+        if (this.state.data.user_id) {
+            var userUrl = this.props.usersUrl + this.state.data.user_id + "/?channel_name=" + this.props.channelName;
+            submittedBy = <div>Submitted by: <a href={userUrl} className="recap-user-link">{this.state.data.username}</a></div>;
+        // If they were annoymous
+        } else {
+            submittedBy = <div>Submitted by: Anonymous</div>;
+        }
+    // It's a vote option
+    } else {
+        optionButtonClasses = "btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow animated fadeInDown";
+        badgeClasses = "xx-large-font text-shadow";
+    }
     // If the live votes changed
     if (this.state.voteDelta) {
         deltaSpan = <span className="xx-large-font animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
     }
 
     return (
-        <button className="btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow animated fadeInDown">
-           {this.state.data.option_number}. {this.state.data.suggestion_value} <Badge badgeColor={liveVotesColor} content={this.state.data.live_votes} />{deltaSpan}
+        <button className={optionButtonClasses}>
+           {this.state.data.option_number}. {this.state.data.suggestion_value} <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />{deltaSpan}
+           {submittedBy}
         </button>
     );
   }
