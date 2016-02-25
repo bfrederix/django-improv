@@ -139,12 +139,6 @@ span.count-font {
 	white-space: normal;
 }
 
-hr.thick-divider {
-	height:3px;
-	border:none;
-	color:#333;
-}
-
 #item-alert {
 	font-size: large;
 	z-index: 50000;

@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from channels import views
-from utilities.decorators import channel_admin_required
+from utilities.decorators import channel_admin_required, channel_owner_required
 
 urlpatterns = [
     # All users
@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^vote_types/$', channel_admin_required(views.ChannelVoteTypesView.as_view()), name="channel_vote_types"),
     url(r'^shows/$', channel_admin_required(views.ChannelShowsView.as_view()), name="channel_shows"),
     url(r'^pre_show_instructions/$', channel_admin_required(views.ChannelPreShowView.as_view()), name="channel_pre_show"),
+    url(r'^admins/$', channel_owner_required(views.ChannelAdminsView.as_view()), name="channel_admins"),
 ]

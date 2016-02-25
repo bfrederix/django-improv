@@ -1,17 +1,33 @@
 import datetime
-
+import re
 import pytz
 import cloudinary.uploader
 
 from django.shortcuts import render, redirect
 from django.utils.html import escape, strip_tags
+from django.core.exceptions import ObjectDoesNotExist
 
 from channels.models import (Channel, ChannelAddress, ChannelOwner,
                              ChannelAdmin, SuggestionPool, VoteType)
 from channels import service as channels_service
 from players import service as players_service
 from shows import service as shows_service
+from users import service as users_service
 from utilities import views as view_utils
+
+
+def name_validator(name):
+    # If it's an invalid name
+    if not re.match('[0-9a-z-]', name):
+        return "Invalid Channel Name"
+    # See if the name has been used already
+    try:
+        Channel.objects.get(name__iexact=name)
+    except ObjectDoesNotExist:
+        return None
+    else:
+        return "Channel Name already taken"
+    return None
 
 
 class ChannelHomeView(view_utils.ShowView):
@@ -49,7 +65,7 @@ class ChannelCreateEditView(view_utils.ShowView):
         elif channel_id:
             action = "Channel Edited Successfully!"
 
-        error = None
+        error = name_validator(request.POST.get('name'))
         next_show = request.POST.get('next_show')
         channel_update = {"name": request.POST.get('name'),
                           "display_name": request.POST.get('display_name'),
@@ -66,9 +82,11 @@ class ChannelCreateEditView(view_utils.ShowView):
                           "state": request.POST.get('state'),
                           "zipcode": request.POST.get('zipcode')}
         image_update = {"team_photo_url": request.FILES.get('teamPhotoFile')}
-        if not context['channel']:
+        # If this channel doesn't already exist (and there's no errors)
+        if not context['channel'] and not error:
             context['channel'] = Channel(**channel_update)
-        else:
+        # Otherwise the channel exists (and there's no errors)
+        elif not error:
             for field, value in channel_update.items():
                 setattr(context['channel'], field, value)
         context['channel'].save()
@@ -390,6 +408,75 @@ class ChannelPreShowView(view_utils.ShowView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_default_channel_context(request, *args, **kwargs)
+        return render(request,
+                      self.template_name,
+                      context)
+
+
+class ChannelAdminsView(view_utils.ShowView):
+    template_name = 'channels/channel_admins.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        channel_admins = channels_service.get_channel_admins(context['channel'].id)
+        context.update(
+            {'channel_admins': channel_admins})
+        return render(request,
+                      self.template_name,
+                      context)
+
+    def post(self, request, *args, **kwargs):
+        action = None
+        error = None
+        add = request.POST.get('add')
+        edit = request.POST.get('edit')
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        # If we're adding a new admin
+        if add:
+            username = request.POST.get('username')
+            # Get the user profile
+            user_profile = users_service.fetch_user_profile(username=username)
+            # Add the channel admin by username
+            added = channels_service.add_channel_admin(context['channel'], user_profile.user)
+            # If the admin was added
+            if added:
+                action = "Added Channel Admin Successfully!"
+            # The user was already an admin
+            else:
+                error = "Failed to add new admin!"
+        # If we're editing existing admins
+        elif edit:
+            # Get the channel admins
+            channel_admins = channels_service.get_channel_admins(context['channel'].id)
+            # Make sure they didn't remove all the owners
+            if not 'owner' in [request.POST.get(str(admin.id)) for admin in channel_admins]:
+                error = "You must have at least one Channel Owner!"
+            else:
+                # Loop through the existing admins
+                for admin in channel_admins:
+                    # Determine what action to take from the post
+                    admin_action = request.POST.get(str(admin.id))
+                    # If we are making them an owner
+                    if admin_action == 'owner':
+                        channels_service.add_channel_owner(context['channel'], admin.user)
+                    # If we are making them an admin
+                    elif admin_action == 'admin':
+                        # Remove them as an owner (the only possible choice here)
+                        channels_service.remove_channel_owner(context['channel'], admin.user)
+                    # If we are removing them as an admin
+                    elif admin_action == 'remove':
+                        # Remove them as an owner
+                        channels_service.remove_channel_owner(context['channel'], admin.user)
+                        # Remove them as an admin
+                        channels_service.remove_channel_admin(context['channel'], admin.user)
+                action = "Admins Updated Successfully!"
+
+        # Get updated channel admins
+        channel_admins = channels_service.get_channel_admins(context['channel'].id)
+        context.update(
+            {'channel_admins': channel_admins,
+             'action': action,
+             'error': error})
         return render(request,
                       self.template_name,
                       context)

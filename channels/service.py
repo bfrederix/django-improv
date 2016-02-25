@@ -1,12 +1,10 @@
-import datetime
 import logging
-import pytz
 
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from django.contrib.auth.models import User
 
-from channels.models import (ChannelAdmin, Channel, ChannelUser,
+from channels.models import (ChannelAdmin, Channel, ChannelUser, ChannelOwner,
                              SuggestionPool, VoteType, VOTE_STYLE)
 
 logging.basicConfig(level=logging.INFO)
@@ -63,6 +61,26 @@ def check_is_channel_admin(channel_name, user_id):
         return True
 
 
+def check_is_channel_owner(channel_name, user_id):
+    channel = Channel.objects.get(name=channel_name)
+    # If the user isn't logged in
+    if not user_id:
+        return False
+    # Check if the user is a Channel Owner
+    try:
+        ChannelOwner.objects.get(channel=channel,
+                                 user=user_id)
+    except ChannelOwner.DoesNotExist:
+        # Check to see if the user is a superuser
+        user = User.objects.get(pk=user_id)
+        if user.is_superuser:
+            return True
+        else:
+            return False
+    else:
+        return True
+
+
 def get_channels_by_admin(user_id):
     # If there isn't a user
     if not user_id:
@@ -83,18 +101,53 @@ def get_channels_by_user(user_id):
         channels.append(channel_user.channel)
     return channels
 
+def get_channel_admins(channel_id):
+    # If there isn't a channel
+    if not channel_id:
+        return []
+    return ChannelAdmin.objects.filter(channel=channel_id)
+
+
+def add_channel_admin(channel, user):
+    admin, created = ChannelAdmin.objects.get_or_create(channel=channel,
+                                                        user=user)
+    return created
+
+
+def remove_channel_admin(channel, user):
+    try:
+        ChannelAdmin.objects.get(channel=channel,
+                                 user=user).delete()
+    except ChannelAdmin.DoesNotExist:
+        return
+
+
+def add_channel_owner(channel, user):
+    owner, created = ChannelOwner.objects.get_or_create(channel=channel,
+                                                        user=user)
+    return created
+
+
+def remove_channel_owner(channel, user):
+    try:
+        ChannelOwner.objects.get(channel=channel,
+                                 user=user).delete()
+    except ChannelOwner.DoesNotExist:
+        return
+
+
 def channel_user_count(channel_id):
     return ChannelUser.objects.filter(channel=channel_id).count()
 
 
-def update_channel_user(channel_id, user_id, leaderboard_entries):
+def update_channel_user(channel, user, leaderboard_entries):
     # If no user id was specified
-    if not user_id:
+    if not getattr(user, 'id'):
         # Do nothing
         return
-    user_id = int(user_id)
     # Add the user as a ChannelUser
-    channel_user, created = ChannelUser.objects.get_or_create(channel=channel_id, user=user_id)
+    channel_user, created = ChannelUser.objects.get_or_create(channel=channel,
+                                                              user=user)
     cu_update = {'points': 0,
                  'suggestion_wins': 0,
                  'show_wins': 0}

@@ -84,6 +84,9 @@
 								<li {% block add-player-selected %}{% endblock %}><a href="{% url "channel_players" channel.name %}">Create/Edit Players</a></li>
 								<li {% block pre-show-selected %}{% endblock %}><a href="{% url "channel_pre_show" channel.name %}">Pre-show Instructions</a></li>
 								<li><a href="{% url "channel_edit" channel.id %}">Edit Channel</a></li>
+								{% if is_channel_owner %}
+									<li {% block channel-admins-selected %}{% endblock %}><a href="{% url "channel_admins" channel.name %}">Add/Edit Channel Admins</a></li>
+								{% endif %}
 								{% if not channel.is_premium %}
 									<li><a href="{% url "channel_edit" channel.id %}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% else %}
@@ -159,5 +162,7 @@
 
   	<!-- Bootstrap Core JavaScript -->
   	<script src="{{JS_URL}}bootstrap.min.js"></script>
+
+  	{% block extra_scripts %}{% endblock %}
   </body>
 </html>

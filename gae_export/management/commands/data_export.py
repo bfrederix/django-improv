@@ -152,7 +152,10 @@ class Command(BaseCommand):
                                         entity['login_type'] = 'google'
                                     else:
                                         entity['login_type'] = 'facebook'
-                                username = (entity['username'][:28] + '..') if len(entity['username']) > 30 else entity['username']
+                                # Strip the email after @
+                                username = entity['username'].split('@')[0]
+                                # Truncate the username
+                                username = (username[:28] + '..') if len(username) > 30 else username
                                 user, created = User.objects.get_or_create(email=entity['email'],
                                                                            username=username)
                                 user_profile, created = UserProfile.objects.get_or_create(

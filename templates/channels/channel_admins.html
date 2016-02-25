@@ -1,0 +1,114 @@
+{% extends "channels/channel_base.html" %}
+
+{% block admin-selected %} active{% endblock %}
+{% block channel-admins-selected %}class="active"{% endblock %}
+
+{% block title %}{{channel.display_name}}'s Add/Edit Channel Admins{% endblock %}
+
+{% block add_head %}
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}jquery-ui-1.11.4/jquery-ui.min.css">
+    <style>
+        .ui-autocomplete-loading {
+            background: white url("{{IMAGE_URL}}ui-anim_basic_16x16.gif") right center no-repeat;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="container-fluid" class="container-fluid">
+        <div class="row">
+            <div class="col-lg-offset-3 col-lg-6">
+                {% if action %}
+                    <span class="label label-success x-large-font">{{action}}</span>
+                {% endif %}
+                {% if error %}
+                    <span class="label label-danger x-large-font">{{error}}</span>
+                {% endif %}
+                <div class="panel panel-warning text-left">
+                    <div class="panel-heading text-shadow x-large-font">
+                        Add Channel Admin
+                    </div>
+                    <div class="panel-body white-background">
+                        <form role="form" action="{% url "channel_admins" channel.name %}" method="post" encType="multipart/form-data">
+                            <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
+                            <input type="hidden" name="add" value="add" />
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="form-group black-font">
+                                        <label class="col-lg-4 control-label x-large-font">Dumpedit Username:</label>
+                                        <div class="col-lg-6">
+                                            <input type="text" id="username" name="username" maxlength="100" class="form-control" />
+                                        </div>
+                                        <div class="col-lg-2">
+                                            <button type="submit" class="btn btn-danger btn-shadow text-shadow x-large-font">&nbsp;Add&nbsp;</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="panel panel-info text-left">
+                    <div class="panel-heading text-shadow x-large-font">
+                        Edit Channel Admins
+                    </div>
+                    <div class="panel-body white-background">
+                        <form role="form" action="{% url "channel_admins" channel.name %}" method="post" encType="multipart/form-data">
+                            <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
+                            <input type="hidden" name="edit" value="edit" />
+                            {% for admin in channel_admins %}
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="form-group black-font">
+                                            <label class="col-lg-3 control-label x-large-font">{{admin.user.username}}:</label>
+                                            <div class="col-lg-7">
+                                                <select id="{{admin.id}}" name="{{admin.id}}" class="form-control">
+                                                    <option value="owner" {% if admin.is_owner %}selected{% endif %}>Is Owner</option>
+                                                    <option value="admin" {% if not admin.is_owner %}selected{% endif %}>Is Admin</option>
+                                                    <option value="remove">Remove</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <br />
+                                        <br />
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <button type="submit" class="btn btn-danger btn-shadow text-shadow x-large-font pull-right">Submit</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block add_react %}
+    <!-- jQuery -->
+    <script src="{{JS_URL}}jquery-1.11.0.min.js"></script>
+    <!-- jQuery UI -->
+    <script src="{{JS_URL}}jquery-ui-1.11.4/jquery-ui.min.js"></script>
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        $( document ).ready(function() {
+            $( "#username" ).keypress(function() {
+                // Wait a few miliseconds
+                window.setTimeout(function(){
+                    var userInput = $("#username").val();
+                    var usernameSource = "{% url "username-list" %}?q=" + userInput;
+                    $( "#username" ).autocomplete({
+                        source: usernameSource,
+                        minLength: 2,
+                    });
+                }, 300);
+            });
+        });
+    </script>
+{% endblock %}

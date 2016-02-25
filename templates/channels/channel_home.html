@@ -32,7 +32,7 @@
                                 <a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}">
                                     <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font"><div class="google-icon-large pull-left"></div>Login with Google</div>
                                 </a>
-                                <br/>
+                                <hr class="thick" />
                             {% endif %}
                         {% endif %}
 				    </div>
@@ -83,7 +83,7 @@
                             {% endif %}
                         {% endfor %}
 					{% endif %}
-                    {% if channel.future_next_show %}
+                    {% if not current_show and channel.future_next_show %}
                         <div class="alert alert-info x-large-font text-center text-shadow" role="alert">Our next show is {{channel.next_show|date:"l N dS @ P"}}</div>
                     {% endif %}
                     {% if channel.is_premium %}

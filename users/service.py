@@ -11,9 +11,11 @@ def update_user_profile(user_id, update_fields):
     return user_profile
 
 
-def fetch_user_profile(user_id):
+def fetch_user_profile(user_id=None, username=None):
     if user_id:
         return UserProfile.objects.get(user=user_id)
+    elif username:
+        return UserProfile.objects.get(username=username)
     else:
         return None
 

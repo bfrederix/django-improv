@@ -27,12 +27,12 @@ class Forum(models.Model):
 
 class Thread(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    forum = FlexibleForeignKey("Forum", blank=False)
+    forum = FlexibleForeignKey("Forum", blank=False, on_delete=models.CASCADE)
     subject = models.CharField(blank=False, null=False, max_length=100)
     message = models.TextField(blank=False, null=False)
     sticky = models.BooleanField(blank=False, default=False)
 
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
     created = models.DateTimeField(blank=False)
     updated = models.DateTimeField(blank=False)
 
@@ -51,11 +51,11 @@ class Thread(models.Model):
 
 class Reply(models.Model):
     id = BoundedBigAutoField(primary_key=True)
-    forum = FlexibleForeignKey("Forum", blank=False)
-    thread = FlexibleForeignKey("Thread", blank=False)
+    forum = FlexibleForeignKey("Forum", blank=False, on_delete=models.CASCADE)
+    thread = FlexibleForeignKey("Thread", blank=False, on_delete=models.CASCADE)
     message = models.TextField(blank=False, null=False)
 
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
     created = models.DateTimeField(blank=False)
 
     def __unicode__(self):

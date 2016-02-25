@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
     # Their django user
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     # Id pulled from the social platform they created their account with
     social_id = models.CharField(blank=True, null=True, max_length=100)
     username = models.CharField(blank=False, max_length=100, unique=True)

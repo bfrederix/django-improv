@@ -1,7 +1,6 @@
 from django.contrib import admin
 from channels.models import (Channel, ChannelAddress, ChannelUser,
-                             ChannelAdminInvite, ChannelOwner,
-                             SuggestionPool, VoteType)
+                             ChannelOwner, SuggestionPool, VoteType)
 from channels.models import ChannelAdmin as ModelChannelAdmin
 
 
@@ -27,11 +26,6 @@ class ChannelAdminAdmin(admin.ModelAdmin):
 
 @admin.register(ChannelUser)
 class ChannelUserAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(ChannelAdminInvite)
-class ChannelAdminInviteAdmin(admin.ModelAdmin):
     pass
 
 

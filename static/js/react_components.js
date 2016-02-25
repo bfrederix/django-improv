@@ -2652,7 +2652,7 @@ var ShowSuggestionPoolSuggestion = React.createClass({
                     </form>
                 </div>
             </div>
-            <hr className="thick-divider bg-primary"/>
+            <hr className="thick bg-primary"/>
         </div>
     );
   }

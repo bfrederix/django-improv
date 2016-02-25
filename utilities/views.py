@@ -21,6 +21,7 @@ class ShowView(View):
     def get_default_channel_context(self, request, *args, **kwargs):
         context = {'channel': self.channel,
                    'is_channel_admin': self.is_channel_admin,
+                   'is_channel_owner': self.is_channel_owner,
                    'current_show': self.current_show}
         # Get the channels that the user is an admin of
         context['admin_channels'] = channels_service.get_channels_by_admin(
@@ -59,6 +60,9 @@ class ShowView(View):
                 return redirect("dumpedit_home")
             # See if the user is an admin
             self.is_channel_admin = channels_service.check_is_channel_admin(self.channel,
+                                                                            getattr(self.request.user, 'id'))
+            # See if the user is a channel owner
+            self.is_channel_owner = channels_service.check_is_channel_owner(self.channel,
                                                                             getattr(self.request.user, 'id'))
             # Determine if there is a current show for this channel
             self.current_show = shows_service.get_current_show(self.channel.id)

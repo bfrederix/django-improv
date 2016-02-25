@@ -79,13 +79,14 @@ class ChannelAdmin(models.Model):
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     user = models.ForeignKey(User)
 
-
-class ChannelAdminInvite(models.Model):
-    """Used to email hash to user and allow them to become admin of a channel"""
-    id = BoundedBigAutoField(primary_key=True)
-    channel = FlexibleForeignKey("channels.Channel", blank=False)
-    email = models.CharField(blank=False, max_length=100)
-    hash_key = models.CharField(blank=False, max_length=100)
+    def is_owner(self):
+        try:
+            ChannelOwner.objects.get(channel=self.channel,
+                                     user=self.user)
+        except ChannelOwner.DoesNotExist:
+            return False
+        else:
+            return True
 
 
 class ChannelOwner(models.Model):

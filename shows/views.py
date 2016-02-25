@@ -252,7 +252,7 @@ class ShowVoteReceiverView(view_utils.ShowView):
             leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_user(user_id)
             logger.info("Here 4")
             # Add the user as a channel user and update their leaderboard aggregate stats
-            channels_service.update_channel_user(context['channel'].id, user_id, leaderboard_entries)
+            channels_service.update_channel_user(context['channel'], user, leaderboard_entries)
         logger.info("Here END")
         return HttpResponse('Vote Received')
 
@@ -392,7 +392,7 @@ class ShowSuggestionPoolView(view_utils.ShowView):
         # Fetch the leaderboard entries for the user
         leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_user(user_id)
         # Add the user as a channel user and update their leaderboard aggregate stats
-        channels_service.update_channel_user(context['channel'].id, user_id, leaderboard_entries)
+        channels_service.update_channel_user(context['channel'], self.request.user, leaderboard_entries)
         context.update({'action': action,
                         'error': error,
                         'suggestion_pool': suggestion_pool,
