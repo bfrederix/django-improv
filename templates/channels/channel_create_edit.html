@@ -2,6 +2,10 @@
 
 {% block title %}{% if channel %}{{channel.display_name}} Channel Edit{% else %}Channel Create{% endif %}{% endblock %}
 
+{% block add_head %}
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}bootstrap-datetimepicker-2.3.9/bootstrap-datetimepicker.min.css">
+{% endblock %}
+
 {% block content %}
     <section><div id="container-fluid" class="container-fluid"></div></section>
     <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
@@ -34,4 +38,5 @@
 
 {% block add_react %}
     {% include "embedded_utils/react_src.html" %}
+    <script src="{{JS_URL}}bootstrap-datetimepicker-2.3.9/bootstrap-datetimepicker.min.js"></script>
 {% endblock %}

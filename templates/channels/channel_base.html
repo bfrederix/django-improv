@@ -87,6 +87,7 @@
 								{% if is_channel_owner %}
 									<li {% block channel-admins-selected %}{% endblock %}><a href="{% url "channel_admins" channel.name %}">Add/Edit Channel Admins</a></li>
 								{% endif %}
+								<li class="disabled {% block leaderboard-spans-selected %}{% endblock %}"><a href="{% url "channel_leaderboard_spans" channel.name %}">Add/Edit Custom Leaderboard Spans <img src="{{IMAGE_URL}}star-sprite.png" /> (Coming Soon)</a></li>
 								{% if not channel.is_premium %}
 									<li><a href="{% url "channel_edit" channel.id %}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% else %}

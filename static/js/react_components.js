@@ -461,13 +461,13 @@ var FormLabel = React.createClass({
   render: function() {
     var label;
     var labelContents;
-    if (this.props.action) {
-        labelContents = this.props.action;
-        var labelColor = "primary";
-    } else if (this.props.error) {
+    if (this.props.error) {
         labelContents = this.props.error;
         var labelColor = "danger";
 
+    } else if (this.props.action) {
+        labelContents = this.props.action;
+        var labelColor = "primary";
     }
     return (
         <div className="row">
@@ -956,6 +956,11 @@ var ChannelCreateEditForm = React.createClass({
         });
     }
   },
+  componentDidUpdate: function(prev, next) {
+      $('#next_show').datetimepicker({
+          format: 'yyyy-mm-dd hh:ii'
+      });
+  },
   onFormSubmit: function(event) {
       limitFileSize(event, 'teamPhotoFile');
       validateTextField(event, "name");
@@ -1081,7 +1086,7 @@ var ChannelCreateEditForm = React.createClass({
                                  input={buyTicketsInput}
                                  helpBlock="The URL to buy tickets to your shows, premium feature only" />);
     // Next Show
-    var nextShowInput = <input type="datetime-local" name="next_show" className="form-control" defaultValue={this.state.data.next_show.replace('Z','')}></input>;
+    var nextShowInput = <input type="text" id="next_show" name="next_show" className="form-control" defaultValue={this.state.data.next_show.replace('Z','')}></input>;
     formContents.push(<FormGroup key="10"
                                  labelSize="2"
                                  labelContents="Next Show:"

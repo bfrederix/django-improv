@@ -1,5 +1,6 @@
 import datetime
 import re
+import logging
 import pytz
 import cloudinary.uploader
 
@@ -15,18 +16,23 @@ from shows import service as shows_service
 from users import service as users_service
 from utilities import views as view_utils
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def name_validator(name):
+
+def name_validator(channel, name):
     # If it's an invalid name
     if not re.match('[0-9a-z-]', name):
         return "Invalid Channel Name"
-    # See if the name has been used already
-    try:
-        Channel.objects.get(name__iexact=name)
-    except ObjectDoesNotExist:
-        return None
-    else:
-        return "Channel Name already taken"
+    # If the channel already exists and doesn't have the exact same name
+    if channel and channel.name != name:
+        # See if the name has been used already
+        try:
+            Channel.objects.get(name__iexact=name)
+        except ObjectDoesNotExist:
+            return None
+        else:
+            return "Channel Name already taken"
     return None
 
 
@@ -65,8 +71,13 @@ class ChannelCreateEditView(view_utils.ShowView):
         elif channel_id:
             action = "Channel Edited Successfully!"
 
-        error = name_validator(request.POST.get('name'))
+        error = name_validator(context['channel'], request.POST.get('name'))
         next_show = request.POST.get('next_show')
+        # If a next show was submitted
+        if next_show:
+            next_show = datetime.datetime.strptime(next_show, "%Y-%m-%d %H:%M").replace(tzinfo=pytz.utc)
+        else:
+            next_show = None
         channel_update = {"name": request.POST.get('name'),
                           "display_name": request.POST.get('display_name'),
                           "short_description": strip_tags(request.POST.get('short_description', '')),
@@ -74,7 +85,7 @@ class ChannelCreateEditView(view_utils.ShowView):
                           "website": strip_tags(request.POST.get('website', '')),
                           "facebook_page": strip_tags(request.POST.get('facebook_page', '')),
                           "buy_tickets_link": strip_tags(request.POST.get('buy_tickets_link', '')),
-                          "next_show": next_show or None,
+                          "next_show": next_show,
                           "navbar_color": request.POST.get('navbar_color'),
                           "background_color": request.POST.get('background_color')}
         address_update = {"street": request.POST.get('street'),
@@ -405,6 +416,16 @@ class ChannelShowsView(view_utils.ShowView):
 
 class ChannelPreShowView(view_utils.ShowView):
     template_name = 'channels/channel_pre_show.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        return render(request,
+                      self.template_name,
+                      context)
+
+
+class ChannelLeaderboardSpansView(view_utils.ShowView):
+    template_name = 'channels/channel_leaderboard_spans.html'
 
     def get(self, request, *args, **kwargs):
         context = self.get_default_channel_context(request, *args, **kwargs)

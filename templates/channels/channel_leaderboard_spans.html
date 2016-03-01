@@ -1,0 +1,27 @@
+{% extends "channels/channel_base.html" %}
+
+{% block admin-selected %} active{% endblock %}
+{% block leaderboard-spans-selected %}active{% endblock %}
+
+{% block title %}{{channel.display_name}}'s Add/Edit Custom Leaderboard Spans{% endblock %}
+
+{% block content %}
+    <div id="container-fluid" class="container-fluid"></div>
+    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+
+    <input type="hidden" id="rootType" name="rootType" value="channel_leaderboard_spans" readonly>
+    <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
+               value="{% url "channel_players" channel.name %}" readonly>
+    <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
+	{% if action %}
+		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
+	{% endif %}
+    {% if error %}
+		<input type="hidden" id="error" name="error" value="{{error}}" readonly>
+	{% endif %}
+
+{% endblock %}
+
+{% block add_react %}
+    {% include "embedded_utils/react_src.html" %}
+{% endblock %}
