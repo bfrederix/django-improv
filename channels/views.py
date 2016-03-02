@@ -1,12 +1,15 @@
 import datetime
 import re
+import csv
 import logging
 import pytz
+import StringIO
 import cloudinary.uploader
 
 from django.shortcuts import render, redirect
 from django.utils.html import escape, strip_tags
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 
 from channels.models import (Channel, ChannelAddress, ChannelOwner,
                              ChannelAdmin, SuggestionPool, VoteType)
@@ -14,6 +17,7 @@ from channels import service as channels_service
 from players import service as players_service
 from shows import service as shows_service
 from users import service as users_service
+from leaderboards import service as leaderboards_service
 from utilities import views as view_utils
 
 logging.basicConfig(level=logging.INFO)
@@ -501,3 +505,124 @@ class ChannelAdminsView(view_utils.ShowView):
         return render(request,
                       self.template_name,
                       context)
+
+
+class ChannelExportEmailsView(view_utils.ShowView):
+    template_name = 'channels/channel_export_emails.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        # Add the Channel's shows to the context
+        context.update({
+            'shows': shows_service.fetch_shows_by_channel(context['channel'].id)
+        })
+        return render(request,
+                      self.template_name,
+                      context)
+
+    def post(self, request, *args, **kwargs):
+        show_id = request.POST.get('show')
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        # If something was selected
+        if show_id:
+            filehandle = StringIO.StringIO()
+            fieldnames = [
+                'email',
+                'user_id',
+                'username',
+                'first_name',
+                'last_name',
+                'suggestion_wins',
+                'points']
+            # If the user wants to export all e-mails
+            if show_id == 'all':
+                # Set the name of the response file
+                export_filename = 'all_emails'
+                # Fetch all the channel users
+                channel_users = channels_service.fetch_channel_users(context['channel'],
+                                                                     leaderboard_sort=True)
+                # Add the extra fields for export
+                fieldnames += [
+                    'show_wins',
+                    'channel_rank']
+                # Create the csv writer
+                writer = csv.writer(filehandle,
+                                    delimiter=',',
+                                    quotechar='"',
+                                    quoting=csv.QUOTE_NONNUMERIC,
+                                    fieldnames=fieldnames)
+                # Write the header row
+                writer.writeheader()
+                rank = 1
+                for channel_user in channel_users:
+                    # Get the user from the channel user
+                    user = channel_user.user
+                    # Create the csv output row
+                    row = [user.email,
+                           user.user_id,
+                           user.username,
+                           user.first_name,
+                           user.last_name,
+                           channel_user.suggestion_wins,
+                           channel_user.points,
+                           channel_user.show_wins,
+                           rank]
+                    # Write the row to the filehandle
+                    writer.writerow(row)
+                    # Increase the rank
+                    rank += 1
+            # If the user wants to export e-mails for a particular show
+            else:
+                # Get the selected show
+                show = shows_service.show_or_404(show_id)
+                # Set the name of the response file to the show's created date
+                export_filename = '{0}-{1}-{2}'.format(show.created.year,
+                                                       show.created.month,
+                                                       show.created.day)
+                # Add the extra fields for export
+                fieldnames += ['show_rank']
+                # Create the csv writer
+                writer = csv.writer(filehandle,
+                                    delimiter=',',
+                                    quotechar='"',
+                                    quoting=csv.QUOTE_NONNUMERIC,
+                                    fieldnames=fieldnames)
+                # Write the header row
+                writer.writeheader()
+                # Get the leaderboard entry for the show,
+                # excluding entries without users attached
+                leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_show(
+                                                show.id,
+                                                leaderboard_order=True)
+                rank = 1
+                for leaderboard_entry in leaderboard_entries:
+                    # Get the user from the leaderboard entry
+                    user = leaderboard_entry.user
+                    # Create the csv output row
+                    row = [user.email,
+                           user.user_id,
+                           user.username,
+                           user.first_name,
+                           user.last_name,
+                           leaderboard_entry.wins,
+                           leaderboard_entry.points,
+                           rank]
+                    # Write the row to the filehandle
+                    writer.writerow(row)
+                    # Increase the rank
+                    rank += 1
+            # Reset the filehandle to the beginning
+            filehandle.seek(0)
+            # Return the response as a csv file
+            response = HttpResponse(filehandle.read(),
+                                    content_type='text/csv; charset=utf-8')
+            response['Content-Disposition'] = 'attachment;filename={0}.csv'.format(export_filename)
+            return response
+        else:
+            # Add the Channel's shows to the context
+            context.update({
+                'shows': shows_service.fetch_shows_by_channel(context['channel'].id)
+            })
+            return render(request,
+                          self.template_name,
+                          context)

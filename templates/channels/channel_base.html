@@ -88,12 +88,12 @@
 									<li {% block channel-admins-selected %}{% endblock %}><a href="{% url "channel_admins" channel.name %}">Add/Edit Channel Admins</a></li>
 								{% endif %}
 								<li class="disabled {% block leaderboard-spans-selected %}{% endblock %}"><a href="{% url "channel_leaderboard_spans" channel.name %}">Add/Edit Custom Leaderboard Spans <img src="{{IMAGE_URL}}star-sprite.png" /> (Coming Soon)</a></li>
+								<li class="{% block export-emails-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="{% url "channel_export_emails" channel.name %}">Export E-mails <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% if not channel.is_premium %}
 									<li><a href="{% url "channel_edit" channel.id %}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% else %}
 									<li><a href="{% url "channel_edit" channel.id %}"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel Premium <span class="glyphicon glyphicon-remove" aria-hidden="true"></a></li>
 								{% endif %}
-								<li class="{% block export-emails-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="/export_emails/">Export E-mails <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
     						</ul>
   						</li>
 					{% endif %}

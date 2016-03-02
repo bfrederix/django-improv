@@ -19,7 +19,7 @@ def fetch_leaderboard_entries_by_user(user_id):
 
 
 def fetch_leaderboard_entries_by_show(show_id, leaderboard_order=False):
-    leaderboard_entries = LeaderboardEntry.objects.filter(show=show_id)
+    leaderboard_entries = LeaderboardEntry.objects.filter(show=show_id).exclude(user=None)
     if leaderboard_order:
         return leaderboard_entries.order_by('-wins', '-points')
     return leaderboard_entries

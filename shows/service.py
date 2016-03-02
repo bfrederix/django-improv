@@ -36,6 +36,10 @@ def get_current_show(channel_id):
     return None
 
 
+def fetch_shows_by_channel(channel_id):
+    return Show.objects.filter(channel=channel_id).order_by('-created')
+
+
 def get_show_interval(show_id, vote_type_id, interval):
     try:
         return ShowInterval.objects.get(show=show_id,

@@ -15,4 +15,5 @@ urlpatterns = [
     url(r'^pre_show_instructions/$', channel_admin_required(views.ChannelPreShowView.as_view()), name="channel_pre_show"),
     url(r'^leaderboard_spans/$', channel_admin_required(views.ChannelLeaderboardSpansView.as_view()), name="channel_leaderboard_spans"),
     url(r'^admins/$', channel_owner_required(views.ChannelAdminsView.as_view()), name="channel_admins"),
+    url(r'^export_emails/$', channel_admin_required(views.ChannelExportEmailsView.as_view()), name="channel_export_emails"),
 ]
