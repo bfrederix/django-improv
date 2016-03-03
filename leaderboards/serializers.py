@@ -17,6 +17,19 @@ class LeaderboardEntrySerializer(serializers.Serializer):
                   'username', 'points', 'wins', 'medals')
 
 
+class LeaderboardEntrySpanSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    channel_name = serializers.CharField()
+    username = serializers.CharField()
+    show_wins = serializers.IntegerField()
+    points = serializers.IntegerField()
+    suggestion_wins = serializers.IntegerField()
+
+    class Meta:
+        fields = ('user_id', 'channel_name', 'username',
+                  'show_wins', 'points', 'suggestion_wins')
+
+
 class LeaderboardSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
     username = serializers.CharField()

@@ -46,9 +46,7 @@ function showDateUTCToLocalFormat(stringDate) {
 }
 
 function getSpanFormat(spanDate){
-    var date = new Date(spanDate);
-    var month = date.getMonth() + 1
-    return month + "" + date.getDate() + date.getFullYear();
+    return spanDate.replace(/-/g, '');
 }
 
 function limitFileSize(event, elementID) {
@@ -1946,6 +1944,7 @@ var ChannelLeaderboardTable = React.createClass({
     return {data: undefined};
   },
   componentDidMount: function() {
+    console.log(this.props.leaderboardContext.channelLeaderboardAPIUrl);
     $.ajax({
       url: this.props.leaderboardContext.channelLeaderboardAPIUrl,
       dataType: 'json',
@@ -2017,6 +2016,85 @@ var ChannelLeaderboardTable = React.createClass({
   }
 });
 
+var SpanLeaderboardTable = React.createClass({
+  getInitialState: function() {
+    return {data: undefined};
+  },
+  componentDidMount: function() {
+    $.ajax({
+      url: this.props.leaderboardContext.leaderboardEntrySpanAPIUrl,
+      dataType: 'json',
+      success: function(data) {
+        this.setState({data: data});
+      }.bind(this),
+      error: function(xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function() {
+    if (!this.state.data){
+        return (<div className="table-responsive text-shadow">
+                    <table className="table table-condensed large-font">
+                        <thead>
+                            <tr className="medium-background">
+                                <th>Rank</th>
+                                <th>Username</th>
+                                <th>Show Wins</th>
+                                <th>Suggestion Wins</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody><tr><td colSpan="5">
+                            <Loading loadingBarColor="#fff"/>
+                        </td></tr></tbody>
+                    </table>
+                    <Pagination maxPages={this.props.leaderboardContext.maxPages}
+                                currentPage={this.props.leaderboardContext.page} />
+                </div>);
+    }
+    var tableList = [];
+    this.counter = 0;
+    this.startCount = this.props.leaderboardContext.maxPerPage * (this.props.leaderboardContext.page - 1);
+
+    // Create the suggestion list
+    this.state.data.map(function (leaderboardUser) {
+        this.counter++;
+        var rank = this.counter + this.startCount;
+        var userUrl = this.props.leaderboardContext.usersUrl + leaderboardUser.user_id + "/?channel_name=" + this.props.leaderboardContext.channelName;
+        tableList.push(<tr key={this.counter} className="light-background">
+                            <td>{rank}</td>
+                            <td><a href={userUrl}>{leaderboardUser.username}</a></td>
+                            <td>{leaderboardUser.show_wins}</td>
+                            <td>{leaderboardUser.suggestion_wins}</td>
+                            <td>{leaderboardUser.points}</td>
+                       </tr>);
+        return tableList;
+    }, this);
+    console.log(this.props.leaderboardContext.maxPages);
+    return (
+        <div className="table-responsive text-shadow">
+            <br/>
+            <table className="table table-condensed large-font">
+                <thead>
+                    <tr className="medium-background">
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Show Wins</th>
+                        <th>Suggestion Wins</th>
+                        <th>Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {tableList}
+                </tbody>
+            </table>
+            <Pagination maxPages={this.props.leaderboardContext.maxPages}
+                        currentPage={this.props.leaderboardContext.page} />
+        </div>
+    );
+  }
+});
 
 var ShowLeaderboardTable = React.createClass({
   getInitialState: function() {
@@ -2051,6 +2129,8 @@ var ShowLeaderboardTable = React.createClass({
                             <Loading loadingBarColor="#fff"/>
                         </td></tr></tbody>
                     </table>
+                    <Pagination maxPages={this.props.leaderboardContext.maxPages}
+                                currentPage={this.props.leaderboardContext.page} />
                 </div>);
     }
     var tableList = [];
@@ -2106,7 +2186,8 @@ var Leaderboard = React.createClass({
     var leaderboardComponents = [];
     var showID = this.props.leaderboardContext.showID;
 
-    if (showID) {
+    // If a show was selected or a leaderboard span
+    if (showID || this.props.leaderboardContext.start) {
         leaderboardComponents.push(<BigButtonDropdown key="1"
                                             buttonColor="primary"
                                             leaderboardContext={this.props.leaderboardContext}
@@ -2115,19 +2196,27 @@ var Leaderboard = React.createClass({
                                             showID={this.props.leaderboardContext.showID}
                                             currentSelection={this.props.leaderboardContext.currentSelection} />);
         leaderboardComponents.push(<br key="2" />);
-        leaderboardComponents.push(<BigButton key="3"
-                                    buttonText="View Show Recap"
-                                    buttonColor="danger"
-                                    buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
-        // If this is a channel admin user and we haven't awarded medals
-        if (this.props.leaderboardContext.isAdmin && !this.props.leaderboardContext.medalsAwarded) {
-            leaderboardComponents.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
-                                                        showID={this.props.leaderboardContext.showID}/>);
+        // If it's a show
+        if (showID) {
+            leaderboardComponents.push(<BigButton key="3"
+                                        buttonText="View Show Recap"
+                                        buttonColor="danger"
+                                        buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
+            // If this is a channel admin user and we haven't awarded medals
+            if (this.props.leaderboardContext.isAdmin && !this.props.leaderboardContext.medalsAwarded) {
+                leaderboardComponents.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+                                                            showID={this.props.leaderboardContext.showID}/>);
+            }
+            leaderboardComponents.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
+                                 <ShowLeaderboardTable leaderboardContext={this.props.leaderboardContext}
+                                                          showID={this.props.leaderboardContext.showID} />
+                             </div></div>);
+        // Otherwise if it's a date span
+        } else if (this.props.leaderboardContext.start) {
+            leaderboardComponents.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
+                                 <SpanLeaderboardTable leaderboardContext={this.props.leaderboardContext} />
+                             </div></div>);
         }
-        leaderboardComponents.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
-                             <ShowLeaderboardTable leaderboardContext={this.props.leaderboardContext}
-                                                      showID={this.props.leaderboardContext.showID} />
-                         </div></div>);
     }
     else if (this.props.leaderboardContext.channelID) {
         leaderboardComponents.push(<BigButtonDropdown key="1"
@@ -3802,6 +3891,7 @@ var RootComponent = React.createClass({
             channelLeaderboardAPIUrl: getElementValueOrNull("channelLeaderboardAPIUrl"),
             channelShowRecapUrl: getElementValueOrNull("channelShowRecapUrl"),
             leaderboardEntryAPIUrl: getElementValueOrNull("leaderboardEntryAPIUrl"),
+            leaderboardEntrySpanAPIUrl: getElementValueOrNull("leaderboardEntrySpanAPIUrl"),
             leaderboardSpanAPIUrl: getElementValueOrNull("leaderboardSpanAPIUrl"),
             medalListAPIUrl: getElementValueOrNull("medalListAPIUrl"),
             channelLeaderboardUrl: getElementValueOrNull("channelLeaderboardUrl"),
@@ -3811,6 +3901,8 @@ var RootComponent = React.createClass({
             medalsAwarded: getElementValueOrNull("medalsAwarded"),
             currentSelection: getElementValueOrNull("currentSelection"),
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
+            start: getElementValueOrNull("start"),
+            end: getElementValueOrNull("end"),
             isAdmin: getElementValueOrNull("isAdmin")
         };
         rootComponents.push(<Leaderboard key="1" leaderboardContext={leaderboardContext} />);

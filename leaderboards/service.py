@@ -29,6 +29,37 @@ def fetch_medal_ids_by_leaderboard_entry(leaderboard_entry_id):
     return LeaderboardEntryMedal.objects.filter(leaderboard_entry=leaderboard_entry_id).values_list('medal_id', flat=True)
 
 
+def get_span_user_count(channel_id, start_time, end_time):
+    return LeaderboardEntry.objects.filter(
+               channel=channel_id,
+               show_date__gte=start_time,
+               show_date__lte=end_time
+           ).exclude(user=None).values('user').distinct().count()
+
+
+def aggregate_leaderboard_entries_by_user(leaderboard_entries):
+    user_list = []
+    user_dict = {}
+    for entry in leaderboard_entries:
+        # Set defaults for everything
+        user_dict.setdefault(entry.user_id, {})
+        user_dict[entry.user_id].setdefault('points', 0)
+        user_dict[entry.user_id].setdefault('show_wins', 0)
+        user_dict[entry.user_id].setdefault('suggestion_wins', 0)
+
+        # Add the wins, points, medals, and suggestions for the user from this particular show
+        user_dict[entry.user_id]['points'] += entry.points
+        user_dict[entry.user_id]['show_wins'] += int(entry.show_win())
+        user_dict[entry.user_id]['suggestion_wins'] += entry.wins
+    # Turn that dictionary into a list of dictionaries
+    for user_id, value_dict in user_dict.items():
+        user_data = {'user_id': user_id}
+        user_data.update(value_dict)
+        user_list.append(user_data)
+    # Sort the list by suggestion wins
+    return sorted(user_list, key=lambda k: k['suggestion_wins'], reverse=True)
+
+
 def get_or_create_leaderboard_entry(channel, show, user, session_id):
     leaderboard_entry_kwargs = {'channel': channel,
                                 'show': show}

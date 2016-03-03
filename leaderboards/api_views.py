@@ -1,10 +1,12 @@
+import datetime
 from rest_framework import viewsets
 from rest_framework.response import Response
 
 from leaderboards import LEADERBOARD_MAX_PER_PAGE
 from leaderboards.models import LeaderboardEntry, Medal, LeaderboardSpan
 from leaderboards.serializers import (LeaderboardEntrySerializer, MedalSerializer,
-                                      LeaderboardSerializer, LeaderboardSpanSerializer)
+                                      LeaderboardSerializer, LeaderboardSpanSerializer,
+                                      LeaderboardEntrySpanSerializer)
 from leaderboards import service as leaderboards_service
 from users import service as users_service
 from channels import service as channels_service
@@ -26,6 +28,18 @@ class LeaderboardEntryAPIObject(APIObject):
         self.medals = leaderboards_service.fetch_medal_ids_by_leaderboard_entry(leaderboard_entry.id)
 
 
+class LeaderboardEntrySpanAPIObject(APIObject):
+
+    def __init__(self, leaderboard_span_entry, **kwargs):
+        super(LeaderboardEntrySpanAPIObject, self).__init__(leaderboard_span_entry, **kwargs)
+        self.channel_name = kwargs.get('channel_name')
+        self.user_id = leaderboard_span_entry['user_id']
+        user_profile = users_service.fetch_user_profile(self.user_id)
+        self.username = user_profile.safe_username
+        self.points = leaderboard_span_entry['points']
+        self.show_wins = leaderboard_span_entry['show_wins']
+        self.suggestion_wins = leaderboard_span_entry['suggestion_wins']
+
 
 class LeaderboardAPIObject(APIObject):
     field_list = ['id',
@@ -35,7 +49,7 @@ class LeaderboardAPIObject(APIObject):
 
     def __init__(self, channel_user, **kwargs):
         super(LeaderboardAPIObject, self).__init__(channel_user, **kwargs)
-        self.channel_name = channel_user.channel.name
+        self.channel_name = kwargs.get('channel_name')
         user_profile = users_service.fetch_user_profile(channel_user.user_id)
         self.user_id = channel_user.user_id
         self.username = user_profile.safe_username
@@ -52,6 +66,9 @@ class LeaderboardEntryViewSet(viewsets.ViewSet):
         channel_id = self.request.query_params.get('channel_id')
         show_id = self.request.query_params.get('show_id')
         limit = self.request.query_params.get('limit')
+        # Pagination
+        page = int(self.request.query_params.get('page', 1))
+        offset = LEADERBOARD_MAX_PER_PAGE * (page - 1)
         order_by_show_date = self.request.query_params.get('order_by_show_date')
         if user_id:
             kwargs['user'] = user_id
@@ -61,16 +78,56 @@ class LeaderboardEntryViewSet(viewsets.ViewSet):
             kwargs['show'] = show_id
         # Make sure we exclude any entries that don't have users attached
         queryset = LeaderboardEntry.objects.filter(**kwargs).exclude(user=None)
+        # If we are ordering by when the show happened
         if order_by_show_date is not None:
             queryset = queryset.order_by('-show_date')
+        # Order by suggestion wins, then points for a show or span
         if show_id:
             queryset = queryset.order_by('-wins', '-points')
         # If there is a limit to the results returned
         if limit:
             queryset = queryset[:int(limit)]
+        # Start from the page offset
+        try:
+            queryset = queryset[offset:offset+LEADERBOARD_MAX_PER_PAGE]
+        except IndexError:
+            try:
+                queryset = queryset[offset:]
+            except IndexError:
+                pass
         leaderboard_entry_list = [LeaderboardEntryAPIObject(item) for item in queryset]
         serializer = LeaderboardEntrySerializer(leaderboard_entry_list, many=True)
         return Response(serializer.data)
+
+
+class LeaderboardEntrySpanViewSet(viewsets.ViewSet):
+    """
+    API endpoint that returns leaderboard entries by span dates
+    """
+
+    def list(self, request):
+        kwargs = {}
+        kwargs['channel'] = self.request.query_params.get('channel_id')
+        channel = channels_service.channel_or_404(kwargs['channel'], channel_id=True)
+        start = self.request.query_params.get('start')
+        end = self.request.query_params.get('end')
+        # Convert start and end to datetimes
+        start_time = datetime.datetime.strptime(start, "%Y%m%d")
+        end_time = datetime.datetime.strptime(end, "%Y%m%d")
+        # Add them to the queryset params
+        kwargs['show_date__gte'] = start_time
+        kwargs['show_date__lte'] = end_time
+        # Make sure we exclude any entries that don't have users attached
+        queryset = LeaderboardEntry.objects.filter(**kwargs).exclude(user=None)
+        # Aggregate all the leaderboard entries by the user
+        leaderboard_aggregate = leaderboards_service.aggregate_leaderboard_entries_by_user(
+                                    queryset)
+        api_kwargs = {'channel_name': channel.name}
+        # Make an api object out of the user aggregates
+        leaderboard_entry_list = [LeaderboardEntrySpanAPIObject(item, **api_kwargs) for item in leaderboard_aggregate]
+        serializer = LeaderboardEntrySpanSerializer(leaderboard_entry_list, many=True)
+        return Response(serializer.data)
+
 
 class LeaderboardViewSet(viewsets.ViewSet):
     """

@@ -537,7 +537,7 @@ class ChannelExportEmailsView(view_utils.ShowView):
             # If the user wants to export all e-mails
             if show_id == 'all':
                 # Set the name of the response file
-                export_filename = 'all_emails'
+                export_filename = '{0}_emails'.format(context['channel'].name)
                 # Fetch all the channel users
                 channel_users = channels_service.fetch_channel_users(context['channel'],
                                                                      leaderboard_sort=True)
@@ -546,11 +546,11 @@ class ChannelExportEmailsView(view_utils.ShowView):
                     'show_wins',
                     'channel_rank']
                 # Create the csv writer
-                writer = csv.writer(filehandle,
-                                    delimiter=',',
-                                    quotechar='"',
-                                    quoting=csv.QUOTE_NONNUMERIC,
-                                    fieldnames=fieldnames)
+                writer = csv.DictWriter(filehandle,
+                                        fieldnames=fieldnames,
+                                        delimiter=',',
+                                        quotechar='"',
+                                        quoting=csv.QUOTE_NONNUMERIC)
                 # Write the header row
                 writer.writeheader()
                 rank = 1
@@ -558,15 +558,15 @@ class ChannelExportEmailsView(view_utils.ShowView):
                     # Get the user from the channel user
                     user = channel_user.user
                     # Create the csv output row
-                    row = [user.email,
-                           user.user_id,
-                           user.username,
-                           user.first_name,
-                           user.last_name,
-                           channel_user.suggestion_wins,
-                           channel_user.points,
-                           channel_user.show_wins,
-                           rank]
+                    row = {'email': user.email,
+                           'user_id': user.id,
+                           'username': user.username,
+                           'first_name': user.first_name,
+                           'last_name': user.last_name,
+                           'suggestion_wins': channel_user.suggestion_wins,
+                           'points': channel_user.points,
+                           'show_wins': channel_user.show_wins,
+                           'channel_rank': rank}
                     # Write the row to the filehandle
                     writer.writerow(row)
                     # Increase the rank
@@ -576,17 +576,17 @@ class ChannelExportEmailsView(view_utils.ShowView):
                 # Get the selected show
                 show = shows_service.show_or_404(show_id)
                 # Set the name of the response file to the show's created date
-                export_filename = '{0}-{1}-{2}'.format(show.created.year,
-                                                       show.created.month,
-                                                       show.created.day)
+                export_filename = '{0}-{1}-{2}_show_emails'.format(show.created.year,
+                                                                   show.created.month,
+                                                                   show.created.day)
                 # Add the extra fields for export
                 fieldnames += ['show_rank']
                 # Create the csv writer
-                writer = csv.writer(filehandle,
-                                    delimiter=',',
-                                    quotechar='"',
-                                    quoting=csv.QUOTE_NONNUMERIC,
-                                    fieldnames=fieldnames)
+                writer = csv.DictWriter(filehandle,
+                                        fieldnames=fieldnames,
+                                        delimiter=',',
+                                        quotechar='"',
+                                        quoting=csv.QUOTE_NONNUMERIC)
                 # Write the header row
                 writer.writeheader()
                 # Get the leaderboard entry for the show,
@@ -599,14 +599,14 @@ class ChannelExportEmailsView(view_utils.ShowView):
                     # Get the user from the leaderboard entry
                     user = leaderboard_entry.user
                     # Create the csv output row
-                    row = [user.email,
-                           user.user_id,
-                           user.username,
-                           user.first_name,
-                           user.last_name,
-                           leaderboard_entry.wins,
-                           leaderboard_entry.points,
-                           rank]
+                    row = {'email': user.email,
+                           'user_id': user.id,
+                           'username': user.username,
+                           'first_name': user.first_name,
+                           'last_name': user.last_name,
+                           'suggestion_wins': leaderboard_entry.wins,
+                           'points': leaderboard_entry.points,
+                           'show_rank': rank}
                     # Write the row to the filehandle
                     writer.writerow(row)
                     # Increase the rank

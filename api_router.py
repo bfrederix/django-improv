@@ -79,6 +79,11 @@ router.register(r'leaderboard_entry',
                 leaderboards_api_views.LeaderboardEntryViewSet,
                 'leaderboard-entry')
 
+# Leaderboard Entries Span
+router.register(r'leaderboard_entry_span',
+                leaderboards_api_views.LeaderboardEntrySpanViewSet,
+                'leaderboard-entry-span')
+
 # Leaderboards
 router.register(r'leaderboard',
                 leaderboards_api_views.LeaderboardViewSet,
