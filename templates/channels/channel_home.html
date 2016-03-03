@@ -51,6 +51,10 @@
 							</a>
                             <br/>
 						{% endif %}
+                        <a class="text-center" href="{% url "channel_pre_show" channel.name %}">
+                            <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font">User Instructions</div>
+                        </a>
+                        <br/>
                         <a class="text-center" href="{% url "show_live_vote" channel.name current_show.id %}">
                             <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font">Live Show Voting!</div>
                         </a>
