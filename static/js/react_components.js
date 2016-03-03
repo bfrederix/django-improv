@@ -1987,9 +1987,9 @@ var ChannelLeaderboardSpanForm = React.createClass({
 
     // Span Start
     var startInput = (
-        <div className='input-group date bg-primary' id='start-picker'>
+        <div className='input-group date' id='start-picker'>
             <input type="text" name="start" className="form-control" defaultValue={this.state.data.start_date}></input>
-            <span className="input-group-addon">
+            <span className="input-group-addon bg-info">
                 <span className="glyphicon glyphicon-calendar"></span>
             </span>
         </div>
@@ -2005,7 +2005,7 @@ var ChannelLeaderboardSpanForm = React.createClass({
     var endInput = (
         <div className='input-group date' id='end-picker'>
             <input type="text" name="end" className="form-control" defaultValue={this.state.data.end_date}></input>
-            <span className="input-group-addon">
+            <span className="input-group-addon bg-info">
                 <span className="glyphicon glyphicon-calendar"></span>
             </span>
         </div>
