@@ -158,6 +158,11 @@ class LeaderboardSpanViewSet(viewsets.ViewSet):
     API endpoint that allows leaderboard spans to be viewed
     """
 
+    def retrieve(self, request, pk=None):
+        leaderboard_span = leaderboards_service.leaderboard_span_or_404(pk)
+        serializer = LeaderboardSpanSerializer(leaderboard_span)
+        return Response(serializer.data)
+
     def list(self, request):
         """
         This view should return a list of all leaderboard spans

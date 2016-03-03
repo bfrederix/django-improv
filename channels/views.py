@@ -190,14 +190,14 @@ class ChannelPlayersView(view_utils.ShowView):
         # Update or create the player image in cloudinary
         uploaded_file = request.FILES.get('file')
         # Files larger than 2MB won't appear in request.FILES
-        if uploaded_file and not error:
+        if uploaded_file and not error and not delete:
             cloud_response = cloudinary.uploader.upload(uploaded_file,
                                                         folder="players",
                                                         public_id=player.id,
                                                         invalidate=True)
             player.photo_url = cloud_response.get('secure_url')
         # If there were no errors, save the player
-        if not error:
+        if not error and not delete:
             player.save()
 
         context.update(
@@ -251,7 +251,7 @@ class ChannelSuggestionPoolsView(view_utils.ShowView):
         else:
             error = 'Suggestion Pool name required'
 
-        if not error:
+        if not error and not delete:
             suggestion_pool.save()
 
         context.update(
@@ -324,7 +324,7 @@ class ChannelVoteTypesView(view_utils.ShowView):
         else:
             error = 'Vote Type Name and Style required'
 
-        if not error:
+        if not error and not delete:
             vote_type.save()
 
         context.update(
@@ -386,6 +386,7 @@ class ChannelShowsView(view_utils.ShowView):
             action = "Show Created Successfully!"
             # Update the context after creating the show
             context = self.get_default_channel_context(request, *args, **kwargs)
+        # If we're not deleting the show
         if not delete:
             show.embedded_youtube = shows_service.validate_youtube(
                                         request.POST.get('embedded_youtube', ''))
@@ -433,6 +434,53 @@ class ChannelLeaderboardSpansView(view_utils.ShowView):
 
     def get(self, request, *args, **kwargs):
         context = self.get_default_channel_context(request, *args, **kwargs)
+        return render(request,
+                      self.template_name,
+                      context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        error = None
+        action = None
+        leaderboard_span_id = request.POST.get('spanID')
+        delete = request.POST.get('delete')
+        name = escape(request.POST.get('name', ''))
+        start = request.POST.get('start')
+        end = request.POST.get('end')
+        # Convert dates if they exist
+        if start and end:
+            start_date = datetime.datetime.strptime(start, "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(end, "%Y-%m-%d").date()
+        # If we're deleting the span
+        if delete:
+            action = "Leaderboard Span Deleted Successfully!"
+            leaderboard_span = leaderboards_service.leaderboard_span_or_404(delete)
+            # Delete the leaderboard span
+            leaderboard_span.delete()
+        # If we're editing the leaderboard span
+        elif leaderboard_span_id and name and start and end:
+            action = "Leaderboard Span Edited Successfully!"
+            leaderboard_span = leaderboards_service.leaderboard_span_or_404(leaderboard_span_id)
+            leaderboard_span.name = name
+            leaderboard_span.start_date = start_date
+            leaderboard_span.end_date = end_date
+        # If we're creating the player
+        elif name and start and end:
+            action = "Leaderboard Span Created Successfully!"
+            leaderboard_span = leaderboards_service.create_leaderboard_span(
+                                                                  name,
+                                                                  context['channel'],
+                                                                  start_date,
+                                                                  end_date)
+        else:
+            error = 'Leaderboard Span Name, Start Date, and End Date required!'
+        # If there were no errors, save the leaderboard span
+        if not error and not delete:
+            leaderboard_span.save()
+
+        context.update(
+            {'action': action,
+             'error': error})
         return render(request,
                       self.template_name,
                       context)

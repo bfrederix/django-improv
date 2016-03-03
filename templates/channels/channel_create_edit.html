@@ -3,7 +3,7 @@
 {% block title %}{% if channel %}{{channel.display_name}} Channel Edit{% else %}Channel Create{% endif %}{% endblock %}
 
 {% block add_head %}
-    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}bootstrap-datetimepicker-2.3.9/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}bootstrap-datetimepicker-4.14.30/bootstrap-datetimepicker.min.css">
 {% endblock %}
 
 {% block content %}
@@ -38,5 +38,5 @@
 
 {% block add_react %}
     {% include "embedded_utils/react_src.html" %}
-    <script src="{{JS_URL}}bootstrap-datetimepicker-2.3.9/bootstrap-datetimepicker.min.js"></script>
+    <script src="{{JS_URL}}bootstrap-datetimepicker-4.14.30/bootstrap-datetimepicker.min.js"></script>
 {% endblock %}

@@ -1,9 +1,14 @@
+import datetime
 import logging
+import pytz
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
 
-from leaderboards.models import LeaderboardEntry, LeaderboardEntryMedal
+from leaderboards.models import (LeaderboardEntry, LeaderboardEntryMedal,
+                                 LeaderboardSpan)
+from utilities.helper_functions import multikeysort
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,6 +21,22 @@ def fetch_leaderboard_entries_by_user(user_id):
     # Return an empty list
     else:
         return []
+
+
+def leaderboard_span_or_404(pk):
+    return get_object_or_404(LeaderboardSpan, pk=pk)
+
+
+def create_leaderboard_span(name, channel, start_date, end_date):
+    now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+    # Get or create the leaderboard span
+    leaderboard_span, created = LeaderboardSpan.objects.get_or_create(
+                                    name=name,
+                                    channel=channel,
+                                    start_date=start_date,
+                                    end_date=end_date,
+                                    created=now)
+    return leaderboard_span
 
 
 def fetch_leaderboard_entries_by_show(show_id, leaderboard_order=False):
@@ -57,7 +78,7 @@ def aggregate_leaderboard_entries_by_user(leaderboard_entries):
         user_data.update(value_dict)
         user_list.append(user_data)
     # Sort the list by suggestion wins
-    return sorted(user_list, key=lambda k: k['suggestion_wins'], reverse=True)
+    return multikeysort(user_list, ['-suggestion_wins', '-points'])
 
 
 def get_or_create_leaderboard_entry(channel, show, user, session_id):

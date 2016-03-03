@@ -68,6 +68,7 @@ class ShowView(View):
             self.current_show = shows_service.get_current_show(self.channel.id)
         else:
             self.is_channel_admin = False
+            self.is_channel_owner = False
             self.current_show = None
         # If the current show is locked and the user isn't an admin
         if self.current_show and getattr(self.current_show, 'locked') \

@@ -936,7 +936,7 @@ var ChannelCreateEditForm = React.createClass({
                              city: "",
                              state: "",
                              zipcode: ""}},
-            key: "1"
+            key: "0"
     };
   },
   componentDidMount: function() {
@@ -953,10 +953,13 @@ var ChannelCreateEditForm = React.createClass({
           }.bind(this)
         });
     }
+    $('#next-show-picker').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm'
+    });
   },
   componentDidUpdate: function(prev, next) {
-      $('#next_show').datetimepicker({
-          format: 'yyyy-mm-dd hh:ii'
+      $('#next-show-picker').datetimepicker({
+          format: 'YYYY-MM-DD HH:mm'
       });
   },
   onFormSubmit: function(event) {
@@ -1084,7 +1087,14 @@ var ChannelCreateEditForm = React.createClass({
                                  input={buyTicketsInput}
                                  helpBlock="The URL to buy tickets to your shows, premium feature only" />);
     // Next Show
-    var nextShowInput = <input type="text" id="next_show" name="next_show" className="form-control" defaultValue={this.state.data.next_show.replace('Z','')}></input>;
+    var nextShowInput = (
+        <div className='input-group date' id='next-show-picker'>
+            <input type="text" id="next_show" name="next_show" className="form-control" defaultValue={this.state.data.next_show.replace('Z','')}></input>
+            <span className="input-group-addon">
+                <span className="glyphicon glyphicon-calendar"></span>
+            </span>
+        </div>
+    );
     formContents.push(<FormGroup key="10"
                                  labelSize="2"
                                  labelContents="Next Show:"
@@ -1203,7 +1213,7 @@ var PlayerForm = React.createClass({
                    active: true,
                    star: false},
             editPlayerID: undefined,
-            key: "1"};
+            key: "0"};
   },
   componentDidMount: function() {
     // If a show has been selected
@@ -1347,7 +1357,7 @@ var SuggestionPoolForm = React.createClass({
                    require_login: false,
                    active: true},
             suggestionPoolID: undefined,
-            key: "1"};
+            key: "0"};
   },
   componentDidMount: function() {
     // If a show has been selected
@@ -1523,7 +1533,7 @@ var VoteTypeForm = React.createClass({
                    require_login: false,
                    active: true},
             voteTypeID: undefined,
-            key: "1"};
+            key: "0"};
   },
   componentDidMount: function() {
     // If a show has been selected
@@ -1757,7 +1767,7 @@ var ChannelShowForm = React.createClass({
     return {data: {show_length: 180,
                    embedded_youtube: ""},
             showID: undefined,
-            key: "1"};
+            key: "0"};
   },
   componentDidMount: function() {
     // If a show has been selected
@@ -1916,6 +1926,158 @@ var ChannelShowForm = React.createClass({
   }
 });
 
+
+var ChannelLeaderboardSpanForm = React.createClass({
+  getInitialState: function() {
+    return {data: {name: "",
+                   start_date: "",
+                   end_date: ""},
+            spanID: undefined,
+            key: "0"};
+  },
+  componentDidMount: function() {
+    // If a span has been selected
+    if (this.state.spanID) {
+        var leaderboardSpanAPIUrl = this.props.channelLeaderboardSpanContext.leaderboardSpanAPIUrl + this.state.spanID + "/";
+        $.ajax({
+          url: leaderboardSpanAPIUrl,
+          dataType: 'json',
+          success: function(data) {
+            this.setState({data: data,
+                           spanID: this.state.spanID,
+                           key: this.state.spanID});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+    }
+    $('#start-picker').datetimepicker({
+        format: 'YYYY-MM-DD'
+    });
+    $('#end-picker').datetimepicker({
+        format: 'YYYY-MM-DD'
+    });
+  },
+  componentDidUpdate: function(prev, next) {
+    $('#start-picker').datetimepicker({
+        format: 'YYYY-MM-DD'
+    });
+    $('#end-picker').datetimepicker({
+        format: 'YYYY-MM-DD'
+    });
+  },
+  editEventHandler: function(event) {
+      this.setState({spanID: event.target.value}, function() {
+          this.componentDidMount();
+      });
+  },
+  render: function() {
+    var formContents = [];
+    var listAPIUrl = this.props.channelLeaderboardSpanContext.leaderboardSpanAPIUrl + "?channel_id=" + this.props.channelLeaderboardSpanContext.channelID;
+
+    // Name Input
+    var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
+    formContents.push(<FormGroup key="1"
+                                 labelSize="2"
+                                 labelContents="Custom Span Name:"
+                                 inputSize="4"
+                                 input={nameInput}
+                                 helpBlock="Appears on the Leaderboard page" />);
+
+    // Span Start
+    var startInput = (
+        <div className='input-group date bg-primary' id='start-picker'>
+            <input type="text" name="start" className="form-control" defaultValue={this.state.data.start_date}></input>
+            <span className="input-group-addon">
+                <span className="glyphicon glyphicon-calendar"></span>
+            </span>
+        </div>
+    );
+    formContents.push(<FormGroup key="2"
+                                 labelSize="2"
+                                 labelContents="Span Start Date:"
+                                 inputSize="5"
+                                 input={startInput}
+                                 helpBlock="When the custom leaderboard span starts" />);
+
+    // Span End
+    var endInput = (
+        <div className='input-group date' id='end-picker'>
+            <input type="text" name="end" className="form-control" defaultValue={this.state.data.end_date}></input>
+            <span className="input-group-addon">
+                <span className="glyphicon glyphicon-calendar"></span>
+            </span>
+        </div>
+    );
+    formContents.push(<FormGroup key="3"
+                                 labelSize="2"
+                                 labelContents="Span End Date:"
+                                 inputSize="5"
+                                 input={endInput}
+                                 helpBlock="When the custom leaderboard span ends" />);
+
+    // Submit Button
+    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Leaderboard Span</button>;
+    formContents.push(<FormGroup key="4"
+                                 inputSize="2"
+                                 input={submitButton} />);
+    // Edit Span Dropdown Input
+    var spanEditInput = <DropDownSelect listAPIUrl={listAPIUrl}
+                                        selectEventHandler={this.editEventHandler}
+                                        selectID="spanID"
+                                        defaultSelected={this.state.spanID}
+                                        defaultText="Select a Leaderboard Span to Edit"
+                                        loadingBarColor="#000" />;
+    formContents.push(<FormGroup key="5"
+                                 labelSize="2"
+                                 labelContents="Edit Leaderboard Span:"
+                                 inputSize="5"
+                                 input={spanEditInput}
+                                 helpBlock="Select a leaderboard span if you wish to edit it" />);
+
+    var bodyContent = [<Form key="form-1"
+                             formStyle="horizontal"
+                             formSubmitUrl={this.props.channelLeaderboardSpanContext.formSubmitUrl}
+                             formContents={formContents}
+                             onFormSubmit={this.onFormSubmit}
+                             csrfToken={this.props.channelLeaderboardSpanContext.csrfToken} />];
+
+    // If we're editing a span, add a delete button
+    if (this.state.spanID) {
+        var deleteContents = [];
+        var message = "Are you sure you wish to delete the " + this.state.data.name + " leaderboard span?";
+        // Delete Button
+        deleteContents.push(<input key="1" type="button" value="DELETE LEADERBOARD SPAN" className="btn btn-info btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
+        deleteContents.push(<input key="2" type="hidden" name="delete" value={this.state.spanID}></input>);
+        deleteContents.push(<ModalConfirm key="3"
+                                          modalID="confirm-delete"
+                                          submitID="submit-delete"
+                                          formID="deleteForm"
+                                          action="Delete"
+                                          dismiss="Cancel"
+                                          header="Delete Leaderboard Span"
+                                          message={message} />);
+        bodyContent.push(<Form key="form-2"
+                               formID="deleteForm"
+                               formSubmitUrl={this.props.channelLeaderboardSpanContext.formSubmitUrl}
+                               formContents={deleteContents}
+                               csrfToken={this.props.channelLeaderboardSpanContext.csrfToken} />);
+    }
+
+    return (
+        <div key={this.state.key}>
+            <FormLabel action={this.props.channelLeaderboardSpanContext.action}
+                       error={this.props.channelLeaderboardSpanContext.error} />
+            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+                   panelHeadingContent="Create/Edit Custom Leaderboard Span" panelHeadingClasses="x-large-font"
+                   panelBodyClasses="white-background"
+                   panelHeadingLink="http://docs.dumpedit.com/en/latest/leaderboards.html"
+                   bodyContent={bodyContent} />
+        </div>
+    );
+  }
+});
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////// LEADERBOARD COMPONENTS ////////////////////////////////
@@ -3983,6 +4145,16 @@ var RootComponent = React.createClass({
             error: getElementValueOrNull("error")
         };
         rootComponents.push(<ChannelShowForm key="1" channelShowContext={channelShowContext} />);
+    } else if (rootType == "channel_leaderboard_spans") {
+        var channelLeaderboardSpanContext = {
+            channelID: getElementValueOrNull("channelID"),
+            leaderboardSpanAPIUrl: getElementValueOrNull("leaderboardSpanAPIUrl"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
+        };
+        rootComponents.push(<ChannelLeaderboardSpanForm key="1" channelLeaderboardSpanContext={channelLeaderboardSpanContext} />);
     } else if (rootType == "show_suggestion_pool") {
         var showSuggestionPoolContext = {
             showID: getElementValueOrNull("showID"),
