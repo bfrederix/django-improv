@@ -126,7 +126,7 @@
                         {% endif %}
                     </ul>
                     {% if request.user.is_authenticated %}
-                        <p class="navbar-text navbar-right">{{user_profile.username}}</p>
+                        <p class="navbar-text navbar-right"><span class="light-gray-text">{{user_profile.username}}</span></p>
                     {% endif %}
                 </div>
                 <!-- /.navbar-collapse -->
