@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 
 from leaderboards.models import (LeaderboardEntry, LeaderboardEntryMedal,
-                                 LeaderboardSpan)
+                                 LeaderboardSpan, Medal)
 from utilities.helper_functions import multikeysort
 
 logging.basicConfig(level=logging.INFO)
@@ -44,6 +44,10 @@ def fetch_leaderboard_entries_by_show(show_id, leaderboard_order=False):
     if leaderboard_order:
         return leaderboard_entries.order_by('-wins', '-points')
     return leaderboard_entries
+
+
+def fetch_medals():
+    return Medal.objects.all()
 
 
 def fetch_medal_ids_by_leaderboard_entry(leaderboard_entry_id):

@@ -34,6 +34,7 @@ urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + 
     url(r'^channel/', include('channels.create_edit_urls')),
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/show/', include('shows.urls')),
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/leaderboards/', include('leaderboards.urls')),
+    url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/medals/', include('leaderboards.medal_urls')),
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/recaps/', include('recaps.urls')),
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/', include('channels.urls')),
     #url(r'^', include('channels.urls')),

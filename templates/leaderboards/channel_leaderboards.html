@@ -24,6 +24,8 @@
                value="{% url "show-list" %}?channel_id={{channel.id}}&order_by_date=True" readonly>
     <input type="hidden" id="leaderboardSpanAPIUrl" name="leaderboardSpanAPIUrl"
                value="{% url "leaderboard-span-list" %}?channel_id={{channel.id}}" readonly>
+    <input type="hidden" id="medalsUrl" name="medalsUrl"
+               value="{% url "channel_medals" channel.name %}" readonly>
     <input type="hidden" id="medalListAPIUrl" name="medalListAPIUrl"
                value="{% url "medal-list" %}" readonly>
     <input type="hidden" id="channelLeaderboardUrl" name="channelLeaderboardUrl"

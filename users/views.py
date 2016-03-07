@@ -46,8 +46,6 @@ class OptInPreferencesView(View):
 
 
 class UserAccountView(View):
-    form_class = user_forms.ChangeUsernameForm
-    second_form_class = user_forms.OptInPreferenceForm
     template_name = 'users/user_account.html'
 
     def get(self, request, *args, **kwargs):
@@ -57,31 +55,9 @@ class UserAccountView(View):
             channel = channels_service.channel_or_404(channel_name)
         else:
             channel = None
-        form = self.form_class()
-        form2 = self.second_form_class()
         user_profile = users_service.fetch_user_profile(user_id)
         return render(request,
                       self.template_name,
                       {'user_account_page': True,
-                       'form': form,
-                       'form2': form2,
                        'page_user_profile': user_profile,
                        'channel': channel})
-
-    def form_invalid(self, **kwargs):
-        return self.render_to_response(self.get_context_data(**kwargs))
-
-    def post(self, request, *args, **kwargs):
-        if 'form' in request.POST:
-            form_class = self.get_form_class()
-            form_name = 'form'
-        else:
-            form_class = self.second_form_class
-            form_name = 'form2'
-
-        form = self.get_form(form_class)
-
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(**{form_name: form})

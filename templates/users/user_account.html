@@ -16,6 +16,10 @@
     <input type="hidden" id="imageBaseUrl" name="imageBaseUrl" value="{{IMAGE_URL}}" readonly>
     <input type="hidden" id="medalListAPIUrl" name="medalListAPIUrl"
            value="{% url "medal-list" %}" readonly>
+    {% if channel %}
+        <input type="hidden" id="medalsUrl" name="medalsUrl"
+                   value="{% url "channel_medals" channel.name %}" readonly>
+    {% endif %}
     {% if page_user_profile %}
         <input type="hidden" id="userProfileID" name="userProfileID" value="{{page_user_profile.user_id}}" readonly>
         <input type="hidden" id="leaderboardStatsAPIUrl" name="leaderboardStatsAPIUrl"

@@ -36,6 +36,18 @@ class ChannelLeaderboardsView(view_utils.ShowView):
                       self.template_name,
                       context)
 
+class ChannelMedalsView(view_utils.ShowView):
+    template_name = 'leaderboards/medals.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        medals = leaderboards_service.fetch_medals()
+        context.update({'medals': medals})
+
+        return render(request,
+                      self.template_name,
+                      context)
+
 class ChannelLeaderboardSpansView(view_utils.ShowView):
     template_name = 'leaderboards/channel_leaderboards.html'
 

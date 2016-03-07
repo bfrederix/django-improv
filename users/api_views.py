@@ -32,7 +32,7 @@ class UserAPIObject(APIObject):
         for leaderboard_entry in leaderboard_entries:
             self.points += leaderboard_entry.points
             self.wins += leaderboard_entry.wins
-            self.medals = leaderboards_service.fetch_medal_ids_by_leaderboard_entry(leaderboard_entry.id)
+            self.medals += leaderboards_service.fetch_medal_ids_by_leaderboard_entry(leaderboard_entry.id)
 
 
 class UserProfileViewSet(viewsets.ViewSet):

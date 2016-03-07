@@ -292,6 +292,10 @@ div.white-background{
     color: black;
 }
 
+.white-font {
+    color: white;
+}
+
 img.recap-adjusted-img {
     position: relative;
     left: -20%;

@@ -588,8 +588,11 @@ var Medal = React.createClass({
     });
   },
   render: function() {
-    // Create the medal URL
-    var medalURL = "/medals/#" + this.state.data.name;
+    var medalURL = "#";
+    if (this.props.medalsUrl) {
+        // Create the medal URL
+        medalURL = this.props.medalsUrl + "#" + this.state.data.name;
+    }
     // Create the medal classes
     var medalClass = this.state.data.name + "-medal";
     var medalClasses = 'medal ' + medalClass + ' pull-left btn-shadow';
@@ -2106,7 +2109,6 @@ var ChannelLeaderboardTable = React.createClass({
     return {data: undefined};
   },
   componentDidMount: function() {
-    console.log(this.props.leaderboardContext.channelLeaderboardAPIUrl);
     $.ajax({
       url: this.props.leaderboardContext.channelLeaderboardAPIUrl,
       dataType: 'json',
@@ -2233,7 +2235,6 @@ var SpanLeaderboardTable = React.createClass({
                        </tr>);
         return tableList;
     }, this);
-    console.log(this.props.leaderboardContext.maxPages);
     return (
         <div className="table-responsive text-shadow">
             <br/>
@@ -2310,6 +2311,7 @@ var ShowLeaderboardTable = React.createClass({
             var medalID = leaderboardUser.medals[i];
             medalList.push(<Medal key={i}
                                   medalID={medalID}
+                                  medalsUrl={this.props.leaderboardContext.medalsUrl}
                                   medalListAPIUrl={this.props.leaderboardContext.medalListAPIUrl} />);
         }
         tableList.push(<tr key={this.counter} className="light-background">
@@ -2413,6 +2415,7 @@ var MedalRows = React.createClass({
         var medalID = this.props.medals[i];
         medalList.push(<Medal key={i}
                               medalID={medalID}
+                              medalsUrl={this.props.userAccountContext.medalsUrl}
                               medalListAPIUrl={this.props.userAccountContext.medalListAPIUrl} />);
         var currentNum = i+1;
         // Push the row and reset the current medal list every 5 medals
@@ -2475,7 +2478,7 @@ var UserStatsTableBody = React.createClass({
     // If they have medals
     if (this.state.data.medals.length) {
         statsList.push(<tr key="5" className={trClasses}><td>
-                    Medals:<br/>
+                    <span className="reset-this">Medals:</span><br/>
                     <MedalRows medals={this.state.data.medals}
                                userAccountContext={this.props.userAccountContext} />
                     {medalShare}
@@ -4036,6 +4039,7 @@ var RootComponent = React.createClass({
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
             suggestionListAPIUrl: getElementValueOrNull("suggestionListAPIUrl"),
             imageBaseUrl: getElementValueOrNull("imageBaseUrl"),
+            medalsUrl: getElementValueOrNull("medalsUrl"),
             medalListAPIUrl: getElementValueOrNull("medalListAPIUrl"),
             userProfileID: getElementValueOrNull("userProfileID"),
             requestUserID: getElementValueOrNull("requestUserID"),
@@ -4055,6 +4059,7 @@ var RootComponent = React.createClass({
             leaderboardEntryAPIUrl: getElementValueOrNull("leaderboardEntryAPIUrl"),
             leaderboardEntrySpanAPIUrl: getElementValueOrNull("leaderboardEntrySpanAPIUrl"),
             leaderboardSpanAPIUrl: getElementValueOrNull("leaderboardSpanAPIUrl"),
+            medalsUrl: getElementValueOrNull("medalsUrl"),
             medalListAPIUrl: getElementValueOrNull("medalListAPIUrl"),
             channelLeaderboardUrl: getElementValueOrNull("channelLeaderboardUrl"),
             usersUrl: getElementValueOrNull("usersUrl"),
