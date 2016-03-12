@@ -4,6 +4,12 @@
 
 var HEAT_MAP_COLORS = ['#53B6D4', '#FF3333'];
 
+function strSubstitute(str, substitutions) {
+    return str.replace(/%\w+%/g, function(all) {
+       return substitutions[all] || all;
+    });
+}
+
 function getURLPathArgByPosition(position) {
     // Default to getting the userID from the url
     var pathArray = window.location.pathname.split( '/' );
@@ -49,7 +55,38 @@ function getSpanFormat(spanDate){
     return spanDate.replace(/-/g, '');
 }
 
-function limitFileSize(event, elementID) {
+function addDismissibleModal(elementID, displayName, message) {
+    // If the form modal doesn't exist, create it
+    if (!$('form-modal').length) {
+        // Create the modal html string
+        var modalHTML = '<div class="modal fade" id="form-modal" tabindex="-1" role="dialog">' +
+                            '<div class="modal-dialog">' +
+                                '<div class="modal-content">' +
+                                    '<div class="modal-header">' +
+                                        '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+                                        '<h4 id="form-modal-title" class="modal-title"></h4>' +
+                                    '</div>' +
+                                    '<div class="modal-body">' +
+                                        '<p id="form-modal-message"></p>' +
+                                    '</div>' +
+                                    '<div class="modal-footer">' +
+                                        '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+        // Add the html after the element
+        $('#'+elementID).after(modalHTML);
+    }
+    // Changes the modal title
+    $('#form-modal-title').text(displayName + " Invalid");
+    // Changes the modal message
+    $('#form-modal-message').text(message);
+    // Shows the modal
+    $('#form-modal').modal('show');
+}
+
+function limitFileSize(event, elementID, displayName) {
     var input = document.getElementById(elementID);
       // Examine the input file
     if (input) {
@@ -57,7 +94,8 @@ function limitFileSize(event, elementID) {
         // Make sure the file is less than 2 MB
         if (file && file.size > 2097152) {
             $('#'+elementID).parent('span').addClass('btn-danger');
-            alert("Image file sizes must be smaller than 2MB");
+            // Show a dismissible modal
+            addDismissibleModal(elementID, displayName, "Image file sizes must be smaller than 2MB");
             event.preventDefault();
         }
     }
@@ -78,7 +116,7 @@ function validateChannelName() {
     }
 }
 
-function validateTextField(event, elementID, allowSpaces, customMessage) {
+function validateTextField(event, elementID, displayName, allowSpaces, customMessage) {
     var field = document.getElementById(elementID);
     var re;
     if (allowSpaces) {
@@ -88,32 +126,37 @@ function validateTextField(event, elementID, allowSpaces, customMessage) {
     }
     // If the field is invalid
     if (!re.test(field.value) || field.value.length === 0) {
+        var message;
         $('#'+elementID).parent('div').addClass('has-error');
         if (customMessage) {
-            alert(customMessage);
+            message = customMessage;
         } else {
-            alert(elementID + ' must be a combination of letters, numbers, hyphens, or underscores.');
+            message = displayName + ' must be a combination of letters, numbers, hyphens, or underscores.';
         }
+        // Show a dismissible modal
+        addDismissibleModal(elementID, displayName, message);
         event.preventDefault();
     }
 }
 
-function validateYoutubeField(event, elementID) {
+function validateYoutubeField(event, elementID, displayName) {
     var field = document.getElementById(elementID);
     var re = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
     if (field.value.length !== 0 && !re.test(field.value)) {
         $('#'+elementID).parent('div').addClass('has-error');
-        alert(elementID + ' must be a valid Youtube link');
+        // Show a dismissible modal
+        addDismissibleModal(elementID, displayName, displayName + ' must be a valid Youtube link.');
         event.preventDefault();
     }
 }
 
-function validateDropDown(event, elementID) {
+function validateDropDown(event, elementID, displayName) {
     var field = document.getElementById(elementID);
     // Make sure a value has been selected
     if (field && field.value === "") {
         $('#'+elementID).parent('div').addClass('has-error');
-        alert(elementID + ' is required.');
+        // Show a dismissible modal
+        addDismissibleModal(elementID, displayName, displayName + ' is required.');
         event.preventDefault();
     }
 }
@@ -971,9 +1014,9 @@ var ChannelCreateEditForm = React.createClass({
       });
   },
   onFormSubmit: function(event) {
-      limitFileSize(event, 'teamPhotoFile');
-      validateTextField(event, "name");
-      validateTextField(event, "display_name", true);
+      limitFileSize(event, 'teamPhotoFile', "Team Photo File");
+      validateTextField(event, "name", "Url Name");
+      validateTextField(event, "display_name", "Display Name", true);
   },
   validateName: function(event) {
       // Wait a milisecond
@@ -1242,8 +1285,8 @@ var PlayerForm = React.createClass({
     }
   },
   onFormSubmit: function(event) {
-      validateTextField(event, "player_name", true);
-      limitFileSize(event, 'inputFile');
+      validateTextField(event, "player_name", "Player Name", true);
+      limitFileSize(event, 'inputFile', "Player Image File");
   },
   handleEditPlayer: function(event) {
       this.setState({editPlayerID: event.target.value}, function() {
@@ -1386,9 +1429,9 @@ var SuggestionPoolForm = React.createClass({
     }
   },
   onFormSubmit: function(event) {
-      validateTextField(event, "name");
-      validateTextField(event, "display_name", true);
-      validateTextField(event, "max_user_suggestions");
+      validateTextField(event, "name", "Name");
+      validateTextField(event, "display_name", "Display Name", true);
+      validateTextField(event, "max_user_suggestions", "User Suggestion Limit");
   },
   editEventHandler: function(event) {
       this.setState({suggestionPoolID: event.target.value}, function() {
@@ -1562,13 +1605,13 @@ var VoteTypeForm = React.createClass({
     }
   },
   onFormSubmit: function(event) {
-      validateTextField(event, "name");
-      validateTextField(event, "display_name", true);
-      validateDropDown(event, "style");
-      validateTextField(event, "ordering");
-      validateTextField(event, "options");
-      validateTextField(event, "vote_length");
-      validateTextField(event, "result_length");
+      validateTextField(event, "name", "Name");
+      validateTextField(event, "display_name", "Display Name", true);
+      validateDropDown(event, "style", "Voting Style");
+      validateTextField(event, "ordering", "Order");
+      validateTextField(event, "options", "Voting Options");
+      validateTextField(event, "vote_length", "Voting Length");
+      validateTextField(event, "result_length", "Voted Result Display Length");
   },
   editEventHandler: function(event) {
       this.setState({voteTypeID: event.target.value}, function() {
@@ -1796,9 +1839,9 @@ var ChannelShowForm = React.createClass({
     }
   },
   onFormSubmit: function(event) {
-      limitFileSize(event, 'photoFile');
-      validateTextField(event, "show_length", false, "Show length in minutes is required.");
-      validateYoutubeField(event, "embedded_youtube");
+      limitFileSize(event, 'photoFile', "Show Photo File");
+      validateTextField(event, "show_length", "Show Display Length", false, "Show length in minutes is required.");
+      validateYoutubeField(event, "embedded_youtube", "Youtube Url");
   },
   editEventHandler: function(event) {
       this.setState({showID: event.target.value}, function() {
@@ -2646,7 +2689,7 @@ var UserStats = React.createClass({
     });
   },
   onFormSubmit: function(event) {
-      validateTextField(event, "username-input", true);
+      validateTextField(event, "username-input", "Username", true);
   },
   render: function() {
     var showList;
