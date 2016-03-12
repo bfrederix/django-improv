@@ -147,7 +147,9 @@
 					{% endif %}
 				  </ul>
 				  {% if request.user.is_authenticated %}
-				    <p class="navbar-text navbar-right"><span class="light-gray-text">{{user_profile.username}}</span></p>
+				    <p class="navbar-text navbar-right">
+						<a href="{% url "user_account" user_profile.user_id %}?channel_name={{channel.name}}"><span class="light-gray-text">{{user_profile.username}}</span></a>
+					</p>
 				  {% else %}
 					<p class="navbar-text navbar-right"></p>
 				  {% endif %}
