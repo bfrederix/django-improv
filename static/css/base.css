@@ -506,6 +506,13 @@ nav.nav-bottom {
     background-color:#4596FF !important;
 }
 
+/* Fix the Nav tabs to be more pronounced */
+
+.nav-tabs{
+  border-radius: 5px;
+}
+
+
 /* Undershadows */
 button.btn-shadow, input.btn-shadow, a.btn-shadow, div.btn-shadow {
     -webkit-box-shadow: 0 14px 11px -7px #9B9D9E;

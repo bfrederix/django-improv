@@ -92,7 +92,7 @@ function validateTextField(event, elementID, allowSpaces, customMessage) {
         if (customMessage) {
             alert(customMessage);
         } else {
-            alert(elementID + ' must be a combination of letters, numbers, hyphens, or underscores');
+            alert(elementID + ' must be a combination of letters, numbers, hyphens, or underscores.');
         }
         event.preventDefault();
     }
@@ -459,6 +459,11 @@ var FormLabel = React.createClass({
   render: function() {
     var label;
     var labelContents;
+    var colSize = "col-md-6 col-md-offset-3";
+    // If a column size was specified
+    if (this.props.colSize) {
+        colSize = this.props.colSize;
+    }
     if (this.props.error) {
         labelContents = this.props.error;
         var labelColor = "danger";
@@ -469,7 +474,7 @@ var FormLabel = React.createClass({
     }
     return (
         <div className="row">
-            <div className="col-md-6 col-md-offset-3">
+            <div className={colSize}>
                 <Label labelColor={labelColor}
                        extraClasses="x-large-font"
                        labelContents={labelContents} />
@@ -2520,11 +2525,12 @@ var UserShowStats = React.createClass({
         return (<Loading />);
     }
     var showDateFormatted = showDateUTCToLocalFormat(this.state.data.created);
+    var heading = showDateFormatted + " Show";
     var bodyContent = <UserShowStatsPanelBody showStats={this.props.showStats}
                                               userAccountContext={this.props.userAccountContext} />;
     return (
-      <Panel panelWidth="6" panelOffset="3" panelColor="primary"
-             panelHeadingContent={showDateFormatted} panelHeadingClasses="x-large-font"
+      <Panel panelWidth="12" panelColor="primary"
+             panelHeadingContent={heading} panelHeadingClasses="x-large-font"
              panelBodyClasses="large-font black-font"
              tableClasses="table-condensed black-font"
              bodyContent={bodyContent} />
@@ -2623,7 +2629,7 @@ var UserShowStatsTableBody = React.createClass({
 
 var UserStats = React.createClass({
   getInitialState: function() {
-    return {data: []};
+    return {data: undefined};
   },
   componentDidMount: function() {
     // Get the leaderboard stats for the user
@@ -2639,32 +2645,97 @@ var UserStats = React.createClass({
       }.bind(this)
     });
   },
+  onFormSubmit: function(event) {
+      validateTextField(event, "username-input", true);
+  },
   render: function() {
     var showList;
-    if (this.state.data){
-        var showList = [];
-        this.counter = 0;
-        // Create the user stats
-        this.state.data.map(function (showStats) {
-          this.counter++;
-          showList.push(<UserShowStats key={this.counter}
-                                       userAccountContext={this.props.userAccountContext}
-                                       showStats={showStats} />);
-          return showList;
-        }, this);
+    var usernameTab;
+    var usernameTabContents;
+    if (!this.state.data) {
+        return (
+            <div className="row">
+                <div className="col-md-offset-3 col-md-6">
+                    <br /><br />
+                    <Loading loadingBarColor="#000"/>
+                </div>
+            </div>);
+    }
+    var showList = [];
+    this.counter = 0;
+    // Create the user stats
+    this.state.data.map(function (showStats) {
+      this.counter++;
+      showList.push(<UserShowStats key={this.counter}
+                                   userAccountContext={this.props.userAccountContext}
+                                   showStats={showStats} />);
+      return showList;
+    }, this);
+    // If the user profile being looked at belongs to the user
+    if (this.props.userAccountContext.userProfileID == this.props.userAccountContext.requestUserID) {
+        // Create the change username tab
+        usernameTab = (
+            <li role="presentation" key="navtab-2">
+                <a href="#username" aria-controls="username" role="tab" data-toggle="tab">Change Username</a>
+            </li>);
+        // Username Input
+        var usernameInput = <input type="text" id="username-input" name="username-input" className="form-control"></input>;
+        var formContents = [];
+        formContents.push(<FormGroup key="username-input"
+                                     labelSize="2"
+                                     labelContents="Username:"
+                                     inputSize="9"
+                                     input={usernameInput}/>);
+        // Channel Name
+        formContents.push(<input type="hidden" name="channel_name" value={this.props.userAccountContext.channelName} key="channel-name"></input>);
+        // Submit Button
+        formContents.push(<button type="submit" className="btn btn-danger btn-shadow text-shadow pull-right large-font" key="submit">Submit</button>);
+        var usernameForm = <Form key="form-1"
+                                 formStyle="horizontal"
+                                 formSubmitUrl={this.props.userAccountContext.formSubmitUrl}
+                                 formContents={formContents}
+                                 onFormSubmit={this.onFormSubmit}
+                                 csrfToken={this.props.userAccountContext.csrfToken} />;
+        usernameTabContents = (
+            <div role="tabpanel" className="tab-pane" id="username" key="tab-2">
+                <Panel panelWidth="8" panelOffset="2" panelColor="danger"
+                       panelHeadingContent="Change Username" panelHeadingClasses="x-large-font"
+                       panelBodyClasses="large-font black-font"
+                       bodyContent={usernameForm} />
+            </div>);
     }
     var bodyContent = [];
     bodyContent.push(<UserStatsTableBody key="1"
                                          tableClasses="table-condensed black-font"
                                          userAccountContext={this.props.userAccountContext} />);
     return (
-      <div className="row">
-      <br/>
-      <Panel panelWidth="6" panelOffset="3" panelColor="danger"
-             panelHeadingContent="User Account" panelHeadingClasses="x-large-font"
-             panelBodyClasses="large-font black-font"
-             bodyContent={bodyContent} />
-      {showList}</div>
+        <div className="row">
+            <div className="col-md-offset-3 col-md-6">
+                <br />
+                <FormLabel key="form-label"
+                           action={this.props.userAccountContext.action}
+                           error={this.props.userAccountContext.error}
+                           colSize="col-md-12" />
+                <ul className="nav nav-tabs x-large-font bg-primary" role="tablist">
+                    <li role="presentation" className="active" key="navtab-1">
+                        <a href="#stats" aria-controls="stats" role="tab" data-toggle="tab">User Statistics</a>
+                    </li>
+                    {usernameTab}
+                </ul>
+                <div className="tab-content">
+                    <div role="tabpanel" className="tab-pane active" id="stats" key="tab-1">
+                        <div className="row">
+                            <Panel panelWidth="12" panelColor="danger"
+                                 panelHeadingContent="Overall Statistics" panelHeadingClasses="x-large-font"
+                                 panelBodyClasses="large-font black-font"
+                                 bodyContent={bodyContent} />
+                            {showList}
+                        </div>
+                    </div>
+                    {usernameTabContents}
+                </div>
+            </div>
+        </div>
     );
   }
 });
@@ -3418,7 +3489,7 @@ var VoteOptionPlayer = React.createClass({
   },
   componentDidMount: function() {
     this.loadPlayerOptionData();
-    this.setInterval(this.loadPlayerOptionData, 2000);
+    this.setInterval(this.loadPlayerOptionData, 1000);
   },
   render: function() {
     if (!this.state.data) {
@@ -3495,7 +3566,7 @@ var VoteOptionSuggestion = React.createClass({
     this.loadSuggestionOptionData();
     // If we should update this on regular 2 second intervals (not a recap)
     if (!this.props.recap) {
-        this.setInterval(this.loadSuggestionOptionData, 2000);
+        this.setInterval(this.loadSuggestionOptionData, 1000);
     }
   },
   render: function() {
@@ -3981,7 +4052,7 @@ var ShowDisplay = React.createClass({
   },
   componentDidMount: function() {
     this.loadShowData();
-    this.setInterval(this.loadShowData, 2000);
+    this.setInterval(this.loadShowData, 1000);
   },
   render: function() {
     // If the vote type isn't loaded yet
@@ -4036,6 +4107,7 @@ var RootComponent = React.createClass({
     var rootComponents = [];
     if (rootType == "user-account") {
         var userAccountContext = {
+            channelName: getElementValueOrNull("channelName"),
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
             suggestionListAPIUrl: getElementValueOrNull("suggestionListAPIUrl"),
             imageBaseUrl: getElementValueOrNull("imageBaseUrl"),
@@ -4044,7 +4116,11 @@ var RootComponent = React.createClass({
             userProfileID: getElementValueOrNull("userProfileID"),
             requestUserID: getElementValueOrNull("requestUserID"),
             leaderboardStatsAPIUrl: getElementValueOrNull("leaderboardStatsAPIUrl"),
-            userStatsAPIUrl: getElementValueOrNull("userStatsAPIUrl")
+            userStatsAPIUrl: getElementValueOrNull("userStatsAPIUrl"),
+            formSubmitUrl: getElementValueOrNull("formSubmitUrl"),
+            csrfToken: getElementValueOrNull("csrfToken"),
+            action: getElementValueOrNull("action"),
+            error: getElementValueOrNull("error")
         };
         rootComponents.push(<UserStats key="1" userAccountContext={userAccountContext} />);
     } else if (rootType == "leaderboard") {

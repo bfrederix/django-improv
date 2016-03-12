@@ -22,7 +22,7 @@ class LeaderboardEntry(models.Model):
     channel = FlexibleForeignKey("channels.Channel", blank=False)
     show = FlexibleForeignKey("shows.Show", on_delete=models.CASCADE, blank=False)
     show_date = models.DateTimeField(blank=False)
-    user = models.ForeignKey(User, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     # Only used if user doesn't exist
     session_id = models.CharField(blank=True, null=True, max_length=255)
     points = models.IntegerField(default=0, blank=True, null=True)

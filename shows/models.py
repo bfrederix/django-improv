@@ -97,7 +97,7 @@ class Suggestion(models.Model):
     value = models.CharField(blank=False, max_length=255)
     # Pre-show upvotes
     preshow_value = models.IntegerField(default=0, blank=False)
-    user = models.ForeignKey(User, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     session_id = models.CharField(blank=True, null=True, max_length=255)
 
     created = models.DateTimeField(blank=False)
@@ -110,7 +110,7 @@ class PreshowVote(models.Model):
     id = BoundedBigAutoField(primary_key=True)
     show = FlexibleForeignKey("Show", on_delete=models.CASCADE, blank=True, null=True)
     suggestion = FlexibleForeignKey("Suggestion", on_delete=models.CASCADE, blank=False)
-    user = models.ForeignKey(User, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     session_id = models.CharField(blank=True, null=True, max_length=255)
 
     def __unicode__(self):
@@ -130,7 +130,7 @@ class LiveVote(models.Model):
     vote_option = FlexibleForeignKey("VoteOption", on_delete=models.CASCADE, blank=False, null=False)
     show_interval = FlexibleForeignKey("ShowInterval", on_delete=models.CASCADE, blank=False, null=False)
 
-    user = models.ForeignKey(User, blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     session_id = models.CharField(blank=False, max_length=255)
 
     def __unicode__(self):

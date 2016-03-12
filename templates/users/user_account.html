@@ -9,6 +9,7 @@
     <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
 
     <input type="hidden" id="rootType" name="rootType" value="user-account" readonly>
+
     <input type="hidden" id="showListAPIUrl" name="showListAPIUrl"
            value="{% url "show-list" %}" readonly>
     <input type="hidden" id="suggestionListAPIUrl" name="suggestionListAPIUrl"
@@ -17,6 +18,7 @@
     <input type="hidden" id="medalListAPIUrl" name="medalListAPIUrl"
            value="{% url "medal-list" %}" readonly>
     {% if channel %}
+        <input type="hidden" id="channelName" name="channelName" value="{{channel.name}}" readonly>
         <input type="hidden" id="medalsUrl" name="medalsUrl"
                    value="{% url "channel_medals" channel.name %}" readonly>
     {% endif %}
@@ -26,10 +28,19 @@
                value="{% url "leaderboard-entry-list" %}?user_id={{page_user_profile.user_id}}&order_by_show_date=True" readonly>
         <input type="hidden" id="userStatsAPIUrl" name="userStatsAPIUrl"
                value="{% url "user-detail" page_user_profile.user_id %}" readonly>
+        <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
+               value="{% url "user_account" page_user_profile.user_id %}{% if channel %}?channel_name={{channel.name}}{% endif %}" readonly>
+        <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
     {% endif %}
     {% if request.user.is_authenticated %}
         <input type="hidden" id="requestUserID" name="requestUserID" value="{{request.user.id}}" readonly>
     {% endif %}
+    {% if action %}
+		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
+	{% endif %}
+    {% if error %}
+		<input type="hidden" id="error" name="error" value="{{error}}" readonly>
+	{% endif %}
 
 {% endblock %}
 
