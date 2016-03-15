@@ -12,7 +12,7 @@
 {% block content %}
     {% if show_id == current_show.id %}
         <div id="container-fluid" class="container-fluid"></div>
-        <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+        {% include "embedded_utils/react_components.html" %}
 
         <input type="hidden" id="rootType" name="rootType" value="show_display" readonly>
         <input type="hidden" id="teamPhotoUrl" name="teamPhotoUrl" value="{{channel.team_photo_url}}" readonly>

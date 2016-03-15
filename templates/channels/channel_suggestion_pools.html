@@ -7,7 +7,7 @@
 
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>
-    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+    {% include "embedded_utils/react_components.html" %}
 
     <input type="hidden" id="rootType" name="rootType" value="channel_suggestion_pools" readonly>
 

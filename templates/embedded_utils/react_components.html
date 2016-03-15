@@ -1,0 +1,5 @@
+{% if DEBUG %}
+    <script type="text/babel" src="{{JS_URL}}react_components.js"></script>
+{% else %}
+    <script type="text/babel" src="{{JS_URL}}react_components.min.js"></script>
+{% endif %}
