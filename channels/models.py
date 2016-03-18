@@ -7,6 +7,8 @@ import pytz
 from django.db import models
 from django.contrib.auth.models import User
 
+from djstripe.utils import subscriber_has_active_subscription
+
 from utilities.fields import BoundedBigAutoField, FlexibleForeignKey
 
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +30,7 @@ class Channel(models.Model):
     # name should always be lowercase
     name = models.CharField(blank=False, max_length=50, unique=True)
     display_name = models.CharField(blank=False, max_length=100)
+    email = models.CharField(blank=False, null=False, max_length=100)
     short_description = models.CharField(blank=True, null=True, max_length=100)
     description = models.TextField(blank=True, null=True)
     thumbnail_url = models.CharField(blank=True, null=True, max_length=500)
@@ -40,11 +43,17 @@ class Channel(models.Model):
     navbar_color = models.CharField(default="#4596FF", blank=False, max_length=20)
     background_color = models.CharField(default="#000000", blank=False, max_length=20)
     address = FlexibleForeignKey("ChannelAddress", blank=True, null=True)
-    is_premium = models.BooleanField(blank=False, default=False)
-    premium_end_date = models.DateTimeField(blank=True, null=True)
+    premium = models.BooleanField(blank=False, default=False)
     archived = models.BooleanField(blank=False, default=False)
 
     created = models.DateTimeField(blank=False)
+
+    def is_premium(self):
+        # If we've set the channel as premium explicitly
+        if self.premium:
+            return True
+        else:
+            return subscriber_has_active_subscription(self)
 
     def future_next_show(self):
         now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)

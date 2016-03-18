@@ -116,7 +116,7 @@ class Command(BaseCommand):
         channel, created = Channel.objects.get_or_create(id=1,
                                                          name="adventure",
                                                          display_name="Adventure-prov",
-                                                         is_premium=True,
+                                                         premium=True,
                                                          short_description="Adventure-prov rules!",
                                                          description="Adventure-prov rules for real!",
                                                          thumbnail_url="http://www.fake.com",

@@ -92,9 +92,9 @@
 								<li class="{% block leaderboard-spans-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="{% url "channel_leaderboard_spans" channel.name %}">Add/Edit Custom Leaderboard Spans <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								<li class="{% block export-emails-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="{% url "channel_export_emails" channel.name %}">Export E-mails <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% if not channel.is_premium %}
-									<li><a href="{% url "channel_edit" channel.id %}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
+									<li><a href="{% url 'djstripe:account' %}?channel_id={{channel.id}}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% else %}
-									<li><a href="{% url "channel_edit" channel.id %}"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel Premium <span class="glyphicon glyphicon-remove" aria-hidden="true"></a></li>
+									<li><a href="{% url 'djstripe:account' %}?channel_id={{channel.id}}">Modify/Cancel Premium</a></li>
 								{% endif %}
     						</ul>
   						</li>
@@ -162,7 +162,7 @@
 
   	{% block add_react %}
   		<!-- jQuery -->
-  		<script src="{{JS_URL}}jquery-1.11.0.min.js"></script>
+  		<script src="{{JS_URL}}jquery-2.1.1/jquery.min.js"></script>
     {% endblock %}
 
   	<!-- Bootstrap Core JavaScript -->

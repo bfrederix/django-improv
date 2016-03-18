@@ -975,6 +975,7 @@ var ChannelCreateEditForm = React.createClass({
   getInitialState: function() {
     return {data: {name: "",
                    display_name: "",
+                   email: "",
                    short_description: "",
                    description: "",
                    website: "",
@@ -1088,6 +1089,14 @@ var ChannelCreateEditForm = React.createClass({
                                  inputSize="5"
                                  input={displayNameInput}
                                  helpBlock="Required: Used as the human readable name on the site" />);
+    // Email Input
+    var emailInput = <input type="text" id="email" name="email" defaultValue={this.state.data.email} className="form-control"></input>;
+    formContents.push(<FormGroup key="19"
+                                 labelSize="2"
+                                 labelContents="Contact Email*:"
+                                 inputSize="5"
+                                 input={emailInput}
+                                 helpBlock="Required: This is for internal use only and is not publicly visible or shared." />);
     // Short Description Input
     var shortDescriptionInput = <textarea type="text" name="short_description" maxLength="100" rows="2" defaultValue={this.state.data.short_description} className="form-control"></textarea>;
     formContents.push(<FormGroup key="3"

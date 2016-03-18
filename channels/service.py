@@ -18,6 +18,27 @@ def channel_or_404(channel_key, channel_id=False):
         return get_object_or_404(Channel, name=channel_key)
 
 
+def channel_from_request(request):
+    # If the channel id was specified in the GET parameters
+    if request.GET.get('channel_id'):
+        # Try to fetch the channel by id
+        try:
+            channel = Channel.objects.get(pk=request.GET.get('channel_id'),
+                                          archived=False)
+            request.session['channel_id'] = channel.id
+        except Channel.DoesNotExist:
+            return None
+    # Try and fetch it from the user's session
+    elif request.session.get('channel_id'):
+        # Try to fetch the channel by id
+        try:
+            channel = Channel.objects.get(pk=request.session.get('channel_id'),
+                                          archived=False)
+        except Channel.DoesNotExist:
+            return None
+    return channel
+
+
 def suggestion_pool_or_404(suggestion_pool_id):
     return get_object_or_404(SuggestionPool, id=suggestion_pool_id)
 
@@ -42,10 +63,10 @@ def fetch_vote_types_by_ids(vote_type_ids):
 
 
 def check_is_channel_admin(channel_name, user_id):
-    channel = Channel.objects.get(name=channel_name)
-    # If the user isn't logged in
-    if not user_id:
+    # If the user isn't logged in or the channel doesn't exist
+    if not user_id or not channel_name:
         return False
+    channel = Channel.objects.get(name=channel_name)
     # Check if the user is a Channel Admin
     try:
         ChannelAdmin.objects.get(channel=channel,
@@ -91,6 +112,7 @@ def get_channels_by_admin(user_id):
         channels.append(channel_admin.channel)
     return channels
 
+
 def get_channels_by_user(user_id):
     # If there isn't a user
     if not user_id:
@@ -106,7 +128,6 @@ def get_channel_admins(channel_id):
     if not channel_id:
         return []
     return ChannelAdmin.objects.filter(channel=channel_id)
-
 
 def add_channel_admin(channel, user):
     admin, created = ChannelAdmin.objects.get_or_create(channel=channel,

@@ -84,6 +84,7 @@ class ChannelCreateEditView(view_utils.ShowView):
             next_show = None
         channel_update = {"name": request.POST.get('name'),
                           "display_name": request.POST.get('display_name'),
+                          "email": request.POST.get('email'),
                           "short_description": strip_tags(request.POST.get('short_description', '')),
                           "description": strip_tags(request.POST.get('description', '')),
                           "website": strip_tags(request.POST.get('website', '')),
@@ -97,14 +98,19 @@ class ChannelCreateEditView(view_utils.ShowView):
                           "state": request.POST.get('state'),
                           "zipcode": request.POST.get('zipcode')}
         image_update = {"team_photo_url": request.FILES.get('teamPhotoFile')}
+        # E-mail is required for the channel
+        if not channel_update['email'] or not channel_update['display_name']:
+            error = "Url Name, Display Name, and Contact Email are all required."
         # If this channel doesn't already exist (and there's no errors)
-        if not context['channel'] and not error:
+        elif not context['channel'] and not error:
             context['channel'] = Channel(**channel_update)
         # Otherwise the channel exists (and there's no errors)
         elif not error:
             for field, value in channel_update.items():
                 setattr(context['channel'], field, value)
-        context['channel'].save()
+        # If there wasn't an error, save the channel
+        if not error:
+            context['channel'].save()
         # Update or create images in cloudinary
         for field_name, img_file in image_update.items():
             if img_file and not error:

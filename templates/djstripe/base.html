@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block djstripe_wrapper %}
+    <section>
+        <div id="container-fluid" class="container-fluid">
+            <br />
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2">
+                    <div class="alert alert-info large-font text-center text-shadow" role="alert">Note: All Credit Card information is handled securely by <a class="white-link" style="text-decoration:underline;" href="https://stripe.com/" target="_blank">Stripe</a>.</div>
+                    {% block content %}
+                      <!-- Modal for server update -->
+                      <div class="modal fade" id="in-progress">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h4 class="modal-title">Server Update In-Progress <img class="pull-right" src="{% static 'img/in-progress.gif' %}" /></h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                          </div><!-- /.modal-content -->
+                        </div><!-- /.modal-dialog -->
+                      </div><!-- /.modal -->
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block add_script %}
+    <script src="{{JS_URL}}jquery-2.1.1/jquery.min.js"></script>
+{% endblock %}

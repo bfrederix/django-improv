@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     'social.apps.django_app.default',
     'rest_framework_social_oauth2',
     'shell_plus',
+    'djstripe',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -105,6 +106,34 @@ USE_TZ = True
 LOGIN_URL = 'user_login'
 
 LOGIN_REDIRECT_URL = '/'
+
+# dj-stripe settings
+#STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "<your publishable key>")
+#STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "<your secret key>")
+STRIPE_PUBLIC_KEY = "***REMOVED***"
+STRIPE_SECRET_KEY = "***REMOVED***"
+
+DJSTRIPE_SUBSCRIBER_MODEL = "channels.Channel"
+
+
+def channel_request_callback(request):
+    """ Gets the channel from the ``request.path`` if it exists"""
+    from channels.service import channel_from_request
+    return channel_from_request(request)
+
+
+DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = channel_request_callback
+
+DJSTRIPE_PLANS = {
+    "monthly": {
+        "stripe_plan_id": "premium-monthly",
+        "name": "Premium ($5/month)",
+        "description": "The monthly Channel subscription plan",
+        "price": 500,  # $5.00
+        "currency": "usd",
+        "interval": "month"
+    },
+}
 
 # django-rest-framework settings
 REST_FRAMEWORK = {
