@@ -18,8 +18,7 @@ class UserAPIObject(APIObject):
     field_list = ['user_id',
                   'safe_username',
                   'created',
-                  'site_email_opt_in',
-                  'channels_email_opt_in']
+                  'site_email_opt_in']
 
     def __init__(self, user_profile, **kwargs):
         super(UserAPIObject, self).__init__(user_profile, **kwargs)

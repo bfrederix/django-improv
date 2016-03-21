@@ -641,11 +641,13 @@ var Medal = React.createClass({
         // Create the medal URL
         medalURL = this.props.medalsUrl + "#" + this.state.data.name;
     }
-    // Create the medal classes
-    var medalClass = this.state.data.name + "-medal";
-    var medalClasses = 'medal ' + medalClass + ' pull-left btn-shadow';
+    var medalClasses = 'medal pull-left btn-shadow';
     return (
-      <a href={medalURL}><div className={medalClasses}></div></a>
+      <a href={medalURL}>
+          <div className={medalClasses}>
+              <img src={this.state.data.icon_filename} />
+          </div>
+      </a>
     );
   }
 });
@@ -2145,7 +2147,6 @@ var ChannelLeaderboardSpanForm = React.createClass({
 
 var MedalButtonForm = React.createClass({
   render: function() {
-    // CHECK TO SEE IF MEDALS HAVE ALREADY BEEN AWARDED!!!!!!!!
     var medalActionLink = this.props.baseLinkUrl + 'show/' + this.props.showID + '/';
     var awardMedalInput = <div>
                             <input type="hidden" name="award_medals" value="True"></input>
@@ -2153,9 +2154,13 @@ var MedalButtonForm = React.createClass({
                           </div>;
     var formContents = <FormGroup input={awardMedalInput} />
     return (
-        <Form formStyle="inline"
-              formSubmitUrl={medalActionLink}
-              formContents={formContents} />
+        <div className="col-md-offset-5 col-md-2">
+            <br />
+            <Form formStyle="inline"
+                  formSubmitUrl={medalActionLink}
+                  formContents={formContents}
+                  csrfToken={this.props.csrfToken} />
+        </div>
     );
   }
 });
@@ -2340,6 +2345,7 @@ var ShowLeaderboardTable = React.createClass({
                             <tr className="medium-background">
                                 <th>Rank</th>
                                 <th>Username</th>
+                                <th>Suggestions</th>
                                 <th>Suggestion Wins</th>
                                 <th>Points</th>
                                 <th>Medals</th>
@@ -2374,6 +2380,7 @@ var ShowLeaderboardTable = React.createClass({
         tableList.push(<tr key={this.counter} className="light-background">
                             <td>{rank}</td>
                             <td><a href={userUrl}>{leaderboardUser.username}</a></td>
+                            <td>{leaderboardUser.suggestions}</td>
                             <td>{leaderboardUser.wins}</td>
                             <td>{leaderboardUser.points}</td>
                             <td>{medalList}</td>
@@ -2388,6 +2395,7 @@ var ShowLeaderboardTable = React.createClass({
                     <tr className="medium-background">
                         <th>Rank</th>
                         <th>Username</th>
+                        <th>Suggestions</th>
                         <th>Suggestion Wins</th>
                         <th>Points</th>
                         <th>Medals</th>
@@ -2424,9 +2432,11 @@ var Leaderboard = React.createClass({
                                         buttonColor="danger"
                                         buttonLink={this.props.leaderboardContext.channelShowRecapUrl} />);
             // If this is a channel admin user and we haven't awarded medals
-            if (this.props.leaderboardContext.isAdmin && !this.props.leaderboardContext.medalsAwarded) {
-                leaderboardComponents.push(<MedalButtonForm key="4" baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
-                                                            showID={this.props.leaderboardContext.showID}/>);
+            if (this.props.leaderboardContext.isAdmin === "True" && this.props.leaderboardContext.medalsAwarded === "False") {
+                leaderboardComponents.push(<MedalButtonForm key="4"
+                                                            baseLinkUrl={this.props.leaderboardContext.channelLeaderboardUrl}
+                                                            showID={this.props.leaderboardContext.showID}
+                                                            csrfToken={this.props.leaderboardContext.csrfToken} />);
             }
             leaderboardComponents.push(<div key="5" className="row"><div className="col-md-10 col-md-offset-1">
                                  <ShowLeaderboardTable leaderboardContext={this.props.leaderboardContext}
@@ -3631,6 +3641,7 @@ var VoteOptionSuggestion = React.createClass({
 	    this.state.data.vote_options_count).out('hex');
 	var liveVotesColor = scale(this.state.data.live_votes);
     var deltaSpan;
+    var starImage;
     var submittedBy;
     var optionButtonClasses;
     var badgeClasses;
@@ -3640,6 +3651,7 @@ var VoteOptionSuggestion = React.createClass({
         optionButtonClasses = "btn btn-block word-wrap x-large-font btn-shadow text-shadow animated fadeInDown";
         // If this was the winning option
         if (this.props.winner) {
+            starImage = <StarImage />;
             optionButtonClasses = optionButtonClasses + " btn-warning";
         } else {
             optionButtonClasses = optionButtonClasses + " btn-primary";
@@ -3665,7 +3677,7 @@ var VoteOptionSuggestion = React.createClass({
 
     return (
         <button className={optionButtonClasses}>
-           {this.state.data.option_number}. {this.state.data.suggestion_value} <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />{deltaSpan}
+           {this.state.data.option_number}. {this.state.data.suggestion_value} <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />{deltaSpan}{starImage}
            {submittedBy}
         </button>
     );
@@ -4198,7 +4210,8 @@ var RootComponent = React.createClass({
             showListAPIUrl: getElementValueOrNull("showListAPIUrl"),
             start: getElementValueOrNull("start"),
             end: getElementValueOrNull("end"),
-            isAdmin: getElementValueOrNull("isAdmin")
+            isAdmin: getElementValueOrNull("isAdmin"),
+            csrfToken: getElementValueOrNull("csrfToken"),
         };
         rootComponents.push(<Leaderboard key="1" leaderboardContext={leaderboardContext} />);
     } else if (rootType == "recap") {

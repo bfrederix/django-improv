@@ -22,8 +22,7 @@ class UserLoginView(View):
 
 class OptInPreferencesView(View):
     form_class = user_forms.OptInPreferenceForm
-    initial = {'site_email_opt_in': False,
-               'channels_email_opt_in': True}
+    initial = {'site_email_opt_in': False}
     template_name = 'users/opt_in_preferences.html'
 
     def get(self, request, *args, **kwargs):
@@ -36,13 +35,11 @@ class OptInPreferencesView(View):
         form = self.form_class(request.POST)
         if form.is_valid():
             ieoi = form.cleaned_data.get('site_email_opt_in', False)
-            ceoi = form.cleaned_data.get('channels_email_opt_in', False)
             #user_service.update_user_profile(request.user.id, update_fields)
             # Use cleaned data to update the user preferences
-            return redirect("{0}?ieoi={1}&ceoi={2}".format(
+            return redirect("{0}?ieoi={1}".format(
                                 reverse('social:complete', kwargs={"backend": kwargs.get('backend')}),
-                                ieoi,
-                                ceoi))
+                                ieoi))
         return render(request, self.template_name,
                       {'form': form,
                        'backend': kwargs.get('backend')})

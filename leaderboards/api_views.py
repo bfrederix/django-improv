@@ -10,6 +10,7 @@ from leaderboards.serializers import (LeaderboardEntrySerializer, MedalSerialize
 from leaderboards import service as leaderboards_service
 from users import service as users_service
 from channels import service as channels_service
+from shows import service as shows_service
 from utilities.api import APIObject
 
 
@@ -23,9 +24,16 @@ class LeaderboardEntryAPIObject(APIObject):
         super(LeaderboardEntryAPIObject, self).__init__(leaderboard_entry, **kwargs)
         self.show = leaderboard_entry.show_id
         self.channel_name = leaderboard_entry.channel.name
-        user_profile = users_service.fetch_user_profile(leaderboard_entry.user_id)
-        self.username = user_profile.safe_username
         self.medals = leaderboards_service.fetch_medal_ids_by_leaderboard_entry(leaderboard_entry.id)
+        # If a user is attached to the entry
+        if leaderboard_entry.user_id:
+            # Get their username
+            user_profile = users_service.fetch_user_profile(leaderboard_entry.user_id)
+            self.username = user_profile.safe_username
+            # Get the number of suggestions submitted
+            self.suggestions = shows_service.fetch_suggestions(user_id=leaderboard_entry.user_id,
+                                                               show_id=leaderboard_entry.show_id,
+                                                               count=True)
 
 
 class LeaderboardEntrySpanAPIObject(APIObject):

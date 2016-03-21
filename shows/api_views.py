@@ -10,6 +10,7 @@ from shows.serializers import (ShowSerializer, SuggestionsSerializer,
 from shows import service as shows_service
 from channels import service as channels_service
 from users import service as users_service
+from leaderboards import service as leaderboards_service
 from utilities.api import APIObject
 
 
@@ -69,6 +70,12 @@ class ShowAPIObject(APIObject):
                                                    self.vote_type,
                                                    self.vote_type.current_interval,
                                                    winning_option)
+                    # If the winning option was a user submitted suggestion
+                    if winning_option.suggestion_id:
+                        # Add a suggestion win to the leaderboard entry
+                        leaderboards_service.add_leaderboard_entry_win(show.id,
+                                                                       winning_option.suggestion.user_id,
+                                                                       winning_option.suggestion.session_id)
         # Otherwise this show isn't currently running
         else:
             self.running = False

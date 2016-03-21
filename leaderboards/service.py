@@ -85,6 +85,52 @@ def aggregate_leaderboard_entries_by_user(leaderboard_entries):
     return multikeysort(user_list, ['-suggestion_wins', '-points'])
 
 
+def award_leaderboard_medals(leaderboard_entries, user_suggestion_count):
+    # If there are entries
+    if leaderboard_entries:
+        # Get the winning sorted entry
+        winning_entry = leaderboard_entries[0]
+    else:
+        winning_entry = None
+
+    medal_dict = {'points-without-win': {'max': 0, 'leaderboard_entry': None},
+                  'win-percentage': {'max': 0, 'leaderboard_entry': None}}
+    for entry in leaderboard_entries:
+        # Determine if a user has reached a new high for points without a win
+        if not entry.wins and entry.points > medal_dict['points-without-win']['max']:
+            medal_dict['points-without-win']['max'] = entry.points
+            medal_dict['points-without-win']['leaderboard_entry'] = entry
+
+        try:
+            win_percentage = int(100 * (float(entry.wins) / float(user_suggestion_count[entry.user_id])))
+        except ZeroDivisionError:
+            win_percentage = 0
+        # Determine if a user has reached a new high for points with wins factored in
+        if win_percentage > medal_dict['win-percentage']['max']:
+            medal_dict['win-percentage']['max'] = win_percentage
+            medal_dict['win-percentage']['leaderboard_entry'] = entry
+
+    # Award the winner medal if a winner exists
+    if winning_entry:
+        winner_medal = Medal.objects.get(name='winner')
+        LeaderboardEntryMedal.objects.get_or_create(
+            medal=winner_medal,
+            leaderboard_entry=winning_entry)
+    # Award the points without a win (Poo) medal if exists
+    if medal_dict['points-without-win']['leaderboard_entry']:
+        points_without_win_medal = Medal.objects.get(name='points-without-win')
+        LeaderboardEntryMedal.objects.get_or_create(
+            medal=points_without_win_medal,
+            leaderboard_entry=medal_dict['points-without-win']['leaderboard_entry'])
+
+    # Award the win percentage medal if exists
+    if medal_dict['win-percentage']['leaderboard_entry']:
+        win_percentage_medal = Medal.objects.get(name='win-percentage')
+        LeaderboardEntryMedal.objects.get_or_create(
+                medal=win_percentage_medal,
+                leaderboard_entry=medal_dict['win-percentage']['leaderboard_entry'])
+
+
 def get_or_create_leaderboard_entry(channel, show, user, session_id):
     leaderboard_entry_kwargs = {'channel': channel,
                                 'show': show}
@@ -138,25 +184,43 @@ def update_leaderboard_entry_session_to_user(show_id, session_id, user_id):
         leaderboard_entry.save()
 
 
-def add_leaderboard_entry_points(channel, show, user, session_id, require_login):
+def add_leaderboard_entry_points(channel, show, user, suggestion_user, suggestion_session_id, require_login):
     le_kwargs = {'channel': channel,
                  'show': show,
                  'show_date': show.created}
     # If the user is logged in
     if user:
-        le_kwargs['user'] = user
         # If everyone is logged in
         if require_login:
             points = 1
         # Because this particular user is logged in
         else:
             points = 2
+    else:
+        points = 1
+    # If there is a suggestion user
+    if suggestion_user:
+        le_kwargs['user'] = suggestion_user
     # Otherwise just one point
     else:
-        le_kwargs['session_id'] = session_id
-        points = 1
-    # Get or create the leaderboard entry
+        le_kwargs['session_id'] = suggestion_session_id
+    # Get the leaderboard entry
     leaderboard_entry = LeaderboardEntry.objects.get(**le_kwargs)
     # Add the points to the entry
     leaderboard_entry.points += points
+    leaderboard_entry.save()
+
+
+def add_leaderboard_entry_win(show_id, user_id, session_id):
+    le_kwargs = {'show': show_id}
+    # If the user is logged in
+    if user_id:
+        le_kwargs['user'] = user_id
+    # Otherwise just one point
+    else:
+        le_kwargs['session_id'] = session_id
+    # Get or create the leaderboard entry
+    leaderboard_entry = LeaderboardEntry.objects.get(**le_kwargs)
+    # Add the win to the entry
+    leaderboard_entry.wins += 1
     leaderboard_entry.save()

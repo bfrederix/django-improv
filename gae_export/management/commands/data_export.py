@@ -23,7 +23,7 @@ from players.models import Player
 from shows.models import (Show, ShowVoteType,
                           ShowPlayer, Suggestion,
                           PreshowVote, LiveVote, ShowInterval,
-                          VoteOptions, OptionSuggestion, VotedItem)
+                          VoteOption, VotedItem)
 from users.models import UserProfile
 
 
@@ -165,8 +165,7 @@ class Command(BaseCommand):
                                     strip_username=entity['strip_username'],
                                     email=entity['email'],
                                     login_type=entity['login_type'],
-                                    site_email_opt_in=True,
-                                    channels_email_opt_in=True,
+                                    site_email_opt_in=False,
                                     created=pytz.utc.localize(entity['created']))
                                 # Adding a user to a channel
                                 ChannelUser.objects.get_or_create(channel=channel,
@@ -174,10 +173,15 @@ class Command(BaseCommand):
                                 counter['UserProfile'] += 1
                                 self.stdout.write(str(counter['UserProfile']))
                         if model_name == 'Medal' and model_to_import == 'Medal':
+                            # Change points to winner
+                            if entity['name'] == 'points':
+                                name = 'winner'
+                            else:
+                                name = entity['name']
                             try:
                                 Medal.objects.get_or_create(
                                       id=entity.key().id(),
-                                      name=entity['name'],
+                                      name=name,
                                       display_name=entity['display_name'],
                                       description=entity['description'],
                                       image_filename=entity['image_filename'],
@@ -415,22 +419,19 @@ class Command(BaseCommand):
                             counter['ShowInterval'] += 1
                             self.stdout.write(str(counter['ShowInterval']))
                         if model_name == 'VoteOptions' and model_to_import == 'VoteOptions':
-                            try:
-                                VoteOptions.objects.get_or_create(
-                                      id=entity.key().id(),
-                                      show_id=entity['show'].id(),
-                                      vote_type_id=entity['vote_type'].id(),
-                                      interval=entity['interval'])
-                            except IntegrityError, e:
-                                if not 'not present in table "shows_votetype"' in str(e) and \
-                                   not 'duplicate' in str(e):
-                                    raise IntegrityError(e)
-                            counter['VoteOptions'] += 1
-                            self.stdout.write(str(counter['VoteOptions']))
+                            show_id = entity['show'].id()
+                            vote_type_id = entity['vote_type'].id()
+                            interval = entity['interval']
+                            vote_counter = 0
                             for option in entity['option_list']:
+                                vote_counter += 1
                                 try:
-                                    OptionSuggestion.objects.get_or_create(
-                                          vote_option_id=entity.key().id(),
+                                    VoteOption.objects.get_or_create(
+                                          id=entity.key().id(),
+                                          option_number=vote_counter,
+                                          show_id=show_id,
+                                          vote_type_id=vote_type_id,
+                                          interval=interval,
                                           suggestion_id=option.id())
                                 except IntegrityError, e:
                                     if not 'not present in table "shows_suggestion"' in str(e) and \
@@ -463,7 +464,7 @@ class Command(BaseCommand):
                             else:
                                 cu = ChannelUser.objects.get(channel=channel,
                                                              user=up.user)
-                                cu.email_opt_in = False
+                                cu.email_opt_in = True
                                 cu.save()
                             counter['EmailOptOut'] += 1
                             self.stdout.write(str(counter['EmailOptOut']))

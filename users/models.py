@@ -14,7 +14,6 @@ class UserProfile(models.Model):
     email = models.CharField(default=None, blank=True, max_length=100)
     login_type = models.CharField(default=None, blank=False, max_length=50)
     site_email_opt_in = models.BooleanField(blank=False, default=False)
-    channels_email_opt_in = models.BooleanField(blank=False, default=False)
 
     created = models.DateTimeField(blank=False)
 

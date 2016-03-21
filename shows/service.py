@@ -386,6 +386,7 @@ def set_voted_option(show, vote_type, interval, vote_option):
     if vote_option.suggestion:
         # If we aren't keeping voted on suggestions
         if not vote_type.keep_suggestions:
+            # Set that the suggestion was used and won
             vote_option.suggestion.used = True
             vote_option.suggestion.save()
     # If it was a player only vote

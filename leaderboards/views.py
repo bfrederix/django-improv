@@ -6,7 +6,7 @@ from django.http import HttpResponseNotFound
 from leaderboards import LEADERBOARD_MAX_PER_PAGE
 from leaderboards.models import LeaderboardEntry, LeaderboardEntryMedal
 from channels.service import (channel_user_count)
-from shows.service import show_or_404
+from shows import service as shows_service
 from leaderboards import service as leaderboards_service
 from utilities import views as view_utils
 
@@ -20,9 +20,44 @@ class ChannelLeaderboardsView(view_utils.ShowView):
         page = request.GET.get('page', 1)
         max_pages = int(channel_user_count(context['channel'].id)/LEADERBOARD_MAX_PER_PAGE)
         if show_id:
-            show = show_or_404(show_id)
+            show = shows_service.show_or_404(show_id)
             les = LeaderboardEntry.objects.filter(show=show)
             medals_awarded = bool(LeaderboardEntryMedal.objects.filter(leaderboard_entry__in=les))
+        else:
+            show = None
+            medals_awarded = False
+        context.update({'show': show,
+                        'medals_awarded': medals_awarded,
+                        'page': page,
+                        'max_per_page': LEADERBOARD_MAX_PER_PAGE,
+                        'max_pages': max_pages})
+
+        return render(request,
+                      self.template_name,
+                      context)
+
+    def post(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        show_id = kwargs.get('show_id')
+        page = request.GET.get('page', 1)
+        max_pages = int(channel_user_count(context['channel'].id)/LEADERBOARD_MAX_PER_PAGE)
+        if show_id:
+            show = shows_service.show_or_404(show_id)
+            # Fetch the sorted leaderboard entries
+            leaderboard_entries = leaderboards_service.fetch_leaderboard_entries_by_show(
+                                                                    show_id,
+                                                                    leaderboard_order=True)
+            # Get the suggestion count for each user in the show
+            user_suggestion_count = {}
+            for leaderboard_entry in leaderboard_entries:
+                user_suggestion_count[leaderboard_entry.user_id] = shows_service.fetch_suggestions(
+                                                show_id=show_id,
+                                                user_id=leaderboard_entry.user_id,
+                                                count=True)
+            # Award the medals
+            leaderboards_service.award_leaderboard_medals(leaderboard_entries,
+                                                          user_suggestion_count)
+            medals_awarded = True
         else:
             show = None
             medals_awarded = False
