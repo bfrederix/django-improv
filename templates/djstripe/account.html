@@ -150,17 +150,21 @@
 {% if plans %}
     <script>
         $(function() {
-            $.post("{% url 'djstripe:sync_history' %}", function(data) {
-                $('#history-table').html(data);
+            $.post("{% url 'djstripe:sync_history' %}",
+                {'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                function(data) {
+                    $('#history-table').html(data);
             });
         });
     </script>
 {% else %}
     <script>
         $(function() {
-            $.post("{% url 'djstripe:sync_history' %}", function(data) {
-                $('#history-table').html(data);
-                $('.in-progress-gif').hide();
+            $.post("{% url 'djstripe:sync_history' %}",
+                {'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                function(data) {
+                    $('#history-table').html(data);
+                    $('.in-progress-gif').hide();
             });
         });
     </script>
