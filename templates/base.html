@@ -35,6 +35,7 @@
   </head>
 
   <body id="page-top" class="index">
+    {% include "embedded_utils/facebook_sdk.html" %}
     {% block navigation %}
         <!-- Navigation -->
         <nav class="navbar navbar-default navbar-fixed-top home-navbar-custom">
@@ -142,6 +143,50 @@
     {% block djstripe_wrapper %}
         {% block content %}{% endblock %}
     {% endblock %}
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="footer-above text-shadow">
+            <div class="container">
+                <div class="row">
+                    <div class="footer-col col-md-3">
+                        <h3>Location</h3>
+                        <p>Denver, Colorado</p>
+                    </div>
+                    <div class="footer-col col-md-3">
+                        <div class="row">
+                            <h3>Like Us: </h3>
+                        </div>
+                        <div class="row">
+                            <p>
+                            <div id="fbiframe" class="fb-like text-center" data-href="http://www.facebook.com/dumpedit" data-layout="button_count" data-action="like"></div>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="footer-col col-md-3">
+                        <h3><a class="white-link" href="{% url "dumpedit_home" %}#about">About Dumpedit</a></h3>
+                        <p>Dumpedit is a free to use improv voting service.</p>
+                    </div>
+                    <div class="footer-col col-md-3">
+                        <h3>Contact</h3>
+                        <p>Questions? <script type="text/javascript">
+	document.write("<n uers=\"znvygb:serqql@qhzcrqvg.pbz\" ery=\"absbyybj\">Rznvy Zr</n>".replace(/[a-zA-Z]/g,
+	function(c){return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);}));
+</script></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-below text-shadow">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        Freddy Fredericks, Dumpedit 2016
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     {% block add_react %}
         {% block add_script %}

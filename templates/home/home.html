@@ -20,10 +20,13 @@
                             <div class="col-lg-8 col-lg-offset-2 text-center">
                                 <a href="{% url "channel_create" %}" class="btn btn-lg btn-danger btn-shadow">
                                     <span style="font-size:x-large;">Create a Show Channel for Free</span>
-                                </a>&nbsp;
+                                </a>
+                                {% comment %}
+                                &nbsp;
                                 <a href="#" class="btn btn-lg btn-info btn-shadow">
                                     <span style="font-size:x-large;">Find a Show Channel</span>
                                 </a>
+                                {% endcomment %}
                             </div>
                         </div>
                     </div>
@@ -122,36 +125,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="text-center">
-        <div class="footer-above text-shadow">
-            <div class="container">
-                <div class="row">
-                    <div class="footer-col col-md-4">
-                        <h3>Location</h3>
-                        <p>Denver, Colorado</p>
-                    </div>
-                    <div class="footer-col col-md-4">
-                        <h3><a href="http://www.facebook.com/dumpedit">Like Us on Facebook</a></h3>
-                    </div>
-                    <div class="footer-col col-md-4">
-                        <h3>About Dumpedit</h3>
-                        <p>Dumpedit is a free to use improv voting service.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="footer-below text-shadow">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-12">
-                        Freddy Fredericks, Dumpedit 2016
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
     <div class="scroll-top page-scroll visible-xs visible-sm">

@@ -19,6 +19,7 @@ def channel_or_404(channel_key, channel_id=False):
 
 
 def channel_from_request(request):
+    channel = None
     # If the channel id was specified in the GET parameters
     if request.GET.get('channel_id'):
         # Try to fetch the channel by id
