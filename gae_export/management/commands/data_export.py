@@ -39,9 +39,9 @@ MODEL_IMPORT_ORDER = ['UserProfile',
                       'LeaderboardEntry',
                       'Suggestion',
                       'PreshowVote',
-                      'LiveVote',
+                      'VoteOption',
                       'ShowInterval',
-                      'VoteOptions',
+                      'LiveVote',
                       'VotedItem',
                       'EmailOptOut']
 
@@ -169,7 +169,11 @@ class Command(BaseCommand):
                                     created=pytz.utc.localize(entity['created']))
                                 # Adding a user to a channel
                                 ChannelUser.objects.get_or_create(channel=channel,
-                                                                  user=user)
+                                                                  user=user,
+                                                                  points=0,
+                                                                  suggestion_wins=0,
+                                                                  show_wins=0,
+                                                                  email_opt_in=True)
                                 counter['UserProfile'] += 1
                                 self.stdout.write(str(counter['UserProfile']))
                         if model_name == 'Medal' and model_to_import == 'Medal':
@@ -243,7 +247,9 @@ class Command(BaseCommand):
                                       channel=channel,
                                       name=entity['name'],
                                       photo_url=entity['photo_filename'],
-                                      star=entity['star'])
+                                      star=entity['star'],
+                                      active=True,
+                                      archived=False)
                             except IntegrityError, e:
                                 if not 'duplicate' in str(e):
                                     raise IntegrityError(e)
@@ -260,7 +266,11 @@ class Command(BaseCommand):
                                       name=entity['name'],
                                       display_name=entity['display_name'],
                                       description=entity['description'],
+                                      max_user_suggestions=5,
                                       require_login=False,
+                                      active=True,
+                                      admin_only=False,
+                                      archived=False,
                                       created=pytz.utc.localize(entity['created']))
                             except IntegrityError, e:
                                 if not 'duplicate' in str(e):
@@ -296,7 +306,12 @@ class Command(BaseCommand):
                                       style=entity['style'],
                                       ordering=entity['ordering'],
                                       options=entity['options'],
+                                      vote_length=25,
+                                      result_length=10,
                                       button_color=entity['button_color'],
+                                      require_login=False,
+                                      active=True,
+                                      archived=False,
                                       current_interval=entity['current_interval'],
                                       current_vote_init=pytz.utc.localize(entity['current_init']),
                                       created=sug_created)
@@ -313,12 +328,13 @@ class Command(BaseCommand):
                                 Show.objects.get_or_create(
                                       id=entity.key().id(),
                                       channel=channel,
-                                      show_length=90,
+                                      show_length=180,
                                       vote_options=entity['vote_options'],
                                       created=pytz.utc.localize(entity['created']),
                                       current_vote_type_id=entity['current_vote_type'].id(),
-                                      current_vote_init=pytz.utc.localize(entity['current_vote_init']),
-                                      locked=entity['locked'])
+                                      locked=entity['locked'],
+                                      photo_link=None,
+                                      embedded_youtube=None)
                             except IntegrityError, e:
                                 if not 'duplicate' in str(e):
                                     raise IntegrityError(e)
@@ -337,7 +353,8 @@ class Command(BaseCommand):
                                 for s_player in entity['players']:
                                     ShowPlayer.objects.get_or_create(
                                           show_id=entity.key().id(),
-                                          player_id=s_player.id())
+                                          player_id=s_player.id(),
+                                          used=False)
                                     counter['ShowPlayer'] += 1
                                     self.stdout.write(str(counter['ShowPlayer']))
                         if model_name == 'Suggestion' and model_to_import == 'Suggestion':
@@ -374,6 +391,7 @@ class Command(BaseCommand):
                                       id=entity.key().id(),
                                       show_id=get_entity_id(entity, 'show'),
                                       suggestion_id=entity['suggestion'].id(),
+                                      user=None,
                                       session_id=entity['session_id'])
                             except IntegrityError, e:
                                 if not 'not present in table "shows_suggestion"' in str(e) and \
@@ -381,43 +399,6 @@ class Command(BaseCommand):
                                     raise IntegrityError(e)
                             counter['PreshowVote'] += 1
                             self.stdout.write(str(counter['PreshowVote']))
-                        if model_name == 'LiveVote' and model_to_import == 'LiveVote':
-                            try:
-                                user_profile = UserProfile.objects.get(social_id=entity['user_id'])
-                                user = user_profile.user
-                            except ObjectDoesNotExist:
-                                user = None
-                            try:
-                                LiveVote.objects.get_or_create(
-                                      id=entity.key().id(),
-                                      show_id=entity['show'].id(),
-                                      vote_type_id=entity['vote_type'].id(),
-                                      player_id=get_entity_id(entity, 'player'),
-                                      suggestion_id=get_entity_id(entity, 'suggestion'),
-                                      interval=entity['interval'],
-                                      session_id=entity['session_id'],
-                                      user=user)
-                            except IntegrityError, e:
-                                if not 'not present in table "shows_votetype"' in str(e) and \
-                                   not 'not present in table "shows_suggestion"' in str(e) and \
-                                   not 'duplicate' in str(e):
-                                    raise IntegrityError(e)
-                            counter['LiveVote'] += 1
-                            self.stdout.write(str(counter['LiveVote']))
-                        if model_name == 'ShowInterval' and model_to_import == 'ShowInterval':
-                            try:
-                                ShowInterval.objects.get_or_create(
-                                      id=entity.key().id(),
-                                      show_id=entity['show'].id(),
-                                      vote_type_id=entity['vote_type'].id(),
-                                      interval=entity['interval'],
-                                      player_id=get_entity_id(entity, 'player'))
-                            except IntegrityError, e:
-                                if not 'not present in table "shows_votetype"' in str(e) and \
-                                   not 'duplicate' in str(e):
-                                    raise IntegrityError(e)
-                            counter['ShowInterval'] += 1
-                            self.stdout.write(str(counter['ShowInterval']))
                         if model_name == 'VoteOptions' and model_to_import == 'VoteOptions':
                             show_id = entity['show'].id()
                             vote_type_id = entity['vote_type'].id()
@@ -440,22 +421,94 @@ class Command(BaseCommand):
                                         raise IntegrityError(e)
                                 counter['OptionSuggestion'] += 1
                                 self.stdout.write(str(counter['OptionSuggestion']))
-                        if model_name == 'VotedItem' and model_to_import == 'VotedItem':
+                        if model_name == 'ShowInterval' and model_to_import == 'ShowInterval':
                             try:
-                                VotedItem.objects.get_or_create(
-                                          id=entity.key().id(),
-                                          show_id=entity['show'].id(),
-                                          vote_type_id=entity['vote_type'].id(),
-                                          suggestion_id=get_entity_id(entity, 'suggestion'),
-                                          player_id=get_entity_id(entity, 'player'),
-                                          interval=entity['interval'])
+                                ShowInterval.objects.get_or_create(
+                                      id=entity.key().id(),
+                                      show_id=entity['show'].id(),
+                                      vote_type_id=entity['vote_type'].id(),
+                                      interval=entity['interval'],
+                                      player_id=get_entity_id(entity, 'player'))
                             except IntegrityError, e:
                                 if not 'not present in table "shows_votetype"' in str(e) and \
-                                   not 'not present in table "shows_suggestion"' in str(e) and \
                                    not 'duplicate' in str(e):
                                     raise IntegrityError(e)
-                            counter['VotedItem'] += 1
-                            self.stdout.write(str(counter['VotedItem']))
+                            counter['ShowInterval'] += 1
+                            self.stdout.write(str(counter['ShowInterval']))
+                        if model_name == 'LiveVote' and model_to_import == 'LiveVote':
+                            try:
+                                user_profile = UserProfile.objects.get(social_id=entity['user_id'])
+                                user = user_profile.user
+                            except ObjectDoesNotExist:
+                                user = None
+                            suggestion_id = get_entity_id(entity, 'suggestion')
+                            # If this was a vote with suggestions attached to the live vote
+                            if suggestion_id:
+                                # Get the vote option for the live vote
+                                try:
+                                    vote_option = VoteOption.objects.get(
+                                                           show=entity['show'].id(),
+                                                           vote_type=entity['vote_type'].id(),
+                                                           interval=entity['interval'],
+                                                           suggestion=suggestion_id)
+                                except ObjectDoesNotExist:
+                                    raise ObjectDoesNotExist("Missing Options for Live Vote: {0}".format(entity.key().id()))
+                                # Get the vote option for the live vote
+                                try:
+                                    show_interval = ShowInterval.objects.get(
+                                                           show=entity['show'].id(),
+                                                           vote_type=entity['vote_type'].id(),
+                                                           interval=entity['interval'])
+                                except ObjectDoesNotExist:
+                                    self.stdout.write("Missing Show Interval for Live Vote: {0}".format(entity.key().id()))
+                                    show_interval = None
+                                try:
+                                    LiveVote.objects.get_or_create(
+                                          id=entity.key().id(),
+                                          vote_option=vote_option,
+                                          show_interval=show_interval,
+                                          session_id=entity['session_id'],
+                                          user=user)
+                                except IntegrityError, e:
+                                    if not 'not present in table "shows_votetype"' in str(e) and \
+                                       not 'not present in table "shows_suggestion"' in str(e) and \
+                                       not 'duplicate' in str(e):
+                                        raise IntegrityError(e)
+                                counter['LiveVote'] += 1
+                                self.stdout.write(str(counter['LiveVote']))
+                            # This was a player live vote and we don't care about recording the live votes
+                            else:
+                                self.stdout.write("Player Live Vote (Don't Care): {0}".format(entity.key().id()))
+                        if model_name == 'VotedItem' and model_to_import == 'VotedItem':
+                            suggestion_id = get_entity_id(entity, 'suggestion')
+                            # If it was a suggestion that was voted for
+                            if suggestion_id:
+                                # Get the vote option for the live vote
+                                try:
+                                    vote_option = VoteOption.objects.get(
+                                                           show=entity['show'].id(),
+                                                           vote_type=entity['vote_type'].id(),
+                                                           interval=entity['interval'],
+                                                           suggestion=suggestion_id)
+                                except ObjectDoesNotExist:
+                                    raise ObjectDoesNotExist("Missing Options for Live Vote: {0}".format(entity.key().id()))
+                                try:
+                                    VotedItem.objects.get_or_create(
+                                              id=entity.key().id(),
+                                              show_id=entity['show'].id(),
+                                              vote_type_id=entity['vote_type'].id(),
+                                              vote_option=vote_option,
+                                              interval=entity['interval'])
+                                except IntegrityError, e:
+                                    if not 'not present in table "shows_votetype"' in str(e) and \
+                                       not 'not present in table "shows_suggestion"' in str(e) and \
+                                       not 'duplicate' in str(e):
+                                        raise IntegrityError(e)
+                                counter['VotedItem'] += 1
+                                self.stdout.write(str(counter['VotedItem']))
+                            # This was a player voted item and we don't care about recording the live votes
+                            else:
+                                self.stdout.write("Player Voted Item (Don't Care): {0}".format(entity.key().id()))
                         if model_name == 'EmailOptOut' and model_to_import == 'EmailOptOut':
                             try:
                                 up = UserProfile.objects.get(email=entity['email'])

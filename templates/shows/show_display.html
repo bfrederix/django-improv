@@ -9,6 +9,32 @@
     <link rel="stylesheet" type="text/css" href="{{CSS_URL}}animate-3.1.0/animate.min.css">
 {% endblock %}
 
+{% block navigation %}
+    <nav id="top-nav-bar" class="navbar navbar-default navbar-custom" role="navigation" {% if channel.navbar_color %}style="background-color:{{channel.navbar_color}} !important;"{% endif %}>
+        <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <br />
+                <a href="{% url "dumpedit_home" %}">
+                    <img class="pull-left dumpedit-home-icon highlight-shadow" src="{{IMAGE_URL}}dumpedit-logo-icon-square.png" alt="Dumpedit Home" />
+                </a>
+                <a class="navbar-brand" href="{% url "channel_home" channel.name %}">&nbsp;&nbsp;{{channel.display_name}}</a>
+            </div>
+            <div class="row navbar-text xx-large-font">
+                <div class="col-md-12 col-md-offset-5">
+                    <span class="light-gray-text">Go to: </span><a class="white-link" href="http://dumpedit.com{% url "channel_home" channel.name %}">http://dumpedit.com{% url "channel_home" channel.name %}</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+{% endblock %}
+
 {% block content %}
     {% if show_id == current_show.id %}
         <div id="container-fluid" class="container-fluid"></div>

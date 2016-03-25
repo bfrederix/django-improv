@@ -17,3 +17,6 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+STRIPE_PUBLIC_KEY = "***REMOVED***"
+STRIPE_SECRET_KEY = "***REMOVED***"
