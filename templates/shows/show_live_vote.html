@@ -5,6 +5,7 @@
 {% block title %}{{channel.display_name}}'s Live Voting Page{% endblock %}
 
 {% block add_head %}
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}animate-3.1.0/animate.min.css">
     {% if channel.facebook_pixel %}
         <script>
             (function() {
@@ -36,7 +37,7 @@
                         <form action="{% url "show_live_vote" channel.name show_id %}" method="post">
                             <input type="hidden" name="option_number" value="{{option}}" />
                             {% csrf_token %}
-                            <input type="submit" class="btn btn-primary btn-block x-large-font btn-shadow text-shadow" value="{{forloop.counter}}"/>
+                            <input type="submit" class="btn btn-primary btn-block x-large-font btn-shadow text-shadow animated {% if forloop.counter|divisibleby:2 %}slideInRight{% else %}slideInLeft{% endif %}" value="{{forloop.counter}}"/>
                         </form>
                     </div>
                 </div>
