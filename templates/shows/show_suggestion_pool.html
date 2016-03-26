@@ -4,6 +4,10 @@
 
 {% block title %}{{channel.display_name}}'s {{suggestion_pool.display_name}} Add/Vote{% endblock %}
 
+{% block add_head %}
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}animate-3.1.0/animate.min.css">
+{% endblock %}
+
 {% block content %}
     <div id="container-fluid" class="container-fluid"></div>
     {% include "embedded_utils/react_components.html" %}

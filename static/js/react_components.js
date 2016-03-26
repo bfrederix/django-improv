@@ -57,7 +57,7 @@ function getSpanFormat(spanDate){
 
 function addDismissibleModal(elementID, displayName, message) {
     // If the form modal doesn't exist, create it
-    if (!$('form-modal').length) {
+    if (!$('#form-modal').length) {
         // Create the modal html string
         var modalHTML = '<div class="modal fade" id="form-modal" tabindex="-1" role="dialog">' +
                             '<div class="modal-dialog">' +
@@ -2992,6 +2992,7 @@ var Recap = React.createClass({
 
 var ShowSuggestionPoolSuggestion = React.createClass({
   render: function() {
+    var suggestionKey = "suggestion-" + this.props.suggestion.id + "-" + this.props.suggestion.preshow_value;
     var upvoteButton, deleteButton;
     var upvoteSpans = <div>
                           <span className="glyphicon glyphicon-circle-arrow-up"></span>
@@ -3027,7 +3028,7 @@ var ShowSuggestionPoolSuggestion = React.createClass({
     }
 
     return (
-        <div>
+        <div className="animated fadeInDown" key={suggestionKey}>
             <div className="row">
                 <div className="col-md-2 pull-left">
                     {upvoteButton}
@@ -3111,7 +3112,7 @@ var ShowSuggestionPool = React.createClass({
     // Initially Get the suggestions
     this.pullInitialSuggestions();
     // Set an interval to update the suggestions on
-    this.setInterval(this.updateSuggestions, 5000);
+    this.setInterval(this.updateSuggestions, 10000);
   },
   pullInitialSuggestions: function() {
     $.ajax({
@@ -3153,11 +3154,22 @@ var ShowSuggestionPool = React.createClass({
                 } else if (orderedSuggestions[suggestionIndex].id == suggestion.id) {
                     // Update the suggestion
                     orderedSuggestions[suggestionIndex] = suggestion;
+                // Search for the suggestion and update it
+                } else {
+                    var arrayLength = orderedSuggestions.length;
+                    // Loop through all the suggestions
+                    for (var i = 0; i < arrayLength; i++) {
+                        // If the suggestion ids match
+                        if (orderedSuggestions[i].id == suggestion.id) {
+                            // Update the suggestion
+                            orderedSuggestions[i] = suggestion;
+                        }
+                    }
                 }
                 return orderedSuggestions;
             }, this);
-
-        } else {
+        // Set the first non-empty data state
+        } else if (data) {
             // Set the ordered suggestions for the first time
             orderedSuggestions = data;
         }
@@ -3177,6 +3189,11 @@ var ShowSuggestionPool = React.createClass({
       this.setState({data: this.state.data,
                      suggestionIDIndex: this.state.suggestionIDIndex}, function() {
           var suggestionID = event.target.id;
+          // Disable the upvote button for the suggestion
+          $("#"+suggestionID+'-button').prop('disabled', true);
+          // Add one to the upvotes for that suggestion
+          var upvotes = $("#"+suggestionID+'-votes');
+          upvotes.text(parseInt(upvotes.text())+1);
           var upvoteData = {id: suggestionID,
                             csrfmiddlewaretoken: this.props.showSuggestionPoolContext.csrfToken}
           // Do a POST to upvote the suggestion
@@ -3187,12 +3204,7 @@ var ShowSuggestionPool = React.createClass({
               data: upvoteData,
               success: function(data) {
                   // Update the votes
-                  this.componentDidMount();
-                  // Disable the upvote button for the suggestion
-                  $(suggestionID+'-button').prop('disabled', true);
-                  // Add one to the upvotes for that suggestion
-                  var upvotes = $(suggestionID+'-votes');
-                  upvotes.text(parseInt(upvotes.text())+1);
+                  //this.componentDidMount();
               }.bind(this),
               error: function(xhr, status, err) {
                   console.error(this.props.url, status, err.toString());
@@ -3224,7 +3236,7 @@ var ShowSuggestionPool = React.createClass({
             return votePanelList;
         }, this);
     } else {
-        votePanelList.push((<div key="load-1"><Loading loadingBarColor="#000"/></div>));
+        return (<div key="load-1"><Loading loadingBarColor="#fff"/></div>);
     }
 
     return (
