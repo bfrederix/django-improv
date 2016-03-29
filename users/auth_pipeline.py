@@ -13,14 +13,22 @@ from users.models import UserProfile
 def save_opt_in(strategy, details, user=None, is_new=False, *args, **kwargs):
     # Get the request data from the opt-in form
     request_data = kwargs.get('request', {})
-    # IF the user is new and the opt-in form hasn't been submitted
-    if is_new and not 'ieoi' in request_data:
-        return redirect('opt_in_preferences', backend=kwargs['backend'].name)
-    elif 'ieoi' in request_data:
+    # If the user has already been created
+    if user:
         # Get the user profile
         user_profile = UserProfile.objects.get(user=user)
-        # Apply the opt in data
-        user_profile.site_email_opt_in = request_data.get('ieoi', 'False') == 'True'
+    else:
+        user_profile = None
+    # IF the user is new and the opt-in form hasn't been submitted
+    if is_new and not 'uaoi' in request_data:
+        return redirect('opt_in_preferences', backend=kwargs['backend'].name)
+    # Otherwise if the user isn't new, but they haven't accepted the User Agreement Terms
+    if not is_new and user_profile and not user_profile.accepted_user_agreement \
+        and not 'uaoi' in request_data:
+        return redirect('opt_in_preferences', backend=kwargs['backend'].name)
+    elif 'uaoi' in request_data:
+        # The user has accepted the agreement
+        user_profile.accepted_user_agreement = True
         user_profile.save()
 
 

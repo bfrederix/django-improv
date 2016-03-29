@@ -33,13 +33,17 @@ class OptInPreferencesView(View):
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
+        # If the form is valid and they didn't cancel
+        if request.POST.get('cancel'):
+            return redirect('dumpedit_home')
         if form.is_valid():
-            ieoi = form.cleaned_data.get('site_email_opt_in', False)
-            #user_service.update_user_profile(request.user.id, update_fields)
-            # Use cleaned data to update the user preferences
-            return redirect("{0}?ieoi={1}".format(
-                                reverse('social:complete', kwargs={"backend": kwargs.get('backend')}),
-                                ieoi))
+            uaoi = form.cleaned_data.get('user_agreement_opt_in', False)
+            # If they accepted the user agreement
+            if uaoi:
+                # Use cleaned data to update the user preferences
+                return redirect("{0}?uaoi={1}".format(
+                                    reverse('social:complete', kwargs={"backend": kwargs.get('backend')}),
+                                    uaoi))
         return render(request, self.template_name,
                       {'form': form,
                        'backend': kwargs.get('backend')})

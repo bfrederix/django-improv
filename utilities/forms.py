@@ -125,6 +125,16 @@ bullying, criminal, racist, sexist, harassing, hateful, violent, or that victimi
 an individual on or through our Service. Such content may be removed at will and your
 account may be terminated.
 
+Creating Channels
+-----------------
+
+A. Channels may not be used to promote content other than using the site for the purpose of
+live shows. Users exploiting this site for the purpose of sharing their content with no actual
+intended use of the voting application can have their channel removed at any time.
+
+B. Channel owners and admins consent to receiving announcement e-mails about services and
+offerings from Dumpedit. Channel owners and admins may opt out of these e-mails at any time.
+
 Channel Subscriptions Available on or through our Service
 ---------------------------------------------------------
 

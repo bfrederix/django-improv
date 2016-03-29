@@ -7,28 +7,41 @@
             <div class="row">
                 <div class="col-md-6 col-md-offset-3">
 	                <div class="panel panel-info">
-                        <div class="panel-heading x-large-font">E-mail Preferences</div>
+                        <div class="panel-heading x-large-font">Terms and Conditions / Privacy Policy</div>
 	                        <div class="panel-body">
                                 <form role="form" action="{% url "opt_in_preferences" backend=backend %}" method="post">
                                     {% csrf_token %}
                                     <div class="row">
-                                        <div class="form-group">
-                                             <label class="col-sm-10 control-label">E-mail me about Dumpedit features and announcements:</label>
-                                             <div class="col-sm-1">
-                                                 {{form.site_email_opt_in}}
-                                             </div>
+                                        <div class="col-md-12">
+                                            {{form.user_agreement}}
                                         </div>
                                     </div>
                                     <div class="row">&nbsp;</div>
                                     <div class="row">
                                         <div class="form-group">
-                                            <div class="col-sm-6">
-                                                {{form.site_email_opt_in}} I have read and agree to the Terms and Conditions and Privacy Policy</label>
+                                            <div class="col-md-12">
+                                                {{form.user_agreement_opt_in}} I have read and agree to the Terms and Conditions and Privacy Policy</label>
                                             </div>
                                         </div>
                                     </div>
+                                    {% if form.user_agreement_opt_in.errors %}
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="alert alert-danger" role="alert">
+                                                    You must accept the Terms and Conditions and Privacy Policy
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
                                     <div class="row">&nbsp;</div>
-                                    <input class="col-sm-offset-4" type="submit" value="Submit" />
+                                    <div class="row">
+                                        <div class="col-md-2 col-md-offset-8">
+                                            <input type="submit" name="cancel" value="Cancel" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="submit" name="submit" value="Submit" />
+                                        </div>
+                                    </div>
                                 </form>
                             </div>
                         </div>
