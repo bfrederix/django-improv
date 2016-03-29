@@ -35,6 +35,7 @@ urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + 
     url(r'^$', include('home.urls')),
     url(r'^sitemap\.xml$', views.index, {'sitemaps': sitemaps}),
     url(r'^sitemap-(?P<section>.+)\.xml$', views.sitemap, {'sitemaps': sitemaps}),
+    url(r'^channel/browse/', include('channels.browse_urls')),
     url(r'^channel/premium/', include('channels.payment_urls')),
     url(r'^channel/', include('channels.create_edit_urls')),
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/show/', include('shows.urls')),

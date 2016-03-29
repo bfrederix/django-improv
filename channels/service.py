@@ -40,6 +40,10 @@ def channel_from_request(request):
     return channel
 
 
+def fetch_channels():
+    return Channel.objects.filter(archived=False).order_by('display_name')
+
+
 def suggestion_pool_or_404(suggestion_pool_id):
     return get_object_or_404(SuggestionPool, id=suggestion_pool_id)
 

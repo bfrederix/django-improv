@@ -2,12 +2,16 @@
 
 {% block home-selected %}class="active"{% endblock %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Dumpedit Home{% endblock %}
+
+{% block add_head %}
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}animate-3.1.0/animate.min.css">
+{% endblock %}
 
 {% block content %}
     <!-- Header -->
     <header>
-        <div class="container">
+        <div class="container animated fadeInDown">
             <div class="row">
                 <div class="col-lg-12">
                     <img class="img-responsive" src="{{IMAGE_URL}}dumpedit-logo-medium-circle.png" alt="Dumpedit Logo">
@@ -23,12 +27,10 @@
                                 <a href="{% url "channel_create" %}" class="btn btn-lg btn-danger btn-shadow">
                                     <span style="font-size:x-large;">Create a Show Channel for Free</span>
                                 </a>
-                                {% comment %}
                                 &nbsp;
-                                <a href="#" class="btn btn-lg btn-info btn-shadow">
-                                    <span style="font-size:x-large;">Find a Show Channel</span>
+                                <a href="{% url "channel_browse" %}" class="btn btn-lg btn-info btn-shadow">
+                                    <span style="font-size:x-large;">Browse Show Channels</span>
                                 </a>
-                                {% endcomment %}
                             </div>
                         </div>
                     </div>
@@ -39,7 +41,7 @@
 
     <!-- Features Grid Section -->
     <section id="features">
-        <div class="container">
+        <div class="container animated fadeInDown">
             <div class="row">
                 <div class="col-lg-12 text-center text-colorless-shadow">
                     <h2>Features</h2>
@@ -108,7 +110,7 @@
 
     <!-- About Section -->
     <section class="success" id="about">
-        <div class="container">
+        <div class="container animated fadeInDown">
             <div class="row">
                 <div class="col-lg-12 text-center text-shadow">
                     <h2>About</h2>

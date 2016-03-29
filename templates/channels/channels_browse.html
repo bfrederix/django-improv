@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Dumpedit: Channels Browse{% endblock %}
+
+{% block add_head %}
+    <link rel="stylesheet" type="text/css" href="{{CSS_URL}}animate-3.1.0/animate.min.css">
+{% endblock %}
+
+{% block content %}
+    <section>
+        <div id="container-fluid" class="container-fluid">
+            <br />
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <div class="panel panel-info highlight-shadow animated fadeInDown">
+                        <div class="panel-heading text-shadow x-large-font">
+                            All Channels
+                        </div>
+                        <div class="panel-body white-background">
+                            <div class="row">
+                                <div class="col-lg-12 large-font text-center">
+                                    {% for channel_obj in channels %}
+                                        <div class="row">
+                                            <a href="{% url "channel_home" channel_obj.name %}">{{channel_obj.display_name}}</a>
+                                            <hr />
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

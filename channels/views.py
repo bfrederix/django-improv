@@ -51,6 +51,18 @@ class ChannelHomeView(view_utils.ShowView):
                       context)
 
 
+class ChannelBrowseView(view_utils.ShowView):
+    template_name = 'channels/channels_browse.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        context.update(
+            {'channels': channels_service.fetch_channels()})
+        return render(request,
+                      self.template_name,
+                      context)
+
+
 class ChannelCreateEditView(view_utils.ShowView):
     template_name = 'channels/channel_create_edit.html'
 
