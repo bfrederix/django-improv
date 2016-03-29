@@ -17,9 +17,11 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.sitemaps import views
 
 from utilities import views as view_utils
 from api_router import router
+from sitemaps import sitemaps
 
 urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + [
     url(r'^api/v1/', include(router.urls)),
@@ -31,6 +33,8 @@ urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + 
     url(r'^users/', include('users.urls')),
     url(r'^forums/', include('forums.urls')),
     url(r'^$', include('home.urls')),
+    url(r'^sitemap\.xml$', views.index, {'sitemaps': sitemaps}),
+    url(r'^sitemap-(?P<section>.+)\.xml$', views.sitemap, {'sitemaps': sitemaps}),
     url(r'^channel/premium/', include('channels.payment_urls')),
     url(r'^channel/', include('channels.create_edit_urls')),
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/show/', include('shows.urls')),
@@ -38,5 +42,4 @@ urlpatterns = static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + 
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/medals/', include('leaderboards.medal_urls')),
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/recaps/', include('recaps.urls')),
     url(r'^(?P<channel_name>[a-zA-Z0-9-]+)/', include('channels.urls')),
-    #url(r'^', include('channels.urls')),
 ]

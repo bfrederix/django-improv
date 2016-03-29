@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect
 from django.utils.html import escape, strip_tags
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
+from django.contrib.sitemaps import ping_google
 
 from channels.models import (Channel, ChannelAddress, ChannelOwner,
                              ChannelAdmin, SuggestionPool, VoteType)
@@ -111,6 +112,13 @@ class ChannelCreateEditView(view_utils.ShowView):
         # If there wasn't an error, save the channel
         if not error:
             context['channel'].save()
+            # Tell google to update from the sitemap
+            try:
+                ping_google()
+            except Exception:
+                # Bare 'except' because we could get a variety
+                # of HTTP-related exceptions.
+                pass
         # Update or create images in cloudinary
         for field_name, img_file in image_update.items():
             if img_file and not error:
