@@ -18,7 +18,9 @@ class Command(BaseCommand):
         for channel in Channel.objects.all():
             # Loop through all users
             for user in User.objects.all():
-                # Loop through all leaderboard entries for that user
-                for leaderboard_entries in LeaderboardEntry.object.filter(user_id=user.id):
-                    # Update the stats for their channel user
-                    channels_service.update_channel_user(channel, user, leaderboard_entries)
+                # Update the stats for their channel user
+                channels_service.update_channel_user(
+                    channel,
+                    user,
+                    LeaderboardEntry.objects.filter(user_id=user.id))
+                print("Updated user: {0}".format(user.id))

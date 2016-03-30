@@ -10,6 +10,7 @@ class RecapAPIObject(APIObject):
 
     def __init__(self, voted_item, **kwargs):
         super(RecapAPIObject, self).__init__(voted_item, **kwargs)
+        ### THIS COULD USE SOME CACHING ###
         # Get the show interval
         show_interval = shows_service.get_show_interval(voted_item.show_id,
                                                         voted_item.vote_type_id,
@@ -25,8 +26,11 @@ class RecapAPIObject(APIObject):
         voted_option = voted_item.vote_option
         # Set the winning option
         self.winning_option = voted_option.id
-        # if there's a player attached to the voted option
-        if voted_option.player_id:
+        # if there's a player attached to the show interval
+        if show_interval.player_id:
+            self.player = show_interval.player_id
+        # else if there's a player attached to the voted option
+        elif voted_option.player_id:
             self.player = voted_option.player_id
         # If it was an interval
         if voted_item.interval is not None:

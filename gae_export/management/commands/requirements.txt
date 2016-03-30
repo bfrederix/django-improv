@@ -5,5 +5,7 @@ gsutil==4.12
 psycopg2==2.6
 pytz==2015.4
 pyyaml==3.11
+cloudinary==1.2.0
+dj-stripe==0.8.0
 # Also need to install the appengine SDK
 # https://cloud.google.com/appengine/downloads

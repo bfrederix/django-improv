@@ -42,12 +42,10 @@
 
         <input type="hidden" id="rootType" name="rootType" value="show_display" readonly>
         <input type="hidden" id="teamPhotoUrl" name="teamPhotoUrl" value="{{channel.team_photo_url}}" readonly>
-        <input type="hidden" id="guitarChordFile" name="guitarChordFile"
-               value="{{AUDIO_URL}}power_chord.mp3" readonly>
-        <input type="hidden" id="votingChimeFile" name="votingChimeFile"
-               value="{{AUDIO_URL}}action-chime.mp3" readonly>
-        <input type="hidden" id="chaChingFile" name="chaChingFile"
-               value="{{AUDIO_URL}}cha_ching.mp3" readonly>
+        <input type="hidden" id="audioPath" name="audioPath"
+               value="{{AUDIO_URL}}" readonly>
+        <input type="hidden" id="fireFile" name="fireFile"
+               value="{{AUDIO_URL}}fire.mp3" readonly>
         {% if current_show %}
             <input type="hidden" id="showID" name="showID" value="{{current_show.id}}" readonly>
             <input type="hidden" id="voteTypeAPIUrl" name="voteTypeAPIUrl"
@@ -75,6 +73,6 @@
 {% block add_react %}
     {% include "embedded_utils/react_src.html" %}
     <script src="{{JS_URL}}flipclock-0.7.4-beta/flipclock.min.js"></script>
-    <script src="{{JS_URL}}jquery.playSound.js"></script>
     <script src="{{JS_URL}}chroma.min.js"></script>
+    <script src="{{JS_URL}}ion.sound-3.0.7/ion.sound.min.js"></script>
 {% endblock %}

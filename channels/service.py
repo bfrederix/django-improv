@@ -183,7 +183,7 @@ def update_channel_user(channel, user, leaderboard_entries):
         cu_update['points'] += le.points
         cu_update['suggestion_wins'] += le.wins
         # If they won the show
-        if le.show_win:
+        if le.show_win():
             cu_update['show_wins'] += 1
     # Set the overall leaderboard data on the Channel User
     for key, value in cu_update.items():

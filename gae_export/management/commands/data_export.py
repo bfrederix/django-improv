@@ -12,7 +12,7 @@ from google.appengine.api import datastore
 
 from django.core.management.base import BaseCommand
 from django.db.utils import IntegrityError
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.auth.models import User
 
 from channels.models import (Channel, ChannelAddress, ChannelAdmin,
@@ -27,7 +27,7 @@ from shows.models import (Show, ShowVoteType,
 from users.models import UserProfile
 
 
-MODEL_NAME_REGEX = '[\w\_]+[\d]{4}\_[\d]{2}\_[\d]{2}\_([\w]+)-'
+MODEL_NAME_REGEX = '/datastore_backup_datastore_backup_[\d]{4}\_[\d]{2}\_[\d]{2}\_([\w]+)/'
 
 MODEL_IMPORT_ORDER = ['UserProfile',
                       'Medal',
@@ -39,8 +39,8 @@ MODEL_IMPORT_ORDER = ['UserProfile',
                       'LeaderboardEntry',
                       'Suggestion',
                       'PreshowVote',
-                      'VoteOption',
                       'ShowInterval',
+                      'VoteOptions',
                       'LiveVote',
                       'VotedItem',
                       'EmailOptOut']
@@ -104,7 +104,6 @@ class Command(BaseCommand):
                    'VoteOptions': 0,
                    'VotedItem': 0,
                    'EmailOptOut': 0,
-                   'OptionSuggestion': 0,
                    'ShowVoteType': 0,
                    'ShowPlayer': 0,
                    'LeaderboardEntryMedal': 0}
@@ -113,21 +112,25 @@ class Command(BaseCommand):
                                                                         city="Denver",
                                                                         state="CO",
                                                                         zipcode="80202")
-        channel, created = Channel.objects.get_or_create(id=1,
-                                                         name="adventure",
-                                                         display_name="Adventure-prov",
-                                                         premium=True,
-                                                         short_description="Adventure-prov rules!",
-                                                         description="Adventure-prov rules for real!",
-                                                         thumbnail_url="http://www.fake.com",
-                                                         team_photo_url="http://www.fake.com",
-                                                         website="http://www.fake.com",
-                                                         address=channel_address,
-                                                         buy_tickets_link="http://www.fake.com",
-                                                         next_show=pytz.utc.localize(datetime.datetime(2017, 8, 9)),
-                                                         navbar_color="#4596FF",
-                                                         background_color="#000000",
-                                                         created=pytz.utc.localize(datetime.datetime.utcnow()))
+        try:
+            channel = Channel.objects.get(id=1)
+        except Channel.DoesNotExist:
+            channel, created = Channel.objects.get_or_create(id=1,
+                                                             name="adventure",
+                                                             display_name="Adventure-prov",
+                                                             email="brfredericks@gmail.com",
+                                                             premium=True,
+                                                             short_description="Adventure-prov rules!",
+                                                             description="Adventure-prov rules for real!",
+                                                             thumbnail_url="http://www.fake.com",
+                                                             team_photo_url="http://www.fake.com",
+                                                             website="http://www.fake.com",
+                                                             address=channel_address,
+                                                             buy_tickets_link="http://www.fake.com",
+                                                             next_show=pytz.utc.localize(datetime.datetime(2017, 8, 9)),
+                                                             navbar_color="#4596FF",
+                                                             background_color="#000000",
+                                                             created=pytz.utc.localize(datetime.datetime.utcnow()))
         channel_owner, created = ChannelOwner.objects.get_or_create(channel=channel,
                                                                     user=my_user)
         channel_admin, created = ChannelAdmin.objects.get_or_create(channel=channel,
@@ -135,8 +138,8 @@ class Command(BaseCommand):
         now = pytz.utc.localize(datetime.datetime.now())
         for (dirpath, dirnames, filenames) in os.walk(data_path):
             for filename in filenames:
-                if not filename.endswith('backup_info'):
-                    m = re.search(MODEL_NAME_REGEX, filename)
+                if filename.startswith('output-'):
+                    m = re.search(MODEL_NAME_REGEX, dirpath)
                     model_name = m.group(1)
                     raw = open(os.path.join(dirpath, filename), 'r')
                     reader = records.RecordsReader(raw)
@@ -281,7 +284,6 @@ class Command(BaseCommand):
                                 counter['SuggestionPool'] += 1
                                 self.stdout.write(str(counter['SuggestionPool']))
                         if model_name == 'VoteType' and model_to_import == 'VoteType':
-                            #pprint(entity['intervals'])
                             if entity.get('created'):
                                 sug_created = pytz.utc.localize(entity.get('created'))
                             else:
@@ -309,7 +311,6 @@ class Command(BaseCommand):
                                       vote_length=25,
                                       result_length=10,
                                       button_color=entity['button_color'],
-                                      require_login=False,
                                       active=True,
                                       archived=False,
                                       current_interval=entity['current_interval'],
@@ -387,128 +388,182 @@ class Command(BaseCommand):
                                 self.stdout.write(str(counter['Suggestion']))
                         if model_name == 'PreshowVote' and model_to_import == 'PreshowVote':
                             try:
-                                PreshowVote.objects.get_or_create(
-                                      id=entity.key().id(),
-                                      show_id=get_entity_id(entity, 'show'),
-                                      suggestion_id=entity['suggestion'].id(),
-                                      user=None,
-                                      session_id=entity['session_id'])
-                            except IntegrityError, e:
-                                if not 'not present in table "shows_suggestion"' in str(e) and \
-                                   not 'duplicate' in str(e):
-                                    raise IntegrityError(e)
-                            counter['PreshowVote'] += 1
-                            self.stdout.write(str(counter['PreshowVote']))
-                        if model_name == 'VoteOptions' and model_to_import == 'VoteOptions':
-                            show_id = entity['show'].id()
-                            vote_type_id = entity['vote_type'].id()
-                            interval = entity['interval']
-                            vote_counter = 0
-                            for option in entity['option_list']:
-                                vote_counter += 1
+                                suggestion = Suggestion.objects.get(id=entity['suggestion'].id())
+                            except Suggestion.DoesNotExist:
+                                pass
+                            else:
                                 try:
-                                    VoteOption.objects.get_or_create(
+                                    PreshowVote.objects.get_or_create(
                                           id=entity.key().id(),
-                                          option_number=vote_counter,
-                                          show_id=show_id,
-                                          vote_type_id=vote_type_id,
-                                          interval=interval,
-                                          suggestion_id=option.id())
+                                          show_id=get_entity_id(entity, 'show'),
+                                          suggestion_id=entity['suggestion'].id(),
+                                          user=None,
+                                          session_id=entity['session_id'])
                                 except IntegrityError, e:
                                     if not 'not present in table "shows_suggestion"' in str(e) and \
-                                       not 'not present in table "shows_voteoptions"' in str(e) and \
                                        not 'duplicate' in str(e):
                                         raise IntegrityError(e)
-                                counter['OptionSuggestion'] += 1
-                                self.stdout.write(str(counter['OptionSuggestion']))
+                                counter['PreshowVote'] += 1
+                                self.stdout.write(str(counter['PreshowVote']))
                         if model_name == 'ShowInterval' and model_to_import == 'ShowInterval':
                             try:
-                                ShowInterval.objects.get_or_create(
-                                      id=entity.key().id(),
-                                      show_id=entity['show'].id(),
-                                      vote_type_id=entity['vote_type'].id(),
-                                      interval=entity['interval'],
-                                      player_id=get_entity_id(entity, 'player'))
-                            except IntegrityError, e:
-                                if not 'not present in table "shows_votetype"' in str(e) and \
-                                   not 'duplicate' in str(e):
-                                    raise IntegrityError(e)
-                            counter['ShowInterval'] += 1
-                            self.stdout.write(str(counter['ShowInterval']))
+                                show = Show.objects.get(id=entity['show'].id())
+                            except Show.DoesNotExist:
+                                pass
+                            else:
+                                try:
+                                    vote_type = VoteType.objects.get(id=entity['vote_type'].id())
+                                except VoteType.DoesNotExist:
+                                    pass
+                                else:
+                                    try:
+                                        show_interval, created = ShowInterval.objects.get_or_create(
+                                              show=show,
+                                              vote_type=vote_type,
+                                              interval=entity['interval'],
+                                              player_id=get_entity_id(entity, 'player'))
+                                    except IntegrityError, e:
+                                        if not 'not present in table "shows_votetype"' in str(e) and \
+                                           not 'duplicate' in str(e):
+                                            raise IntegrityError(e)
+                                    if created:
+                                        counter['ShowInterval'] += 1
+                                        self.stdout.write(str(counter['ShowInterval']))
+                        if model_name == 'VoteOptions' and model_to_import == 'VoteOptions':
+                            try:
+                                show = Show.objects.get(id=entity['show'].id())
+                            except Show.DoesNotExist:
+                                pass
+                            else:
+                                try:
+                                    vote_type = VoteType.objects.get(id=entity['vote_type'].id())
+                                except VoteType.DoesNotExist:
+                                    pass
+                                else:
+                                    interval = entity['interval']
+                                    vote_counter = 0
+                                    for option in entity['option_list']:
+                                        vote_counter += 1
+                                        # Create the vote option
+                                        try:
+                                            vote_option = VoteOption(
+                                                              option_number=vote_counter,
+                                                              show=show,
+                                                              vote_type=vote_type,
+                                                              interval=interval,
+                                                              suggestion_id=option.id())
+                                            vote_option.save()
+                                        except IntegrityError, e:
+                                            if not 'not present in table "shows_suggestion"' in str(e) and \
+                                               not 'not present in table "shows_voteoptions"' in str(e) and \
+                                               not 'duplicate' in str(e):
+                                                raise IntegrityError(e)
+                                        counter['VoteOptions'] += 1
+                                        self.stdout.write(str(counter['VoteOptions']))
                         if model_name == 'LiveVote' and model_to_import == 'LiveVote':
                             try:
-                                user_profile = UserProfile.objects.get(social_id=entity['user_id'])
-                                user = user_profile.user
-                            except ObjectDoesNotExist:
-                                user = None
-                            suggestion_id = get_entity_id(entity, 'suggestion')
-                            # If this was a vote with suggestions attached to the live vote
-                            if suggestion_id:
-                                # Get the vote option for the live vote
-                                try:
-                                    vote_option = VoteOption.objects.get(
-                                                           show=entity['show'].id(),
-                                                           vote_type=entity['vote_type'].id(),
-                                                           interval=entity['interval'],
-                                                           suggestion=suggestion_id)
-                                except ObjectDoesNotExist:
-                                    raise ObjectDoesNotExist("Missing Options for Live Vote: {0}".format(entity.key().id()))
-                                # Get the vote option for the live vote
-                                try:
-                                    show_interval = ShowInterval.objects.get(
-                                                           show=entity['show'].id(),
-                                                           vote_type=entity['vote_type'].id(),
-                                                           interval=entity['interval'])
-                                except ObjectDoesNotExist:
-                                    self.stdout.write("Missing Show Interval for Live Vote: {0}".format(entity.key().id()))
-                                    show_interval = None
-                                try:
-                                    LiveVote.objects.get_or_create(
-                                          id=entity.key().id(),
-                                          vote_option=vote_option,
-                                          show_interval=show_interval,
-                                          session_id=entity['session_id'],
-                                          user=user)
-                                except IntegrityError, e:
-                                    if not 'not present in table "shows_votetype"' in str(e) and \
-                                       not 'not present in table "shows_suggestion"' in str(e) and \
-                                       not 'duplicate' in str(e):
-                                        raise IntegrityError(e)
-                                counter['LiveVote'] += 1
-                                self.stdout.write(str(counter['LiveVote']))
-                            # This was a player live vote and we don't care about recording the live votes
+                                show = Show.objects.get(id=entity['show'].id())
+                            except Show.DoesNotExist:
+                                pass
                             else:
-                                self.stdout.write("Player Live Vote (Don't Care): {0}".format(entity.key().id()))
+                                try:
+                                    vote_type = VoteType.objects.get(id=entity['vote_type'].id())
+                                except VoteType.DoesNotExist:
+                                    pass
+                                else:
+                                    try:
+                                        user_profile = UserProfile.objects.get(social_id=entity['user_id'])
+                                        user = user_profile.user
+                                    except ObjectDoesNotExist:
+                                        user = None
+                                    suggestion_id = get_entity_id(entity, 'suggestion')
+                                    # If this was a vote with suggestions attached to the live vote
+                                    if suggestion_id:
+                                        try:
+                                            suggestion = Suggestion.objects.get(id=suggestion_id)
+                                        except Suggestion.DoesNotExist:
+                                            pass
+                                        else:
+                                            try:
+                                                # Get the vote option for the live vote
+                                                vote_option = VoteOption.objects.get(
+                                                                       show=show,
+                                                                       vote_type=vote_type,
+                                                                       interval=entity['interval'],
+                                                                       suggestion=suggestion)
+                                            except ObjectDoesNotExist:
+                                                self.stdout.write("Missing Vote Option for LiveVote: {0}".format(entity.key().id()))
+                                            except MultipleObjectsReturned:
+                                                self.stdout.write("Multiple Vote Options for LiveVote: {0}".format(entity.key().id()))
+                                            else:
+                                                # Get the show interval for the live vote
+                                                try:
+                                                    show_interval = ShowInterval.objects.get(
+                                                                           show=show,
+                                                                           vote_type=vote_type,
+                                                                           interval=entity['interval'])
+                                                except ObjectDoesNotExist:
+                                                    self.stdout.write("Missing Show Interval for Live Vote: {0}".format(entity.key().id()))
+                                                else:
+                                                    try:
+                                                        lv, created = LiveVote.objects.get_or_create(
+                                                                          vote_option=vote_option,
+                                                                          show_interval=show_interval,
+                                                                          session_id=entity['session_id'],
+                                                                          user=user)
+                                                    except IntegrityError, e:
+                                                        if not 'not present in table "shows_votetype"' in str(e) and \
+                                                           not 'not present in table "shows_suggestion"' in str(e) and \
+                                                           not 'duplicate' in str(e):
+                                                            raise IntegrityError(e)
+                                                    if created:
+                                                        counter['LiveVote'] += 1
+                                                        self.stdout.write(str(counter['LiveVote']))
+                                    # This was a player live vote and we don't care about recording the live votes
+                                    else:
+                                        self.stdout.write("Player Live Vote (Don't Care): {0}".format(entity.key().id()))
                         if model_name == 'VotedItem' and model_to_import == 'VotedItem':
-                            suggestion_id = get_entity_id(entity, 'suggestion')
-                            # If it was a suggestion that was voted for
-                            if suggestion_id:
-                                # Get the vote option for the live vote
-                                try:
-                                    vote_option = VoteOption.objects.get(
-                                                           show=entity['show'].id(),
-                                                           vote_type=entity['vote_type'].id(),
-                                                           interval=entity['interval'],
-                                                           suggestion=suggestion_id)
-                                except ObjectDoesNotExist:
-                                    raise ObjectDoesNotExist("Missing Options for Live Vote: {0}".format(entity.key().id()))
-                                try:
-                                    VotedItem.objects.get_or_create(
-                                              id=entity.key().id(),
-                                              show_id=entity['show'].id(),
-                                              vote_type_id=entity['vote_type'].id(),
-                                              vote_option=vote_option,
-                                              interval=entity['interval'])
-                                except IntegrityError, e:
-                                    if not 'not present in table "shows_votetype"' in str(e) and \
-                                       not 'not present in table "shows_suggestion"' in str(e) and \
-                                       not 'duplicate' in str(e):
-                                        raise IntegrityError(e)
-                                counter['VotedItem'] += 1
-                                self.stdout.write(str(counter['VotedItem']))
-                            # This was a player voted item and we don't care about recording the live votes
+                            try:
+                                show = Show.objects.get(id=entity['show'].id())
+                            except Show.DoesNotExist:
+                                pass
                             else:
-                                self.stdout.write("Player Voted Item (Don't Care): {0}".format(entity.key().id()))
+                                try:
+                                    vote_type = VoteType.objects.get(id=entity['vote_type'].id())
+                                except VoteType.DoesNotExist:
+                                    pass
+                                else:
+                                    suggestion_id = get_entity_id(entity, 'suggestion')
+                                    # If it was a suggestion that was voted for
+                                    if suggestion_id:
+                                        # Get the vote option for the live vote
+                                        try:
+                                            vote_option = VoteOption.objects.get(
+                                                                   show=show,
+                                                                   vote_type=vote_type,
+                                                                   interval=entity['interval'],
+                                                                   suggestion=suggestion_id)
+                                        except ObjectDoesNotExist:
+                                            self.stdout.write("Missing Vote Option for VotedItem: {0}".format(entity.key().id()))
+                                        except MultipleObjectsReturned:
+                                            self.stdout.write("Multiple Vote Options for VotedItem: {0}".format(entity.key().id()))
+                                        else:
+                                            try:
+                                                VotedItem.objects.get_or_create(
+                                                          show=show,
+                                                          vote_type=vote_type,
+                                                          vote_option=vote_option,
+                                                          interval=entity['interval'])
+                                            except IntegrityError, e:
+                                                if not 'not present in table "shows_votetype"' in str(e) and \
+                                                   not 'not present in table "shows_suggestion"' in str(e) and \
+                                                   not 'duplicate' in str(e):
+                                                    raise IntegrityError(e)
+                                            counter['VotedItem'] += 1
+                                            self.stdout.write(str(counter['VotedItem']))
+                                    # This was a player voted item and we don't care about recording the live votes
+                                    else:
+                                        self.stdout.write("Player Voted Item (Don't Care): {0}".format(entity.key().id()))
                         if model_name == 'EmailOptOut' and model_to_import == 'EmailOptOut':
                             try:
                                 up = UserProfile.objects.get(email=entity['email'])
@@ -517,7 +572,7 @@ class Command(BaseCommand):
                             else:
                                 cu = ChannelUser.objects.get(channel=channel,
                                                              user=up.user)
-                                cu.email_opt_in = True
+                                cu.email_opt_in = False
                                 cu.save()
                             counter['EmailOptOut'] += 1
                             self.stdout.write(str(counter['EmailOptOut']))

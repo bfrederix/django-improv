@@ -38,4 +38,4 @@ pyenv activate gae_export
 
 
 #### Run the management command ############
-python manage.py data_export /Users/brandon.fredericks/home_projects/django-voteprov/gae_export/adventureprovbackup/ Medal
+python manage.py data_export /Users/freddy/projects/django-voteprov/gae_export/adventureprovbackup/ Medal

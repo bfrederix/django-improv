@@ -2885,6 +2885,7 @@ var ShowRecapPanels = React.createClass({
     panelList.push(<br key="br-1" />);
     panelList.push(<ShowMedia key="sm-1" showAPIUrl={this.props.recapContext.showAPIUrl} />)
     if (this.state.data) {
+        console.log(this.props.recapContext.showRecapAPIUrl)
         // Create the suggestion list
         this.state.data.map(function (recapItem) {
             this.counter++;
@@ -3544,9 +3545,16 @@ var VoteOptionPlayer = React.createClass({
             var voteDelta = data.live_votes - this.state.data.live_votes;
             // If there is a difference
             if (voteDelta > 0) {
+                ion.sound({
+                    sounds: [
+                        {name: "cha_ching"}
+                    ],
+                    volume: 1.0,
+                    path: this.props.audioPath,
+                    preload: true
+                });
                 // Play the cha-ching sound
-                var chaChing = new Audio(this.props.chaChingFile);
-                chaChing.play();
+                ion.sound.play("cha_ching");
                 // Set the new state's vote delta
                 nextState['voteDelta'] = voteDelta;
             } else {
@@ -3619,9 +3627,16 @@ var VoteOptionSuggestion = React.createClass({
             var voteDelta = data.live_votes - this.state.data.live_votes;
             // If there is a difference
             if (voteDelta > 0) {
+                ion.sound({
+                    sounds: [
+                        {name: "cha_ching"}
+                    ],
+                    volume: 1.0,
+                    path: this.props.audioPath,
+                    preload: true
+                });
                 // Play the cha-ching sound
-                var chaChing = new Audio(this.props.chaChingFile);
-                chaChing.play();
+                ion.sound.play("cha_ching");
                 // Set the new state's vote delta
                 nextState['voteDelta'] = voteDelta;
             } else {
@@ -3835,9 +3850,16 @@ var ShowResultDisplayVotedOption = React.createClass({
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
+        ion.sound({
+            sounds: [
+                {name: "power_chord"}
+            ],
+            volume: 1.0,
+            path: this.props.audioPath,
+            preload: true
+        });
         // Play the result guitar chord
-        var guitarChord = new Audio(this.props.guitarChordFile);
-        guitarChord.play();
+        ion.sound.play("power_chord");
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -3887,6 +3909,17 @@ var ShowResultDisplayVotedOption = React.createClass({
                 if (this.state.data.user_wins > 1) {
                     // Use the fire class
                     buttonClasses = buttonClasses + " fire";
+                    // Play the fire sound
+                    ion.sound({
+                        sounds: [
+                            {name: "fire"}
+                        ],
+                        volume: 1.0,
+                        path: this.props.audioPath,
+                        preload: true
+                    });
+                    // Play the fire sound
+                    ion.sound.play("fire");
                 } else {
                     // Pulse class
                     buttonClasses = buttonClasses + " animated pulse pulse-mod";
@@ -3952,7 +3985,7 @@ var ShowResultDisplay = React.createClass({
                                       voteTypeData={this.state.data}
                                       playerAPIUrl={this.props.playerAPIUrl}
                                       voteOptionAPIUrl={this.props.voteOptionAPIUrl}
-                                      guitarChordFile={this.props.guitarChordFile} />
+                                      audioPath={this.props.audioPath} />
     );
   }
 });
@@ -3970,9 +4003,17 @@ var ShowVotingDisplay = React.createClass({
       dataType: 'json',
       success: function(data) {
         this.setState({data: data});
-        // Play the result guitar chord
-        var votingChime = new Audio(this.props.votingChimeFile);
-        votingChime.play();
+        // Play the voting chime
+        ion.sound({
+            sounds: [
+                {name: "action-chime"}
+            ],
+            volume: 1.0,
+            path: this.props.audioPath,
+            preload: true
+        });
+        // Play the voting chime
+        ion.sound.play("action-chime");
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -4018,7 +4059,7 @@ var ShowVotingDisplay = React.createClass({
                     <VoteOptionPlayer voteOptionID={voteOptionID}
                                       voteOptionAPIUrl={this.props.voteOptionAPIUrl}
                                       headingStyle={headingStyle}
-                                      chaChingFile={this.props.chaChingFile} />
+                                      audioPath={this.props.audioPath} />
                 </div>
             );
             // If we've either started our first row, or hit the next row
@@ -4079,7 +4120,7 @@ var ShowVotingDisplay = React.createClass({
                     <div className="col-md-12">
                         <VoteOptionSuggestion voteOptionID={voteOption}
                                               voteOptionAPIUrl={this.props.voteOptionAPIUrl}
-                                              chaChingFile={this.props.chaChingFile} />
+                                              audioPath={this.props.audioPath} />
                         <br />
                     </div>
                 </div>
@@ -4155,15 +4196,14 @@ var ShowDisplay = React.createClass({
                                               playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
                                               voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl}
-                                              votingChimeFile={this.props.showDisplayContext.votingChimeFile}
-                                              chaChingFile={this.props.showDisplayContext.chaChingFile} />;
+                                              audioPath={this.props.showDisplayContext.audioPath} />;
     } else if (this.state.data.current_display == "result") {
         showStateDisplay = <ShowResultDisplay showData={this.state.data}
                                               showID={this.props.showDisplayContext.showID}
                                               playerAPIUrl={this.props.showDisplayContext.playerAPIUrl}
                                               voteTypeAPIUrl={this.props.showDisplayContext.voteTypeAPIUrl}
                                               voteOptionAPIUrl={this.props.showDisplayContext.voteOptionAPIUrl}
-                                              guitarChordFile={this.props.showDisplayContext.guitarChordFile} />;
+                                              audioPath={this.props.showDisplayContext.audioPath} />;
     }
     return (
         <div>
@@ -4357,10 +4397,7 @@ var RootComponent = React.createClass({
             voteTypeAPIUrl: getElementValueOrNull("voteTypeAPIUrl"),
             voteOptionAPIUrl: getElementValueOrNull("voteOptionAPIUrl"),
             channelShowLeaderboardUrl: getElementValueOrNull("channelShowLeaderboardUrl"),
-            guitarChordFile: getElementValueOrNull("guitarChordFile"),
-            votingChimeFile: getElementValueOrNull("votingChimeFile"),
-            chaChingFile: getElementValueOrNull("chaChingFile"),
-
+            audioPath: getElementValueOrNull("audioPath")
         };
         rootComponents.push(<ShowDisplay key="1" showDisplayContext={showDisplayContext} />);
     }
