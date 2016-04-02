@@ -117,6 +117,7 @@ class ChannelCreateEditView(view_utils.ShowView):
         # If this channel doesn't already exist (and there's no errors)
         elif not context['channel'] and not error:
             context['channel'] = Channel(**channel_update)
+            context['channel'].created = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
         # Otherwise the channel exists (and there's no errors)
         elif not error:
             for field, value in channel_update.items():

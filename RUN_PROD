@@ -12,3 +12,6 @@ service postgresql restart
 
 # Restart gunicorn (django)
 service gunicorn restart
+
+# Deploy (make sure ssh keys are set up on the server)
+fab deploy -u [username]

@@ -130,6 +130,13 @@ def robots_txt(request):
 Allow: /"""
     return HttpResponse(live_txt, content_type='text/plain')
 
+
+def ssl_verify(request):
+    live_txt = """E0938D8137A1553A001B2688E21A338DB70F8E0C
+comodoca.com"""
+    return HttpResponse(live_txt, content_type='text/plain')
+
+
 def loader_io(request):
     robots_txt = "loaderio-9b6fa50492da1609dc61b9198b767688"
     return HttpResponse(robots_txt, content_type='text/plain')
