@@ -41,7 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
-    'gae_export',
+    #'gae_export',
     'channels',
     'leaderboards',
     'players',
