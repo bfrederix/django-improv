@@ -5,6 +5,9 @@ from fabric.api import run, env, local, put, cd
 # Directory where the deploys go
 DEPLOYS = '/home/django/deploys/'
 
+# virtualenv python version
+VIRTUALENV_PYTHON = "/home/django/dumpedit/bin/python"
+
 # the servers where the commands are executed
 env.hosts = ['***REMOVED***']
 
@@ -46,7 +49,7 @@ def server_deploy(version_name, tar_path):
         # Symlink prod to local
         run('ln -s {0}/conf/prod {0}/conf/local'.format(deploy_dir))
         # Update the static files
-        run('./manage.py collectstatic -v0 --noinput')
+        run('{0} manage.py collectstatic -v0 --noinput'.format(VIRTUALENV_PYTHON))
     # Delete the deployed tar file
     run('rm {0}'.format(deploy_tar))
     # Remove the old current symlink
