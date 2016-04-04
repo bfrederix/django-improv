@@ -19,15 +19,13 @@
                         </div>
                         <span class="name text-shadow">{{forum.display_name}}</span>
                         <hr class="star-light text-shadow" />
-                        {% if request.user.is_authenticated %}
-                            <div class="row text-left">
-                                <div class="col-lg-12">
-                                    <a href="{% url "forums_create_thread" forum.name %}">
-                                        <div class="btn btn-danger btn-lg btn-shadow text-shadow large-font">Create Thread</div>
-                                    </a>
-                                </div>
+                        <div class="row text-left">
+                            <div class="col-lg-12">
+                                <a href="{% url "forums_create_thread" forum.name %}">
+                                    <div class="btn btn-danger btn-lg btn-shadow text-shadow large-font">Create Thread</div>
+                                </a>
                             </div>
-                        {% endif %}
+                        </div>
                         <div class="row">
                             <div class="col-lg-12">
                                 <ul class="pagination">
