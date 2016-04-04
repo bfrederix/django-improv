@@ -21,7 +21,7 @@ server {
 
     # your Django project's static files - amend as required
     location /static {
-        alias /home/django/django-voteprov/static;
+        alias /var/www/static;
     }
 
     # Proxy the static assests for the Django Admin panel
@@ -68,7 +68,7 @@ server {
 
     # your Django project's static files - amend as required
     location /static {
-        alias /home/django/django-voteprov/static;
+        alias /var/www/static;
     }
 
     # Proxy the static assests for the Django Admin panel
