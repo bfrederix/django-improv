@@ -1,0 +1,26 @@
+#!/bin/bash
+
+description "Gunicorn daemon for Django project"
+
+start on (local-filesystems and net-device-up IFACE=eth0)
+stop on runlevel [!12345]
+
+# If the process quits unexpectadly trigger a respawn
+respawn
+
+setuid django
+setgid django
+
+script
+    exec 2>>/tmp/myjob.log
+    set -x
+    # Run gunicorn from the virtualenv
+    cd /home/django/dumpedit
+
+    exec /home/django/dumpedit/bin/gunicorn \
+        --name=current \
+        --pythonpath=current \
+        --bind=127.0.0.1:9000 \
+        --config /etc/gunicorn.d/gunicorn.py \
+        wsgi:application
+end script

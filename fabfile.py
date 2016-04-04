@@ -9,6 +9,9 @@ DEPLOYS = '/home/django/deploys/'
 env.hosts = ['***REMOVED***']
 
 def pack(version_name):
+    # Compress the react js
+    local("browserify static/js/react_components.js -t reactify -d -p [minifyify --map bundle.js.map --output bundle.js.map --uglify] > static/js/react_components.min.js",
+          capture=False)
     tar_path = "/tmp/{0}.tar.gz".format(version_name)
     tar_command = "tar -czf {0} .".format(tar_path)
     # create a new source distribution as tarball

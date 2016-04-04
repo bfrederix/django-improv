@@ -1,3 +1,3 @@
 # Uses browserfy, reactify, minifyify and uglify-js to compress
 # Installed locally in node_modules
-browserify /Users/freddy/projects/django-voteprov/static/js/react_components.js -t reactify -d -p [minifyify --map bundle.js.map --output bundle.js.map --uglify] > /Users/freddy/projects/django-voteprov/static/js/react_components.min.js
+browserify static/js/react_components.js -t reactify -d -p [minifyify --map bundle.js.map --output bundle.js.map --uglify] > static/js/react_components.min.js
