@@ -8,6 +8,13 @@ TEMPLATE_DEBUG = False
 #SESSION_COOKIE_SECURE = True
 #CSRF_COOKIE_SECURE = True
 
+ALLOWED_HOSTS = [
+    '.dumpedit.com', # Allow domain and subdomains
+    '.dumpedit.com.', # Also allow FQDN and subdomains
+]
+
+STATIC_ROOT = "/var/www/static/"
+
 # Database
 
 DATABASES = {

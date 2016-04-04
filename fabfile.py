@@ -45,6 +45,8 @@ def server_deploy(version_name, tar_path):
         run('rm -r conf/local')
         # Symlink prod to local
         run('ln -s {0}/conf/prod {0}/conf/local'.format(deploy_dir))
+        # Update the static files
+        run('./manage.py collectstatic -v0 --noinput')
     # Delete the deployed tar file
     run('rm {0}'.format(deploy_tar))
     # Remove the old current symlink
