@@ -34,6 +34,7 @@
         <input type="hidden" id="showAPIUrl" name="showAPIUrl"
                value="{% url "show-detail" show.id %}" readonly>
         <input type="hidden" id="showID" name="showID" value="{{show.id}}" readonly>
+        <input type="hidden" id="channelFacebookPage" name="channelFacebookPage" value="{{channel.facebook_page}}" readonly>
     {% else %}
         <input type="hidden" id="currentSelection" name="currentSelection" value="Select a Show" readonly>
     {% endif %}

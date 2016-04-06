@@ -2832,7 +2832,7 @@ var ShowMedia = React.createClass({
     }
 
     if (this.state.data.photo_link) {
-        var photoBodyContent = <div className="text-center"><Image image_url={this.state.data.photo_link} /></div>;
+        var photoBodyContent = <a href={this.props.channelFacebookPage}><div className="text-center"><Image image_url={this.state.data.photo_link} /></div></a>;
         photoPanel = <Panel key="1"
                             panelWidth="6" panelOffset="3" panelColor="warning"
                             panelHeadingContent="Recap Photo" panelHeadingClasses="x-large-font"
@@ -2883,9 +2883,9 @@ var ShowRecapPanels = React.createClass({
     var panelList = [];
     this.counter = 0;
     panelList.push(<br key="br-1" />);
-    panelList.push(<ShowMedia key="sm-1" showAPIUrl={this.props.recapContext.showAPIUrl} />)
+    panelList.push(<ShowMedia key="sm-1" showAPIUrl={this.props.recapContext.showAPIUrl}
+                                         channelFacebookPage={this.props.recapContext.channelFacebookPage}/>)
     if (this.state.data) {
-        console.log(this.props.recapContext.showRecapAPIUrl)
         // Create the suggestion list
         this.state.data.map(function (recapItem) {
             this.counter++;
@@ -4279,7 +4279,8 @@ var RootComponent = React.createClass({
             showRecapAPIUrl: getElementValueOrNull("showRecapAPIUrl"),
             usersUrl: getElementValueOrNull("usersUrl"),
             showAPIUrl: getElementValueOrNull("showAPIUrl"),
-            showID: getElementValueOrNull("showID")
+            showID: getElementValueOrNull("showID"),
+            channelFacebookPage: getElementValueOrNull("channelFacebookPage")
         };
         rootComponents.push(<Recap key="1" recapContext={recapContext} />);
     } else if (rootType == "channel-create-edit") {
