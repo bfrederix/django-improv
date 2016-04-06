@@ -24,6 +24,7 @@
     {% if channel %}
         <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
         <input type="hidden" id="isPremium" name="isPremium" value="{{channel.is_premium}}" readonly>
+        <input type="hidden" id="contactEmail" name="contactEmail" value="{{channel.email}}" readonly>
         <input type="hidden" id="channelAPIUrl" name="channelAPIUrl"
            value="{% url "channel-detail" channel.id %}" readonly>
         <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"

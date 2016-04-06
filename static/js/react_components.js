@@ -1092,7 +1092,7 @@ var ChannelCreateEditForm = React.createClass({
                                  input={displayNameInput}
                                  helpBlock="Required: Used as the human readable name on the site" />);
     // Email Input
-    var emailInput = <input type="text" id="email" name="email" defaultValue={this.state.data.email} className="form-control"></input>;
+    var emailInput = <input type="text" id="email" name="email" defaultValue={this.props.channelCreateEditContext.contactEmail} className="form-control"></input>;
     formContents.push(<FormGroup key="19"
                                  labelSize="2"
                                  labelContents="Contact Email*:"
@@ -4286,6 +4286,7 @@ var RootComponent = React.createClass({
         var channelCreateEditContext = {
             channelID: getElementValueOrNull("channelID"),
             isPremium: getElementValueOrNull("isPremium"),
+            contactEmail: getElementValueOrNull("contactEmail"),
             channelAPIUrl: getElementValueOrNull("channelAPIUrl"),
             channelNameAPIUrl: getElementValueOrNull("channelNameAPIUrl"),
             userID: getElementValueOrNull("userID"),

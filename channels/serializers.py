@@ -17,7 +17,7 @@ class ChannelSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Channel
-        fields = ('id', 'name', 'display_name', 'email', 'is_premium',
+        fields = ('id', 'name', 'display_name', 'is_premium',
                   'short_description', 'description',
                   'thumbnail_url', 'team_photo_url',
                   'website', 'facebook_page', 'address',
