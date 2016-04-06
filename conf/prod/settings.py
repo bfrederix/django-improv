@@ -29,6 +29,16 @@ DATABASES = {
     }
 }
 
+# Facebook OAuth2 DEV settings
+# http://stackoverflow.com/a/29132451
+SOCIAL_AUTH_FACEBOOK_KEY = '***REMOVED***'
+SOCIAL_AUTH_FACEBOOK_SECRET = '***REMOVED***'
+
+# Google OAuth2 settings
+# http://stackoverflow.com/a/20732762/264567
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '***REMOVED***'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '***REMOVED***'
+
 STRIPE_PUBLIC_KEY = "***REMOVED***"
 STRIPE_SECRET_KEY = "***REMOVED***"
 
