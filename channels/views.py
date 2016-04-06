@@ -41,6 +41,13 @@ def name_validator(channel, name):
     return None
 
 
+def fb_page_validator(facebook_page):
+    # If the page field isn't empty and it's an invalid name
+    if facebook_page and not re.match('(?:(?:http|https):\/\/)?(?:www.)?facebook.com\/\w+', facebook_page):
+        return "Invalid Facebook Page URL"
+    return None
+
+
 class ChannelHomeView(view_utils.ShowView):
     template_name = 'channels/channel_home.html'
 
@@ -88,7 +95,12 @@ class ChannelCreateEditView(view_utils.ShowView):
         elif channel_id:
             action = "Channel Edited Successfully!"
 
+        # Make sure the channel page is valid and not already in use
         error = name_validator(context['channel'], request.POST.get('name'))
+        # Make sure the facebook page is valid
+        facebook_page = strip_tags(request.POST.get('facebook_page', ''))
+        if not error:
+            error = fb_page_validator(facebook_page)
         next_show = request.POST.get('next_show')
         # If a next show was submitted
         if next_show:
@@ -101,7 +113,7 @@ class ChannelCreateEditView(view_utils.ShowView):
                           "short_description": strip_tags(request.POST.get('short_description', '')),
                           "description": strip_tags(request.POST.get('description', '')),
                           "website": strip_tags(request.POST.get('website', '')),
-                          "facebook_page": strip_tags(request.POST.get('facebook_page', '')),
+                          "facebook_page": facebook_page,
                           "buy_tickets_link": strip_tags(request.POST.get('buy_tickets_link', '')),
                           "next_show": next_show,
                           "navbar_color": request.POST.get('navbar_color'),
