@@ -110,7 +110,7 @@
 								<li class="{% block leaderboard-spans-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="{% url "channel_leaderboard_spans" channel.name %}">Add/Edit Custom Leaderboard Spans <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								<li class="{% block export-emails-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="{% url "channel_export_emails" channel.name %}">Export E-mails <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% if not channel.is_premium %}
-									<li class="disabled"><a href="{% url 'djstripe:account' %}?channel_id={{channel.id}}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
+									<li><a href="{% url 'djstripe:account' %}?channel_id={{channel.id}}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% else %}
 									<li><a href="{% url 'djstripe:account' %}?channel_id={{channel.id}}">Modify/Cancel Premium</a></li>
 								{% endif %}
