@@ -96,7 +96,7 @@
                     {% endif %}
                     {% if channel.is_premium %}
                         {% if channel.buy_tickets_link %}
-                            <a class="text-center" href="{{channel.buy_tickets_link}}">
+                            <a class="text-center" target="_blank" href="{{channel.buy_tickets_link}}">
                                 <div class="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown"><img src="{{IMAGE_URL}}star-sprite.png" /> Buy Tickets to {{channel.display_name}} <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                             </a>
                         {% else %}
