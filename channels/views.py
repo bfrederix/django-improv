@@ -278,7 +278,7 @@ class ChannelSuggestionPoolsView(view_utils.ShowView):
         else:
             error = 'Suggestion Pool name required'
 
-        if not error and not delete:
+        if not error:
             suggestion_pool.save()
 
         context.update(
@@ -351,7 +351,7 @@ class ChannelVoteTypesView(view_utils.ShowView):
         else:
             error = 'Vote Type Name and Style required'
 
-        if not error and not delete:
+        if not error:
             vote_type.save()
 
         context.update(
