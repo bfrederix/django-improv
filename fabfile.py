@@ -60,6 +60,8 @@ def server_deploy(version_name, tar_path):
     run('chown -R django:django {0}'.format(DEPLOYS))
     # Restart Nginx
     run('service nginx restart')
+    # Restart Gunicorn
+    run('service gunicorn restart')
 
 def cleanup(tar_path):
     # Remove the temporary tar file
