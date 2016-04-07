@@ -27,7 +27,7 @@ class RecapAPIObject(APIObject):
         # Set the winning option
         self.winning_option = voted_option.id
         # if there's a player attached to the show interval
-        if show_interval.player_id:
+        if show_interval and show_interval.player_id:
             self.player = show_interval.player_id
         # else if there's a player attached to the voted option
         elif voted_option.player_id:
