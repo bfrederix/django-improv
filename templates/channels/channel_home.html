@@ -82,7 +82,7 @@
                                     <div class="col-md-12">
                                         <a class="text-center white-link" href="{% url "show_suggestion_pool" channel.name current_show.id pool.id %}">
                                             <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown">
-                                                <div class="highlight-arrow-2 pull-left animated fadeInLeft arrow2-mod"></div>
+                                                <div class="{% if channel.is_premium %}highlight-arrow-2{% else %}highlight-arrow-1{% endif %} pull-left animated fadeInLeft arrow2-mod"></div>
                                                 Add / Vote for {{pool.display_name}}
                                             </div>
                                         </a>
@@ -93,7 +93,7 @@
                         {% endfor %}
                         <a class="text-center" href="{% url "show_live_vote" channel.name current_show.id %}">
                             <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown">
-                                <div class="highlight-arrow-3 pull-left animated fadeInLeft arrow3-mod"></div>
+                                <div class="{% if channel.is_premium %}highlight-arrow-3{% else %}highlight-arrow-2{% endif %} pull-left animated fadeInLeft arrow3-mod"></div>
                                 Live Show Voting!
                             </div>
                         </a>
