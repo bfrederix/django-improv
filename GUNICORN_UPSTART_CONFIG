@@ -12,7 +12,7 @@ setuid django
 setgid django
 
 script
-    exec 2>>/tmp/myjob.log
+    exec 2>>/var/log/django/error.log
     set -x
     # Run gunicorn from the virtualenv
     cd /home/django/dumpedit
@@ -21,6 +21,8 @@ script
         --name=current \
         --pythonpath=current \
         --bind=127.0.0.1:9000 \
+        --log-level warning \
+        --error-logfile /var/log/django/error.log \
         --config /etc/gunicorn.d/gunicorn.py \
         wsgi:application
 end script

@@ -1,3 +1,5 @@
+import logging.config
+
 from conf.settings import *
 
 DEBUG = False
@@ -44,26 +46,33 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '***REMOVED***'
 STRIPE_PUBLIC_KEY = "***REMOVED***"
 STRIPE_SECRET_KEY = "***REMOVED***"
 
+LOGGING_CONFIG = None
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '%(asctime)s %(levelname)s [%(name)s:%(lineno)s] %(module)s %(process)d %(thread)d %(message)s'
-        }
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
     },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/error.log',
+        'default': {
+            'level': 'WARN',
+            'formatter': 'standard',
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
+        '': {
+            'handlers': ['default'],
+            'level': 'WARN',
+            'propagate': True
+        },
+        'django.request': {
+            'handlers': ['default'],
+            'level': 'WARN',
+            'propagate': True
         },
     }
 }
+
+logging.config.dictConfig(LOGGING)

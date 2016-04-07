@@ -3,6 +3,7 @@ import logging
 import pytz
 import grequests
 
+from django.conf import settings
 from django.shortcuts import render
 from django.http import (JsonResponse, HttpResponseRedirect, HttpResponse,
                          HttpResponseServerError, HttpResponseNotFound)
@@ -24,15 +25,21 @@ logger = logging.getLogger(__name__)
 
 
 def async_exception_handler(request, exception):
-    logger.error("Request Failed")
+    logger.error("Request Failed: {0}".format(exception))
 
 
 def get_show_url(url_name, host, channel_name, show_id):
+    # If this is dev
+    if settings.DEBUG:
+        protocol = 'http'
+    # This is production, use https
+    else:
+        protocol = 'https'
     live_vote_path = reverse(url_name,
                              kwargs={'channel_name': channel_name,
                                      'show_id': show_id})
     # return the live vote url
-    return  "http://{0}{1}".format(host, live_vote_path)
+    return  "{0}://{1}{2}".format(protocol, host, live_vote_path)
 
 
 class ShowControllerView(view_utils.ShowView):
@@ -134,16 +141,16 @@ class ShowLiveVoteView(view_utils.ShowView):
             vote_options = []
         # If they chose an option
         if option_number:
-            # Get the vote receiver url
-            vote_receiver_url = get_show_url('show_vote_receiver',
-                                             request.META['HTTP_HOST'],
-                                             channel_name,
-                                             show_id)
             # Get the live vote url
             live_vote_url = get_show_url('show_live_vote',
                                          request.META['HTTP_HOST'],
                                          channel_name,
                                          show_id)
+            # Get the vote receiver url
+            vote_receiver_url = get_show_url('show_vote_receiver',
+                                             request.META['HTTP_HOST'],
+                                             channel_name,
+                                             show_id)
             # Set the POST data for the async vote request
             vote_post_data = {'option_number': option_number,
                               'user_id': getattr(self.request.user, 'id'),
@@ -153,8 +160,8 @@ class ShowLiveVoteView(view_utils.ShowView):
                                    data=vote_post_data,
                                    headers={'Referer': live_vote_url})
             # Send the post
-            logger.info(grequests.map([gpost], exception_handler=async_exception_handler))
-            #grequests.map([gpost], exception_handler=async_exception_handler)
+            #logger.info(grequests.map([gpost], exception_handler=async_exception_handler))
+            grequests.map([gpost], exception_handler=async_exception_handler)
         context.update({'show_id': int(show_id),
                         'vote_options': vote_options})
         return render(request,

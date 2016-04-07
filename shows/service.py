@@ -485,7 +485,6 @@ def create_show(channel, vote_types, show_length, players=[],
                                                                  used=False)
             # If the vote type has intervals
             if vote_type.intervals:
-                logger.info("Show: {0} Intervals: {1}".format(show.id, vote_type.intervals))
                 # If this suggestion vote has players attached
                 if vote_type.player_options:
                     # Make a copy of the list of players and randomize it
@@ -507,7 +506,23 @@ def create_show(channel, vote_types, show_length, players=[],
                         ShowInterval.objects.get_or_create(show=show,
                                                            interval=int(interval),
                                                            vote_type=vote_type)
-
+            # It's a single vote
+            else:
+                # If this suggestion vote has players attached
+                if vote_type.player_options:
+                    # Make a copy of the list of players and randomize it
+                    rand_players = get_rand_player_list(players, star_players=star_players)
+                    # Create a ShowInterval of None with the player
+                    ShowInterval.objects.get_or_create(show=show,
+                                                       player=rand_players.pop(),
+                                                       interval=None,
+                                                       vote_type=vote_type)
+                # No player attached
+                else:
+                    # Create a ShowInterval of None
+                    ShowInterval.objects.get_or_create(show=show,
+                                                       interval=None,
+                                                       vote_type=vote_type)
     else:
         raise ValueError("Vote Types are required for a show.")
 
