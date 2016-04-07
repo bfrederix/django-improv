@@ -235,6 +235,7 @@ img.dumpedit-home-icon {
     height: 50px;
     left: 10%;
     margin-top: -2%;
+    z-index: 3;
 }
 
 .facebook-icon-large {
@@ -249,7 +250,7 @@ img.dumpedit-home-icon {
     position: relative;
     background-position: left center;
     background-repeat: no-repeat;
-    width: 20px;
+    width: 40px;
     height: 20px;
 }
 
@@ -259,6 +260,28 @@ img.dumpedit-home-icon {
 
 .google-icon-small {
     background-image:url('/static/img/google-icon-small.png');
+}
+
+.highlight-arrow-1, .highlight-arrow-2, .highlight-arrow-3 {
+    position: relative;
+    background-repeat: no-repeat;
+    width: 100px;
+    height: 100px;
+    z-index: 4;
+    margin-top: -5%;
+    margin-right: -8%;
+}
+
+.highlight-arrow-1 {
+    background-image:url('/static/img/highlight-arrow-1.png');
+}
+
+.highlight-arrow-2 {
+    background-image:url('/static/img/highlight-arrow-2.png');
+}
+
+.highlight-arrow-3 {
+    background-image:url('/static/img/highlight-arrow-3.png');
 }
 
 img.social-sprite {
@@ -392,6 +415,58 @@ span.light-gray-bg{
     -o-animation-delay: .25s;
     -webkit-animation-delay: .25s;
     animation-delay: .25s;
+}
+
+/* Slide in Left Arrow1 Animation */
+.arrow1-mod {
+    -moz-animation-iteration-count: infinite;
+    -ms-animation-iteration-count: infinite;
+    -o-animation-iteration-count: infinite;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;
+    -moz-animation-direction: alternate;
+    -ms-animation-direction: alternate;
+    -o-animation-direction: alternate;
+    -webkit-animation-direction: alternate;
+    animation-direction: alternate;
+}
+
+/* Slide in Left Arrow2 Animation */
+.arrow2-mod {
+    -moz-animation-iteration-count: infinite;
+    -ms-animation-iteration-count: infinite;
+    -o-animation-iteration-count: infinite;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;
+    -moz-animation-direction: alternate;
+    -ms-animation-direction: alternate;
+    -o-animation-direction: alternate;
+    -webkit-animation-direction: alternate;
+    animation-direction: alternate;
+    -moz-animation-delay: .5s;
+    -ms-animation-delay: .5s;
+    -o-animation-delay: .5s;
+    -webkit-animation-delay: .5s;
+    animation-delay: .5s;
+}
+
+/* Slide in Left Arrow3 Animation */
+.arrow3-mod {
+    -moz-animation-iteration-count: infinite;
+    -ms-animation-iteration-count: infinite;
+    -o-animation-iteration-count: infinite;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;
+    -moz-animation-direction: alternate;
+    -ms-animation-direction: alternate;
+    -o-animation-direction: alternate;
+    -webkit-animation-direction: alternate;
+    animation-direction: alternate;
+    -moz-animation-delay: 1s;
+    -ms-animation-delay: 1s;
+    -o-animation-delay: 1s;
+    -webkit-animation-delay: 1s;
+    animation-delay: 1s;
 }
 
 /* Loading Animation */

@@ -1216,8 +1216,11 @@ var ChannelCreateEditForm = React.createClass({
                                  inputSize="3"
                                  input={zipcodeInput} />);
 
+    // Spacing
+    formContents.push(<div key="spacing-div-1"><br /><br /></div>);
+
     // Submit Button
-    var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">{actionText}</button>;
+    var submitButton = <button type="submit" className="btn btn-info btn-shadow large-font text-shadow">{actionText}</button>;
     formContents.push(<FormGroup key="16"
                                  inputSize="2"
                                  input={submitButton} />);
@@ -1235,8 +1238,8 @@ var ChannelCreateEditForm = React.createClass({
         var deleteContents = [];
         var message = "Are you sure you wish to delete the " + this.state.data.display_name + " Channel?";
         // Delete Button
-        deleteContents.push(<div key="spacing-div"><br /><br /><br /></div>);
-        deleteContents.push(<input key="1" type="button" value="DELETE CHANNEL" className="btn btn-warning btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
+        deleteContents.push(<div key="spacing-div-2"><br /><br /><br /></div>);
+        deleteContents.push(<input key="1" type="button" value="DELETE CHANNEL" className="btn btn-danger btn-shadow text-shadow" data-toggle="modal" data-target="#confirm-delete" />);
         deleteContents.push(<input key="2" type="hidden" name="delete" value={this.props.channelCreateEditContext.channelID}></input>);
         deleteContents.push(<ModalConfirm key="3"
                                           modalID="confirm-delete"
@@ -1259,7 +1262,7 @@ var ChannelCreateEditForm = React.createClass({
             <br/>
             <FormLabel action={this.props.channelCreateEditContext.action}
                        error={this.props.channelCreateEditContext.error} />
-            <Panel panelWidth="6" panelOffset="3" panelColor="info"
+            <Panel panelWidth="6" panelOffset="3" panelColor="danger"
                    panelHeadingContent={actionText} panelHeadingClasses="x-large-font"
                    panelBodyClasses="white-background"
                    panelHeadingLink="http://docs.dumpedit.com/en/latest/channels.html"

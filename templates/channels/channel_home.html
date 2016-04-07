@@ -18,7 +18,11 @@
                         {% if channel.is_premium %}
                             {% if not request.user.is_authenticated %}
                                 <a href="{% url "social:begin" "facebook" %}?next={{request.path}}">
-                                    <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown"><div class="facebook-icon-large pull-left"></div>Login with Facebook</div>
+                                    <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown" style="background-color:#2952a3">
+                                        <div class="highlight-arrow-1 pull-left animated fadeInLeft arrow1-mod"></div>
+                                        <div class="facebook-icon-large pull-left"></div>
+                                        Login with Facebook
+                                    </div>
                                 </a>
                                 <br/>
                             {% endif %}
@@ -34,7 +38,11 @@
                             <br/>
                             {% if not request.user.is_authenticated %}
                                 <a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}">
-                                    <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown"><div class="google-icon-large pull-left"></div>Login with Google</div>
+                                    <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown" style="background-color:#4775d1">
+                                        <div class="highlight-arrow-1 pull-left animated fadeInLeft arrow1-mod"></div>
+                                        <div class="google-icon-large pull-left"></div>
+                                        Login with Google
+                                    </div>
                                 </a>
                                 <hr class="thick" />
                             {% endif %}
@@ -55,14 +63,6 @@
 							</a>
                             <br/>
 						{% endif %}
-                        <a class="text-center" href="{% url "channel_pre_show" channel.name %}">
-                            <div class="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown">User Instructions</div>
-                        </a>
-                        <br/>
-                        <a class="text-center" href="{% url "show_live_vote" channel.name current_show.id %}">
-                            <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown">Live Show Voting!</div>
-                        </a>
-                        <br/>
                         {% for pool in suggestion_pools %}
                             {% if pool.admin_only %}
                                 {% if is_channel_admin %}
@@ -82,6 +82,7 @@
                                     <div class="col-md-12">
                                         <a class="text-center white-link" href="{% url "show_suggestion_pool" channel.name current_show.id pool.id %}">
                                             <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown">
+                                                <div class="highlight-arrow-2 pull-left animated fadeInLeft arrow2-mod"></div>
                                                 Add / Vote for {{pool.display_name}}
                                             </div>
                                         </a>
@@ -90,13 +91,24 @@
                                 <br/>
                             {% endif %}
                         {% endfor %}
+                        <a class="text-center" href="{% url "show_live_vote" channel.name current_show.id %}">
+                            <div class="btn btn-danger btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown">
+                                <div class="highlight-arrow-3 pull-left animated fadeInLeft arrow3-mod"></div>
+                                Live Show Voting!
+                            </div>
+                        </a>
+                        <br/>
+                        <a class="text-center" href="{% url "channel_pre_show" channel.name %}">
+                            <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown">User Instructions</div>
+                        </a>
+                        <br/>
 					{% endif %}
                     {% if not current_show and channel.future_next_show %}
                         <div class="alert alert-info x-large-font text-center text-shadow animated fadeInDown" role="alert">Our next show is {{channel.next_show|date:"l N dS @ P"}}</div>
                     {% endif %}
                     {% if channel.is_premium %}
                         {% if channel.buy_tickets_link %}
-                            <a class="text-center" target="_blank" href="{{channel.buy_tickets_link}}">
+                            <a class="text-center" href="{{channel.buy_tickets_link}}">
                                 <div class="btn btn-info btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown"><img src="{{IMAGE_URL}}star-sprite.png" /> Buy Tickets to {{channel.display_name}} <img src="{{IMAGE_URL}}star-sprite.png" /></div>
                             </a>
                         {% else %}
