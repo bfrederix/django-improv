@@ -624,6 +624,12 @@ ul.remove-text-shadow {
     text-shadow: none;
 }
 
+/* Text wrap */
+
+div.text-wrap, button.text-wrap {
+    white-space: normal;
+}
+
 /* Color Picker */
 
 #container {
