@@ -3597,7 +3597,12 @@ var VoteOptionPlayer = React.createClass({
             <button className="btn btn-info btn-md word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
         </div>
     );
-    var footerContent = <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow"><Badge badgeColor={liveVotesColor} content={this.state.data.live_votes} />{deltaSpan}</button>;
+    var footerContent = (
+        <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">
+            <Badge badgeColor={liveVotesColor}
+                   content={this.state.data.live_votes}
+                   badgeClasses="xx-large-font" />{deltaSpan}
+        </button>);
 
     return (
         <Panel panelWidth="12" panelColor="primary"
