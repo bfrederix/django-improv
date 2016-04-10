@@ -6,7 +6,7 @@ import pytz
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Max
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.auth.models import User
 
 from shows.models import (Show, Suggestion, VotedItem,
@@ -292,6 +292,16 @@ def get_current_voted(show_id, vote_type_id, interval):
                                            interval=interval)
     except ObjectDoesNotExist:
         return None
+    # RACE CONDITION
+    except MultipleObjectsReturned:
+        # Get the voted items for that show, vote type, and interval
+        voted_items = VotedItem.objects.filter(show=show_id,
+                                               vote_type=vote_type_id,
+                                               interval=interval).order_by('id')
+        # Delete the extra voted item
+        voted_items[1].delete()
+        # Return the original voted item
+        return voted_items[0]
     else:
         return voted_item
 
