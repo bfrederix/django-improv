@@ -138,5 +138,5 @@ comodoca.com"""
 
 
 def loader_io(request):
-    robots_txt = "loaderio-9b6fa50492da1609dc61b9198b767688"
+    robots_txt = "loaderio-77a54235107fba986089b0dea6bdc663"
     return HttpResponse(robots_txt, content_type='text/plain')
