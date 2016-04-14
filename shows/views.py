@@ -201,13 +201,19 @@ class ShowVoteReceiverView(view_utils.ShowView):
         if user_id:
             user = User.objects.get(pk=user_id)
             user_id = int(user_id)
+            # Determine if they're a channel admin
+            is_channel_admin = channels_service.check_is_channel_admin(context['channel'],
+                                                                       user_id)
         else:
             user = None
-        # Create a leaderboard entry if it doesn't exist
-        leaderboards_service.get_or_create_leaderboard_entry(context['channel'],
-                                                             context['current_show'],
-                                                             user,
-                                                             session_id)
+            is_channel_admin = False
+        # If they aren't a channel admin
+        if not is_channel_admin:
+            # Create a leaderboard entry if it doesn't exist
+            leaderboards_service.get_or_create_leaderboard_entry(context['channel'],
+                                                                 context['current_show'],
+                                                                 user,
+                                                                 session_id)
         # Get the current vote type
         vote_type = context['current_show'].current_vote_type
         # Get the show interval
@@ -354,11 +360,13 @@ class ShowSuggestionPoolView(view_utils.ShowView):
             else:
                 suggestion_kwargs['session_id'] = session_id
             Suggestion.objects.get_or_create(**suggestion_kwargs)
-            # Create a leaderboard entry if it doesn't exist
-            leaderboards_service.get_or_create_leaderboard_entry(context['channel'],
-                                                                 context['current_show'],
-                                                                 suggestion_kwargs['user'],
-                                                                 session_id)
+            # Don't create leaderboard entries for channel admins
+            if not context['is_channel_admin']:
+                # Create a leaderboard entry if it doesn't exist
+                leaderboards_service.get_or_create_leaderboard_entry(context['channel'],
+                                                                     context['current_show'],
+                                                                     suggestion_kwargs['user'],
+                                                                     session_id)
         # If the superuser needs to make a bunch of suggestions
         elif request.user and request.user.is_superuser and request.POST.get('suggestalot'):
             suggestion_kwargs = {'channel': context['channel'],
