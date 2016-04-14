@@ -3305,7 +3305,7 @@ var ShowControllerVoteType = React.createClass({
     var voteTypeButton;
     var buttonText;
     var optionType = "";
-    var availableOptions = this.state.data.available_options;
+    var remainingIntervals = this.state.data.remaining_intervals;
     var timerID = "timer-" + this.state.data.id;
     var intervalTimer;
     // Determine if the vote type is players or options
@@ -3352,9 +3352,9 @@ var ShowControllerVoteType = React.createClass({
             } else {
                 // Make sure the button text isn't redundant
                 if (this.state.data.vote_options_name !== optionType) {
-                    buttonText = "Need more " + this.state.data.vote_options_name + " " + optionType + " (" + availableOptions + ")  ";
+                    buttonText = "Need more " + this.state.data.vote_options_name + " " + optionType + " (" + remainingIntervals + ")  ";
                 } else {
-                    buttonText = "Need more " + this.state.data.vote_options_name + " (" + availableOptions + ")  ";
+                    buttonText = "Need more " + this.state.data.vote_options_name + " (" + remainingIntervals + ")  ";
                 }
                 voteTypeButton = <input disabled="true" type="submit" className="btn btn-block btn-lg word-wrap x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />;
             }
@@ -3868,6 +3868,19 @@ var ShowResultDisplayVotedOption = React.createClass({
         });
         // Play the result guitar chord
         ion.sound.play("power_chord");
+        // If they have won more than once, play the fire sound
+        if (data.user_wins > 1) {
+            ion.sound({
+                sounds: [
+                    {name: "fire"}
+                ],
+                volume: 1.0,
+                path: this.props.audioPath,
+                preload: true
+            });
+            // Play the fire sound
+            ion.sound.play("fire");
+        }
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
@@ -3917,17 +3930,6 @@ var ShowResultDisplayVotedOption = React.createClass({
                 if (this.state.data.user_wins > 1) {
                     // Use the fire class
                     buttonClasses = buttonClasses + " fire";
-                    // Play the fire sound
-                    ion.sound({
-                        sounds: [
-                            {name: "fire"}
-                        ],
-                        volume: 1.0,
-                        path: this.props.audioPath,
-                        preload: true
-                    });
-                    // Play the fire sound
-                    ion.sound.play("fire");
                 } else {
                     // Pulse class
                     buttonClasses = buttonClasses + " animated pulse pulse-mod";
