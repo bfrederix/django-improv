@@ -19,65 +19,91 @@
         <div class="row">
             <div class="col-lg-offset-3 col-lg-6">
                 <div class="panel panel-warning text-left">
-                    <div class="panel-heading text-shadow x-large-font">
-                        Export E-mails
-                    </div>
-                    <div class="panel-body white-background">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="alert alert-danger large-font" role="alert">
-                                    <strong>Warning:</strong> When e-mailing users, you must comply with the requirements of the
-                                    <a href="https://www.ftc.gov/tips-advice/business-center/guidance/can-spam-act-compliance-guide-business">CAN-SPAM Act</a>.
-                                    Failure to do so could result in a fine or lawsuit. Do not sell or share access to these e-mails. You should
-                                    only e-mail your users to promote your theater/show.
+                    {% if channel.is_premium %}
+                        <div class="panel-heading text-shadow x-large-font">
+                            Export E-mails
+                        </div>
+                        <div class="panel-body white-background">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="alert alert-danger large-font" role="alert">
+                                        <strong>Warning:</strong> When e-mailing users, you must comply with the requirements of the
+                                        <a href="https://www.ftc.gov/tips-advice/business-center/guidance/can-spam-act-compliance-guide-business">CAN-SPAM Act</a>.
+                                        Failure to do so could result in a fine or lawsuit. Do not sell or share access to these e-mails. You should
+                                        only e-mail your users to promote your theater/show.
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <form role="form" action="{% url "channel_export_emails" channel.name %}" method="post" encType="multipart/form-data">
-                                    <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
-                                    <div class="row">
-                                        <div class="col-lg-12">
-                                            <div class="form-group black-font">
-                                                <div class="col-lg-offset-1 col-lg-7">
-                                                    <select id="show" name="show" class="form-control large-font">
-                                                        <option value="" selected>Select a Show</option>
-                                                        <option value="all">All E-mails</option>
-                                                        {% for show in shows %}
-                                                            <option value="{{show.id}}">{{show.created|date:"l N dS, Y @ P"}}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </div>
-                                                <div class="col-lg-2">
-                                                    <button type="submit" class="btn btn-danger btn-shadow text-shadow x-large-font">&nbsp;Export&nbsp;</button>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <form role="form" action="{% url "channel_export_emails" channel.name %}" method="post" encType="multipart/form-data">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="form-group black-font">
+                                                    <div class="col-lg-offset-1 col-lg-7">
+                                                        <select id="show" name="show" class="form-control large-font">
+                                                            <option value="" selected>Select a Show</option>
+                                                            <option value="all">All E-mails</option>
+                                                            {% for show in shows %}
+                                                                <option value="{{show.id}}">{{show.created|date:"l N dS, Y @ P"}}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-lg-2">
+                                                        <button type="submit" class="btn btn-danger btn-shadow text-shadow x-large-font">&nbsp;Export&nbsp;</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
+                                    </form>
+                                    <br />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="alert alert-info" role="alert">
+                                        <strong>Pro-tip #1:</strong> Using mailing services help you stay compliant and help manage your e-mail contacts (including unsubscribers).
+                                        There are several free to use services out there including <a href="https://www.mailchimp.com/">MailChimp</a> (used by us),
+                                        <a href="https://www.sendinblue.com/">Sendinblue</a>, <a href="http://freshmail.com/">Freshmail</a>,
+                                        <a href="http://campayn.com/">Campayn</a>, and <a href="https://www.mailerlite.com/">MailerLite</a>.
                                     </div>
-                                </form>
-                                <br />
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="alert alert-info" role="alert">
-                                    <strong>Pro-tip #1:</strong> Using mailing services help you stay compliant and help manage your e-mail contacts (including unsubscribers).
-                                    There are several free to use services out there including <a href="https://www.mailchimp.com/">MailChimp</a> (used by us),
-                                    <a href="https://www.sendinblue.com/">Sendinblue</a>, <a href="http://freshmail.com/">Freshmail</a>,
-                                    <a href="http://campayn.com/">Campayn</a>, and <a href="https://www.mailerlite.com/">MailerLite</a>.
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="alert alert-info" role="alert">
+                                        <strong>Pro-tip #2:</strong> E-mails can be used to target ads towards audience members. Example: Facebook allows you to
+                                        upload e-mails to create <a href="https://www.facebook.com/business/help/341425252616329">Custom Audiences</a> for your Facebook Ads.
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="alert alert-info" role="alert">
-                                    <strong>Pro-tip #2:</strong> E-mails can be used to target ads towards audience members. Example: Facebook allows you to
-                                    upload e-mails to create <a href="https://www.facebook.com/business/help/341425252616329">Custom Audiences</a> for your Facebook Ads.
+                    {% else %}
+                        <div class="panel-heading text-shadow x-large-font">
+                            Premium Channel Feature Only
+                        </div>
+                        <div class="panel-body white-background">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="alert alert-danger large-font" role="alert">
+                                        <strong>Note:</strong> Your channel must be premium to export the e-mails of
+                                        audience members that attend your shows.
+                                    </div>
+                                    <br />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6 col-lg-offset-3">
+                                    <a class="text-center" href="{% url 'djstripe:account' %}?channel_id={{channel.id}}">
+                                        <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                                    </a>
+                                    <br />
+                                    <br />
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

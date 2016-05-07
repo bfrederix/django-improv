@@ -90,17 +90,17 @@
 					    {% endif %}
                     {% endif %}
                     <li class="{% block recaps-selected %}{% endblock %}"><a href="{% url "channel_recaps" channel.name %}">Show Recaps</a></li>
-					<li class="dropdown {% block leaderboards-selected %}{% endblock %} {% if not channel.is_premium %} disabled{% endif %}">
+					<li class="dropdown {% block leaderboards-selected %}{% endblock %}">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                            Leaderboards <img src="{{IMAGE_URL}}star-sprite.png" /> <span class="caret"></span>
+                            Leaderboards <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
-                            <li class="{% if not channel.is_premium %}disabled{% endif %}"><a href="{% url "channel_leaderboards" channel.name %}"><strong>All-time Leaderboard</strong></a></li>
-                            <li class="{% if not channel.is_premium %}disabled{% endif %}"><a href="{% url "channel_medals" channel.name %}"><strong>Medals</strong></a></li>
+                            <li><a href="{% url "channel_leaderboards" channel.name %}"><strong>All-time Leaderboard</strong></a></li>
+                            <li><a href="{% url "channel_medals" channel.name %}"><strong>Medals</strong></a></li>
                         </ul>
                     </li>
     				{% if request.user.is_authenticated %}
-    				    <li class="{% if not channel.is_premium %}disabled{% endif %}"><a href="{% url "user_account" request.user.id %}?channel_name={{channel.name}}">My Account <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
+    				    <li><a href="{% url "user_account" request.user.id %}?channel_name={{channel.name}}">My Account</a></li>
     				{% endif %}
 					{% if is_channel_admin %}
 						<li class="dropdown{% block admin-selected %}{% endblock %}">
@@ -108,6 +108,7 @@
       							Admin <span class="caret"></span>
     						</a>
     						<ul class="dropdown-menu">
+								<li {% block channel-admin-tutorial %}{% endblock %}><a href="{% url "channel_admin_tutorial" channel.name %}">Admin Quick Tutorial</a></li>
     							<li {% block channel-shows-selected %}{% endblock %}><a href="{% url "channel_shows" channel.name %}">Create/Edit Shows</a></li>
     							<li {% block vote-type-selected %}{% endblock %}><a href="{% url "channel_vote_types" channel.name %}">Create/Edit Vote Types</a></li>
     							<li {% block suggestion-pool-selected %}{% endblock %}><a href="{% url "channel_suggestion_pools" channel.name %}">Create/Edit Suggestion Pools</a></li>
@@ -116,8 +117,8 @@
 								{% if is_channel_owner %}
 									<li {% block channel-admins-selected %}{% endblock %}><a href="{% url "channel_admins" channel.name %}">Add/Edit Channel Admins</a></li>
 								{% endif %}
-								<li class="{% block leaderboard-spans-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="{% url "channel_leaderboard_spans" channel.name %}">Add/Edit Custom Leaderboard Spans <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
-								<li class="{% block export-emails-selected %}{% endblock %}{% if not channel.is_premium %} disabled{% endif %}"><a href="{% url "channel_export_emails" channel.name %}">Export E-mails <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
+								<li class="{% block leaderboard-spans-selected %}{% endblock %}"><a href="{% url "channel_leaderboard_spans" channel.name %}">Add/Edit Custom Leaderboard Spans <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
+								<li class="{% block export-emails-selected %}{% endblock %}"><a href="{% url "channel_export_emails" channel.name %}">Export E-mails <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% if not channel.is_premium %}
 									<li><a href="{% url 'djstripe:account' %}?channel_id={{channel.id}}"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></a></li>
 								{% else %}

@@ -1145,7 +1145,6 @@ var ChannelCreateEditForm = React.createClass({
                                  labelSize="2"
                                  labelContents="Buy Tickets URL:"
                                  inputSize="7"
-                                 premium="true"
                                  input={buyTicketsInput}
                                  helpBlock="The URL to buy tickets to your shows, premium feature only" />);
     // Next Show
@@ -2674,18 +2673,22 @@ var UserShowStatsTableBody = React.createClass({
         }
         // If the suggestion was used during the show
         if (suggestion.used === true) {
-            suggestionDisplay = <td className={suggestionClass}><span className="text-shadow">{suggestion.value}</span><StarImage /></td>;
+            suggestionDisplay = <td className={suggestionClass}><span className="text-shadow"><p>{suggestion.value}<StarImage /></p></span></td>;
         } else {
-            suggestionDisplay = <td className={suggestionClass}>{suggestion.value}</td>;
+            suggestionDisplay = <td className={suggestionClass}><p>{suggestion.value}</p></td>;
         }
         suggestionList.push(<tr key={this.counter}>{suggestionDisplay}</tr>);
         return suggestionList;
     }, this);
     return (
         <div className="table-responsive">
-            <table className="table table-condensed black-font">
-                <tbody>{suggestionList}</tbody>
-            </table>
+            <div className="row">
+                <div className="col-md-12">
+                    <table className="table table-condensed black-font">
+                        <tbody>{suggestionList}</tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
   }

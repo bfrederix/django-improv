@@ -58,6 +58,16 @@ class ChannelHomeView(view_utils.ShowView):
                       context)
 
 
+class ChannelAdminTutorialView(view_utils.ShowView):
+    template_name = 'channels/channel_admin_tutorial.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_default_channel_context(request, *args, **kwargs)
+        return render(request,
+                      self.template_name,
+                      context)
+
+
 class ChannelBrowseView(view_utils.ShowView):
     template_name = 'channels/channels_browse.html'
 

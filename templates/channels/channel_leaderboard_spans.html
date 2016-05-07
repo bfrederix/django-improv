@@ -10,22 +10,55 @@
 {% endblock %}
 
 {% block content %}
-    <div id="container-fluid" class="container-fluid"></div>
-    {% include "embedded_utils/react_components.html" %}
+    {% if channel.is_premium %}
+        <div id="container-fluid" class="container-fluid"></div>
+        {% include "embedded_utils/react_components.html" %}
 
-    <input type="hidden" id="rootType" name="rootType" value="channel_leaderboard_spans" readonly>
-    <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
-    <input type="hidden" id="leaderboardSpanAPIUrl" name="leaderboardSpanAPIUrl"
-               value="{% url "leaderboard-span-list" %}" readonly>
-    <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
-               value="{% url "channel_leaderboard_spans" channel.name %}" readonly>
-    <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
-	{% if action %}
-		<input type="hidden" id="action" name="action" value="{{action}}" readonly>
-	{% endif %}
-    {% if error %}
-		<input type="hidden" id="error" name="error" value="{{error}}" readonly>
-	{% endif %}
+        <input type="hidden" id="rootType" name="rootType" value="channel_leaderboard_spans" readonly>
+        <input type="hidden" id="channelID" name="channelID" value="{{channel.id}}" readonly>
+        <input type="hidden" id="leaderboardSpanAPIUrl" name="leaderboardSpanAPIUrl"
+                   value="{% url "leaderboard-span-list" %}" readonly>
+        <input type="hidden" id="formSubmitUrl" name="formSubmitUrl"
+                   value="{% url "channel_leaderboard_spans" channel.name %}" readonly>
+        <input type="hidden" id="csrfToken" name="csrfToken" value="{{csrf_token}}" readonly>
+        {% if action %}
+            <input type="hidden" id="action" name="action" value="{{action}}" readonly>
+        {% endif %}
+        {% if error %}
+            <input type="hidden" id="error" name="error" value="{{error}}" readonly>
+        {% endif %}
+    {% else %}
+        <div id="container-fluid" class="container-fluid">
+            <div class="row">
+                <div class="col-lg-offset-3 col-lg-6">
+                    <div class="panel panel-warning text-left">
+                        <div class="panel-heading text-shadow x-large-font">
+                            Premium Channel Feature Only
+                        </div>
+                        <div class="panel-body white-background">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="alert alert-danger large-font" role="alert">
+                                        <strong>Note:</strong> Your channel must be premium to create custom leaderboard date spans.
+                                    </div>
+                                    <br />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6 col-lg-offset-3">
+                                    <a class="text-center" href="{% url 'djstripe:account' %}?channel_id={{channel.id}}">
+                                        <div class="btn btn-primary btn-block btn-lg btn-shadow text-shadow x-large-font animated fadeInDown"><img src="{{IMAGE_URL}}star-sprite.png" /> Go Premium <img src="{{IMAGE_URL}}star-sprite.png" /></div>
+                                    </a>
+                                    <br />
+                                    <br />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 
 {% endblock %}
 

@@ -16,6 +16,7 @@ urlpatterns = [
     url(r'^leaderboard_spans/$', channel_admin_required(views.ChannelLeaderboardSpansView.as_view()), name="channel_leaderboard_spans"),
     url(r'^admins/$', channel_owner_required(views.ChannelAdminsView.as_view()), name="channel_admins"),
     url(r'^export_emails/$', channel_admin_required(views.ChannelExportEmailsView.as_view()), name="channel_export_emails"),
+    url(r'^admin_tutorial/$', channel_admin_required(views.ChannelAdminTutorialView.as_view()), name="channel_admin_tutorial"),
 ]
 
 

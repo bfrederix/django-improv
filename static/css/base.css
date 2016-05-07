@@ -30,6 +30,22 @@ a.white-link,a.white-link:visited,a.white-link:hover {
 	text-decoration:none;
 }
 
+a.pink-link,a.pink-link:visited,a.pink-link:hover {
+	color: #FFC9EC;
+}
+
+a.green-link,a.green-link:visited,a.green-link:hover {
+	color: #B1FCB3;
+}
+
+a.orange-link,a.orange-link:visited,a.orange-link:hover {
+	color: #FFD599;
+}
+
+a.purple-link,a.purple-link:visited,a.purple-link:hover {
+	color: #DCC4FF;
+}
+
 input.white-input,input.white-input:visited,input.white-input:hover {
 	color: white;
 	text-decoration:none;
@@ -262,7 +278,7 @@ img.dumpedit-home-icon {
     background-image:url('/static/img/google-icon-small.png');
 }
 
-.highlight-arrow-1, .highlight-arrow-2, .highlight-arrow-3 {
+.highlight-arrow-1, .highlight-arrow-2, .highlight-arrow-3, .start-here-arrow {
     position: relative;
     background-repeat: no-repeat;
     width: 100px;
@@ -282,6 +298,10 @@ img.dumpedit-home-icon {
 
 .highlight-arrow-3 {
     background-image:url('/static/img/highlight-arrow-3.png');
+}
+
+.start-here-arrow {
+    background-image:url('/static/img/start-here-arrow.png');
 }
 
 img.social-sprite {

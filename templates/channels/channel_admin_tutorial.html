@@ -1,0 +1,147 @@
+{% extends "channels/channel_base.html" %}
+
+{% block channel-admin-tutorial %}class="active"{% endblock %}
+
+{% block title %}{{channel.display_name}} Admin Quick Tutorial{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="panel panel-info highlight-shadow">
+                    <div class="panel-heading text-shadow xx-large-font">
+                        Admin Quick Tutorial
+                    </div>
+                    <div class="panel-body text-shadow x-large-font" style="background-color:{{channel.navbar_color}} !important;">
+                        <ul class="list-unstyled">
+                            <li>
+                                Create cast <a class="pink-link" target="_blank" href="{% url "channel_players" channel.name %}">Players</a>
+                                that will be featured during votes in your show.<br/>
+                                <div class="text-center">
+                                    <a target="_blank" href="{% url "channel_players" channel.name %}" class="btn btn-lg btn-danger btn-shadow x-large-font">
+                                        <span style="x-large-font">Create a Player</span>
+                                    </a>
+                                </div>
+                            </li>
+                            <hr />
+                            <li>
+                                Create <a class="green-link" target="_blank" href="{% url "channel_suggestion_pools" channel.name %}">Suggestion Pools</a>
+                                that give the audience the ability to enter suggestions once a
+                                <a class="purple-link" target="_blank" href="{% url "channel_shows" channel.name %}">Show</a>
+                                is created.
+                                <br/>
+                                <div class="text-center">
+                                    <a target="_blank" href="{% url "channel_players" channel.name %}" class="btn btn-lg btn-danger btn-shadow x-large-font">
+                                        <span style="x-large-font">Create a Suggestion Pool</span>
+                                    </a>
+                                </div>
+                            </li>
+                            <hr />
+                            <li>
+                                Create <a class="orange-link" target="_blank" href="{% url "channel_vote_types" channel.name %}">Vote Types</a>
+                                that determine how votes will appear during your
+                                <a class="purple-link" target="_blank" href="{% url "channel_shows" channel.name %}">Show</a>.
+                                <br/>
+                                <div class="text-center">
+                                    <a target="_blank" href="{% url "channel_players" channel.name %}" class="btn btn-lg btn-danger btn-shadow x-large-font">
+                                        <span style="x-large-font">Create a Vote Type</span>
+                                    </a>
+                                </div>
+                            </li>
+                            <hr />
+                            <li>
+                                Once you have created a
+                                <a class="orange-link" target="_blank" href="{% url "channel_vote_types" channel.name %}">Vote Type</a>,
+                                you can now create a
+                                <a class="purple-link" target="_blank" href="{% url "channel_shows" channel.name %}">Show</a>
+                                that packages your
+                                <a class="pink-link" target="_blank" href="{% url "channel_players" channel.name %}">Players</a>
+                                and
+                                <a class="orange-link" target="_blank" href="{% url "channel_vote_types" channel.name %}">Vote Types</a>
+                                and allows your audience to interact during your live show.
+                                <br/>
+                                <div class="text-center">
+                                    <a target="_blank" href="{% url "channel_players" channel.name %}" class="btn btn-lg btn-danger btn-shadow x-large-font">
+                                        <span style="x-large-font">Create a Show</span>
+                                    </a>
+                                </div>
+                            </li>
+                            <hr />
+                        </ul>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <span class="xx-large-font">*</span>
+                                <span class="x-large-font">
+                                    Note:
+                                    <a class="pink-link" target="_blank" href="{% url "channel_players" channel.name %}">Players</a> or
+                                    <a class="green-link" target="_blank" href="{% url "channel_suggestion_pools" channel.name %}">Suggestion Pools</a>
+                                    are not required, but you must have either
+                                    <a class="pink-link" target="_blank" href="{% url "channel_players" channel.name %}">Players</a> or a
+                                    <a class="green-link" target="_blank" href="{% url "channel_suggestion_pools" channel.name %}">Suggestion Pool</a>
+                                    to create a <a class="purple-link" target="_blank" href="{% url "channel_shows" channel.name %}">Show</a>.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="panel panel-info highlight-shadow">
+                    <div class="panel-heading text-shadow xx-large-font">
+                        Admin Show Tutorial
+                    </div>
+                    <div class="panel-body text-shadow x-large-font" style="background-color:{{channel.navbar_color}} !important;">
+                        <ul class="list-unstyled">
+                            <li>
+                                Once your
+                                <a class="purple-link" target="_blank" href="{% url "channel_shows" channel.name %}">Show</a>
+                                is created, open the "Show Display" page on your projector/screen for your audience to see
+                                and interact with.
+                            </li>
+                            <hr />
+                            <li>
+                                To start live
+                                <a class="purple-link" target="_blank" href="{% url "channel_shows" channel.name %}">Show</a>
+                                votes, open the "Show Controller" page and click any of the "Start Vote" buttons.
+                            </li>
+                            <hr />
+                        </ul>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <span class="xx-large-font">*</span>
+                                <span class="x-large-font">
+                                    Note: The "Show Lock" exists to ensure audience members are redirected to the "Live Voting Page".
+                                    Anytime a vote is started, the "Show Lock" is automatically turned on and any link on your Channel will
+                                    take your users to the "Live Voting Page". If you need them to enter more Suggestions at any time,
+                                    make sure you set the show lock to "Unlocked".
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div class="panel panel-info highlight-shadow">
+                    <div class="panel-heading text-shadow xx-large-font">
+                        Example Show Video
+                    </div>
+                    <div class="panel-body text-shadow x-large-font" style="background-color:{{channel.navbar_color}} !important;">
+                        Here is an example show using an older version of Dumpedit at the
+                        Denver Improv Festival:
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-2">
+                                <div class="embed-responsive embed-responsive-16by9">
+                                    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/JdIqzMAJlZo" frameborder="0" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
