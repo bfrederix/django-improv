@@ -942,14 +942,17 @@ var BottomNavSelect = React.createClass({
     this.counter = 0;
     // Create the suggestion list
     this.state.data.map(function (item) {
-        this.counter++;
-        itemLink = this.props.baseLinkUrl + item.id + "/";
-        if (parseInt(this.props.selectedID) == item.id) {
-            optionList.push(<li key={this.counter} className="active"><a href={itemLink}><span className="bottom-nav-item">{item.display_name}</span></a></li>);
-        } else {
-            optionList.push(<li key={this.counter}><a href={itemLink}><span className="bottom-nav-item">{item.display_name}</span></a></li>);
+        // Make sure not to show admin only
+        if (!item.admin_only || this.props.isChannelAdmin) {
+            this.counter++;
+            itemLink = this.props.baseLinkUrl + item.id + "/";
+            if (parseInt(this.props.selectedID) == item.id) {
+                optionList.push(<li key={this.counter} className="active"><a href={itemLink}><span className="bottom-nav-item">{item.display_name}</span></a></li>);
+            } else {
+                optionList.push(<li key={this.counter}><a href={itemLink}><span className="bottom-nav-item">{item.display_name}</span></a></li>);
+            }
+            return optionList;
         }
-        return optionList;
     }, this);
 
     return (
@@ -3251,6 +3254,7 @@ var ShowSuggestionPool = React.createClass({
             <BottomNavSelect key="1"
                              selectedID={this.props.showSuggestionPoolContext.suggestionPoolID}
                              listAPIUrl={this.props.showSuggestionPoolContext.suggestionPoolListAPIUrl}
+                             isChannelAdmin={this.props.showSuggestionPoolContext.isChannelAdmin}
                              baseLinkUrl={baseSuggestionPoolUrl}
                              label="Suggestion Types" />
             <FormLabel key="2"
