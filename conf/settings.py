@@ -57,6 +57,7 @@ INSTALLED_APPS = (
     'rest_framework_social_oauth2',
     'shell_plus',
     'djstripe',
+    'import_export',
 )
 
 MIDDLEWARE_CLASSES = (
