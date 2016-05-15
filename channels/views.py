@@ -246,7 +246,7 @@ class ChannelPlayersView(view_utils.ShowView):
                                                         invalidate=True)
             player.photo_url = cloud_response.get('secure_url')
         # If there were no errors, save the player
-        if not error and not delete:
+        if not error:
             player.save()
 
         context.update(
