@@ -1,5 +1,6 @@
 <html>
   <head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:image" content="{{channel.team_photo_url}}" />
@@ -10,6 +11,7 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link href="{{CSS_URL}}bootstrap.min.css" rel="stylesheet" media="screen">
     <link rel="stylesheet" type="text/css" href="{{CSS_URL}}base.css">
+	<link rel="stylesheet" href=" https://opensource.keycdn.com/fontawesome/4.6.3/font-awesome.min.css">
 
 	<!-- Favicons -->
     <link rel="apple-touch-icon" sizes="57x57" href="{{IMAGE_URL}}apple-icon-57x57.png">
@@ -31,6 +33,11 @@
 
   	{% block add_head %}{% endblock %}
   	<title>Dumpedit: {% block title %}{% endblock %}{% if debug %} dev{% endif %}</title>
+
+	<style>
+		a{color: #fff;}
+		.main-btn .row{margin: 10px 0}
+	</style>
   </head>
 
   <body {% if channel.background_color %}style="background-color:{{channel.background_color}} !important;"{% endif %}>
@@ -75,7 +82,7 @@
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
 									<strong>Suggestions <span class="caret"></span></strong>
 								</a>
-								<ul class="dropdown-menu">
+								<ul class="dropdown-menu remove-text-shadow">
 									{% for pool in suggestion_pools %}
 										{% if pool.admin_only %}
 											{% if is_channel_admin %}
@@ -94,9 +101,9 @@
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                             Leaderboards <span class="caret"></span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{% url "channel_leaderboards" channel.name %}"><strong>All-time Leaderboard</strong></a></li>
-                            <li><a href="{% url "channel_medals" channel.name %}"><strong>Medals</strong></a></li>
+                        <ul class="dropdown-menu remove-text-shadow">
+                            <li><a href="{% url "channel_leaderboards" channel.name %}">All-time Leaderboard</a></li>
+                            <li><a href="{% url "channel_medals" channel.name %}">Medals</a></li>
                         </ul>
                     </li>
     				{% if request.user.is_authenticated %}
@@ -107,7 +114,7 @@
     						<a class="dropdown-toggle" data-toggle="dropdown" href="#">
       							Admin <span class="caret"></span>
     						</a>
-    						<ul class="dropdown-menu">
+    						<ul class="dropdown-menu remove-text-shadow">
 								<li {% block channel-admin-tutorial %}{% endblock %}><a href="{% url "channel_admin_tutorial" channel.name %}">Admin Quick Tutorial</a></li>
     							<li {% block channel-shows-selected %}{% endblock %}><a href="{% url "channel_shows" channel.name %}">Create/Edit Shows</a></li>
     							<li {% block vote-type-selected %}{% endblock %}><a href="{% url "channel_vote_types" channel.name %}">Create/Edit Vote Types</a></li>
@@ -164,8 +171,8 @@
                                 Login <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu remove-text-shadow">
-                                <li><a href="{% url "social:begin" "facebook" %}?next={{request.path}}"><div class="facebook-icon-small pull-left"></div>&nbsp;<strong>Login with Facebook&nbsp;</strong></a></li>
-                                <li><a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}"><div class="google-icon-small pull-left"></div>&nbsp;<strong>Login with Google</strong></a></li>
+                                <li><a href="{% url "social:begin" "facebook" %}?next={{request.path}}"><strong><i class="fa fa-facebook-official fa-lg"></i>&nbsp;Login with Facebook&nbsp;</strong></a></li>
+                                <li><a href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}"><strong><i class="fa fa-google-plus-square fa-lg"></i>&nbsp;Login with Google</strong></a></li>
                             </ul>
                         </li>
                     {% else %}

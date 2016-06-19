@@ -72,8 +72,10 @@
                                 <li>
                                     Enter Suggestions for
                                     {% for sp in suggestion_pools %}
-                                        <span style="font-weight: bold;"><a class="white-link" href="{% url "show_suggestion_pool" channel.name current_show.id sp.id %}">{{sp.display_name}}</a></span>
-                                        {% if not forloop.last %}|{% endif %}
+                                        {% if not sp.admin_only %}
+                                            <span style="font-weight: bold;"><a class="white-link" href="{% url "show_suggestion_pool" channel.name current_show.id sp.id %}">{{sp.display_name}}</a></span>
+                                            {% if not forloop.last %}|{% endif %}
+                                        {% endif %}
                                     {% endfor %}
                                 </li>
                                 <hr />

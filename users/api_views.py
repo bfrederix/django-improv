@@ -59,4 +59,4 @@ class UsernameViewSet(viewsets.ViewSet):
     def list(self, request):
         query = self.request.query_params.get('q', '').lower()
         queryset = UserProfile.objects.filter(strip_username__icontains=query)[:10]
-        return Response([q.username for q in queryset])
+        return Response([q.safe_username() for q in queryset])
