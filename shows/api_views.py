@@ -52,7 +52,9 @@ class ShowAPIObject(APIObject):
                                                                 interval=self.vote_type.current_interval)
             # If we're in the result state
             elif self.current_display == 'result':
+                # Gets the vote type and current player if they exist
                 self.set_default_vote_data(show.id)
+                # Gets the current VotedItem
                 current_voted = shows_service.get_current_voted(show.id,
                                                                 self.vote_type.id,
                                                                 self.vote_type.current_interval)

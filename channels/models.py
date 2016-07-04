@@ -141,6 +141,10 @@ class VoteType(models.Model):
     button_color = models.CharField(default="#003D7A", blank=False, max_length=100)
     require_login = models.BooleanField(blank=False, default=False)
 
+    # Advanced options
+    hide_vote_count = models.BooleanField(blank=False, default=False)
+    no_randomize = models.BooleanField(blank=False, default=False)
+
     # Implicit Vote Type Options
     player_options = models.BooleanField(blank=False, default=False)
     players_only = models.BooleanField(blank=False, default=False)

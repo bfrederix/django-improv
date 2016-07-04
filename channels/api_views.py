@@ -28,7 +28,8 @@ class VoteTypeAPIObject(APIObject):
                   'keep_suggestions', 'active', 'vote_options_name',
                   'current_interval', 'current_vote_init',
                   'interval_seconds_remaining', 'vote_seconds_remaining',
-                  'remaining_intervals', 'created']
+                  'remaining_intervals', 'created', 'no_randomize',
+                  'hide_vote_count']
 
     def __init__(self, vote_type, **kwargs):
         super(VoteTypeAPIObject, self).__init__(vote_type, **kwargs)

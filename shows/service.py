@@ -72,7 +72,7 @@ def suggestion_or_404(suggestion_id):
     return get_object_or_404(Suggestion, pk=suggestion_id)
 
 
-def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count):
+def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count, no_randomize=False):
     # Make sure there is a proper option count
     if not option_count:
         raise ValueError("Option count needs to be higher than 0")
@@ -93,11 +93,16 @@ def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count):
                                  suggestion_pool=suggestion_pool_id,
                                  used=False).order_by('-preshow_value',
                                                       'created')[:option_count*2]
-    # Get a randomized sample of the top "options" amount of suggestion
-    random_sample = list(random.sample(
-                            set(unused_suggestions),
-                            min(option_count, len(unused_suggestions))))
-    return random_sample[:option_count]
+    # The suggestions should be randomized
+    if no_randomize == False:
+        # Get a randomized sample of the top "options" amount of suggestion
+        sample = list(random.sample(
+                      set(unused_suggestions),
+                      min(option_count, len(unused_suggestions))))
+    # The suggestions shouldn't be randomized
+    else:
+        sample = unused_suggestions
+    return sample[:option_count]
 
 
 def update_suggestions_session_to_user(show_id, session_id, user_id):

@@ -57,7 +57,7 @@ class VoteTypeSerializer(serializers.ModelSerializer):
                   'current_interval', 'current_vote_init',
                   'interval_seconds_remaining', 'vote_seconds_remaining',
                   'remaining_intervals', 'vote_type_used', 'created',
-                  'voted_option', 'live_votes')
+                  'voted_option', 'live_votes', 'no_randomize', 'hide_vote_count')
 
 
 class VoteStyleSerializer(serializers.Serializer):

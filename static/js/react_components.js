@@ -1636,18 +1636,21 @@ var VoteTypeForm = React.createClass({
   },
   render: function() {
     var formContents = [];
+    var tabBasicContents = [];
+    var tabAdvancedContents = [];
+
     // Premium features key
-    formContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
+    tabBasicContents.push(<div key="premium-1" className="row"><div className="col-md-12"><StarImage /> = Premium Feature</div><br /><br /></div>);
     // Name Input
     var nameInput = <input type="text" id="name" name="name" defaultValue={this.state.data.name} className="form-control"></input>;
-    formContents.push(<FormGroup key="1"
+    tabBasicContents.push(<FormGroup key="1"
                                  labelSize="2"
                                  labelContents="Name*:"
                                  inputSize="4"
                                  input={nameInput}/>);
     // Display Name Input
     var displayNameInput = <input type="text" id="display_name" name="display_name" defaultValue={this.state.data.display_name} className="form-control"></input>;
-    formContents.push(<FormGroup key="2"
+    tabBasicContents.push(<FormGroup key="2"
                                  labelSize="2"
                                  labelContents="Display Name*:"
                                  inputSize="4"
@@ -1658,7 +1661,7 @@ var VoteTypeForm = React.createClass({
                                      defaultSelected={this.state.data.style}
                                      defaultText="Select a Voting Style"
                                      selectID="style" />;
-    formContents.push(<FormGroup key="7"
+    tabBasicContents.push(<FormGroup key="7"
                                  labelSize="2"
                                  labelContents="Voting Style*:"
                                  inputSize="6"
@@ -1671,7 +1674,7 @@ var VoteTypeForm = React.createClass({
                                               defaultText="Select a Suggestion Pool"
                                               selectID="suggestion_pool"
                                               loadingBarColor="#000" />;
-    formContents.push(<FormGroup key="3"
+    tabBasicContents.push(<FormGroup key="3"
                                  labelSize="2"
                                  labelContents="Suggestion Pool:"
                                  inputSize="6"
@@ -1680,7 +1683,7 @@ var VoteTypeForm = React.createClass({
                                  docs="http://docs.dumpedit.com/en/latest/suggestion_pools.html" />);
     // Intervals Input
     var intervalsInput = <input type="text" id="intervals" name="intervals" defaultValue={this.state.data.intervals} className="form-control"></input>;
-    formContents.push(<FormGroup key="5"
+    tabBasicContents.push(<FormGroup key="5"
                                  labelSize="2"
                                  labelContents="Intervals:"
                                  inputSize="7"
@@ -1689,7 +1692,7 @@ var VoteTypeForm = React.createClass({
                                  docs="http://docs.dumpedit.com/en/latest/vote_types.html#vote-types-interval" />);
     // Pre-show Selected Input
     var preshowSelectedInput = <input type="checkbox" name="preshow_selected" value="1" defaultChecked={this.state.data.preshow_selected}></input>;
-    formContents.push(<FormGroup key="4"
+    tabBasicContents.push(<FormGroup key="4"
                                  labelSize="2"
                                  labelContents="Disallow Audience Voting:"
                                  inputSize="5"
@@ -1698,7 +1701,7 @@ var VoteTypeForm = React.createClass({
                                  docs="http://docs.dumpedit.com/en/latest/vote_types.html#vote-types-disallow-audience-voting" />);
     // Manual Interval Control Input
     var manualIntervalControlInput = <input type="checkbox" name="manual_interval_control" value="1" defaultChecked={this.state.data.manual_interval_control}></input>;
-    formContents.push(<FormGroup key="6"
+    tabBasicContents.push(<FormGroup key="6"
                                  labelSize="2"
                                  labelContents="Manual Interval Voting Control:"
                                  inputSize="5"
@@ -1706,7 +1709,7 @@ var VoteTypeForm = React.createClass({
                                  helpBlock='Check this if you want the "tech" to control when interval voting occurs' />);
     // ordering Input
     var orderingInput = <input type="text" id="ordering" name="ordering" maxLength="2" defaultValue={this.state.data.ordering} className="form-control"></input>;
-    formContents.push(<FormGroup key="8"
+    tabBasicContents.push(<FormGroup key="8"
                                  labelSize="2"
                                  labelContents="Order:"
                                  inputSize="5"
@@ -1714,7 +1717,7 @@ var VoteTypeForm = React.createClass({
                                  helpBlock='The numeric order in which the voting types appear, either as buttons on the Show Control page, or otherwise.' />);
     // options Input
     var optionsInput = <input type="text" id="options" name="options" maxLength="1" defaultValue={this.state.data.options} className="form-control"></input>;
-    formContents.push(<FormGroup key="9"
+    tabBasicContents.push(<FormGroup key="9"
                                  labelSize="2"
                                  labelContents="Voting Options:"
                                  inputSize="5"
@@ -1722,7 +1725,7 @@ var VoteTypeForm = React.createClass({
                                  helpBlock='The number of voting options that appear on the voting page. Make sure you choose a number that will fit on the Show Display screen. (Options ignored for player-only vote types)' />);
     // Vote Length Input
     var voteLengthInput = <input type="text" id="vote_length" name="vote_length" defaultValue={this.state.data.vote_length} className="form-control"></input>;
-    formContents.push(<FormGroup key="10"
+    tabBasicContents.push(<FormGroup key="10"
                                  labelSize="2"
                                  labelContents="Voting Length:"
                                  inputSize="3"
@@ -1730,7 +1733,7 @@ var VoteTypeForm = React.createClass({
                                  helpBlock='How many seconds the voting period lasts' />);
     // result Length Input
     var resultLengthInput = <input type="text" id="result_length" name="result_length" defaultValue={this.state.data.result_length} className="form-control"></input>;
-    formContents.push(<FormGroup key="11"
+    tabBasicContents.push(<FormGroup key="11"
                                  labelSize="2"
                                  labelContents="Voted Result Display Length:"
                                  inputSize="4"
@@ -1740,7 +1743,7 @@ var VoteTypeForm = React.createClass({
     var buttonColorInput = <ColorPicker hexColor={this.state.data.button_color}
                                         inputName="button_color"
                                         enabled="True" />;
-    formContents.push(<FormGroup key="12"
+    tabBasicContents.push(<FormGroup key="12"
                                  labelSize="2"
                                  labelContents="Vote Type Color:"
                                  inputSize="4"
@@ -1752,7 +1755,7 @@ var VoteTypeForm = React.createClass({
     } else {
         var requireLoginInput = <input type="checkbox" name="require_login" value="1" disabled="true"></input>;
     }
-    formContents.push(<FormGroup key="13"
+    tabBasicContents.push(<FormGroup key="13"
                                  labelSize="2"
                                  labelContents="Require Login:"
                                  premium="true"
@@ -1761,12 +1764,54 @@ var VoteTypeForm = React.createClass({
                                  helpBlock="Check this if users are required to login to vote" />);
     // Active Input
     var activeInput = <input type="checkbox" name="active" value="1" defaultChecked={this.state.data.active}></input>;
-    formContents.push(<FormGroup key="14"
+    tabBasicContents.push(<FormGroup key="14"
                                  labelSize="2"
                                  labelContents="Vote Type Active:"
                                  inputSize="5"
                                  input={activeInput}
                                  helpBlock="Check this if the Vote Type should appear on the Create Show page" />);
+
+    // Hide Vote Count Input
+    var hideVoteCountInput = <input type="checkbox" name="hide_vote_count" value="1" defaultChecked={this.state.data.hide_vote_count}></input>;
+    tabAdvancedContents.push(<FormGroup key="15"
+                                 labelSize="2"
+                                 labelContents="Hide  Vote Count:"
+                                 inputSize="5"
+                                 input={hideVoteCountInput}
+                                 helpBlock="Check this if the Vote Type should not show vote counts" />);
+
+    // Don't randomize the Vote input
+    var noRandomizeInput = <input type="checkbox" name="no_randomize" value="1" defaultChecked={this.state.data.no_randomize}></input>;
+    tabAdvancedContents.push(<FormGroup key="16"
+                                 labelSize="2"
+                                 labelContents="Don't Randomize Vote Options:"
+                                 inputSize="5"
+                                 input={noRandomizeInput}
+                                 helpBlock="Check this if the Vote Type options should not be randomized" />);
+
+    // Add the basic and advanced tabs to the form
+    formContents.push(
+        <div key="tabs">
+              <ul className="nav nav-tabs">
+                    <li className="active bg-warning" key="basic-tab">
+                      <a href="#basic" data-toggle="tab">Basic</a>
+                    </li>
+                    <li key="advanced-tab" className="bg-warning">
+                      <a href="#advanced" data-toggle="tab">Advanced</a>
+                    </li>
+              </ul>
+              <div className="tab-content" role="tablist" key="tab-contents">
+                    <div className="tab-pane active" role="tabpanel" id="basic" key="basic-tab-contents">
+                        <br/>
+                        {tabBasicContents}
+                    </div>
+                    <div className="tab-pane" role="tabpanel" id="advanced" key="advanced-tab-contents">
+                        <br/>
+                        {tabAdvancedContents}
+                    </div>
+              </div>
+        </div>);
+
     // Submit Button
     var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Vote Type</button>;
     formContents.push(<FormGroup key="15"
@@ -3592,6 +3637,7 @@ var VoteOptionPlayer = React.createClass({
 	    [this.state.data.min_votes, this.state.data.max_votes],
 	    this.state.data.vote_options_count).out('hex');
 	var liveVotesColor = scale(this.state.data.live_votes);
+	var voteCount;
     var deltaSpan;
     // If the live votes changed
     if (this.state.voteDelta) {
@@ -3604,11 +3650,15 @@ var VoteOptionPlayer = React.createClass({
             <button className="btn btn-info btn-md word-wrap x-large-font btn-shadow text-shadow">{this.state.data.player_name}</button>
         </div>
     );
+
+    // If we should show the vote count
+    if (this.state.data.hide_vote_count == false) {
+        voteCount = <Badge badgeColor={liveVotesColor} badgeClasses="xx-large-font" content={this.state.data.live_votes} />;
+    }
+
     var footerContent = (
         <button className="btn btn-primary btn-md btn-block word-wrap x-large-font btn-shadow text-shadow">
-            <Badge badgeColor={liveVotesColor}
-                   content={this.state.data.live_votes}
-                   badgeClasses="xx-large-font" />{deltaSpan}
+            {voteCount}{deltaSpan}
         </button>);
 
     return (
@@ -3682,6 +3732,7 @@ var VoteOptionSuggestion = React.createClass({
 	    [this.state.data.min_votes, this.state.data.max_votes],
 	    this.state.data.vote_options_count).out('hex');
 	var liveVotesColor = scale(this.state.data.live_votes);
+	var voteCount;
     var deltaSpan;
     var starImage;
     var submittedBy;
@@ -3717,9 +3768,14 @@ var VoteOptionSuggestion = React.createClass({
         deltaSpan = <span className="xx-large-font animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
     }
 
+    // If we should show the vote count
+    if (this.state.data.hide_vote_count == false) {
+        voteCount = <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />;
+    }
+
     return (
         <button className={optionButtonClasses}>
-           {this.state.data.option_number}. {this.state.data.suggestion_value} <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />{deltaSpan}{starImage}
+           {this.state.data.option_number}. {this.state.data.suggestion_value} {voteCount}{deltaSpan}{starImage}
            {submittedBy}
         </button>
     );
@@ -3900,6 +3956,7 @@ var ShowResultDisplayVotedOption = React.createClass({
     }
     var playerID = this.props.playerID;
     var bodyContent;
+    var voteCount;
     var submittedByText, submittedByButton;;
     var footerContent = [];
     var headingStyle = {backgroundColor: this.props.voteTypeData.button_color};
@@ -3951,9 +4008,15 @@ var ShowResultDisplayVotedOption = React.createClass({
     } else {
         liveVotesClasses = liveVotesClasses + " animated pulse pulse-mod";
     }
+
+    // If we should show the vote count
+    if (this.props.voteTypeData.hide_vote_count == false) {
+        voteCount = <button key="live-votes" className={liveVotesClasses}>{this.state.data.live_votes} Votes</button>;
+    }
+
     footerContent.push(
         <div key="submit-votes" className="row text-center">
-            <button key="live-votes" className={liveVotesClasses}>{this.state.data.live_votes} Votes</button>
+            {voteCount}
             &nbsp;{submittedByButton}
         </div>
     );

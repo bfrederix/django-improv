@@ -105,7 +105,8 @@ def start_new_interval(show, vote_type):
     else:
         suggestions = shows_service.fetch_randomized_suggestions(show.id,
                                                                  vote_type.suggestion_pool_id,
-                                                                 vote_type.options)
+                                                                 vote_type.options,
+                                                                 no_randomize=vote_type.no_randomize)
     # Set the voting options
     # NOTE: Live Votes get deleted for repeateable
     shows_service.set_voting_options(show,
