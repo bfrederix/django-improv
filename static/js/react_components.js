@@ -3767,7 +3767,6 @@ var VoteOptionSuggestion = React.createClass({
     if (this.state.voteDelta) {
         deltaSpan = <span className="xx-large-font animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
     }
-
     // If we should show the vote count
     if (this.state.data.hide_vote_count == false) {
         voteCount = <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />;

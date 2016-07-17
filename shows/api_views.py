@@ -131,6 +131,8 @@ class VoteOptionAPIObject(APIObject):
         super(VoteOptionAPIObject, self).__init__(option, **kwargs)
         self.player_id = option.player_id
         self.suggestion_id = option.suggestion_id
+        # Determine if we should show the vote count
+        self.hide_vote_count = option.vote_type.hide_vote_count
         # If there was a suggestion for the option
         if option.suggestion_id:
             suggestion = option.suggestion
@@ -243,7 +245,7 @@ class VoteOptionViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def list(self, request):
-        ### WE NEED THIS FOR THE API URL ###
+        ### DO NOT DELETE, WE NEED THIS FOR THE API URL ###
         pass
 
 
