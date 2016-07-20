@@ -163,7 +163,8 @@ class ShowLiveVoteView(view_utils.ShowView):
             #logger.info(grequests.map([gpost], exception_handler=async_exception_handler))
             grequests.map([gpost], exception_handler=async_exception_handler)
         context.update({'show_id': int(show_id),
-                        'vote_options': vote_options})
+                        'vote_options': vote_options,
+                        'option_number': option_number})
         return render(request,
                       self.template_name,
                       context)

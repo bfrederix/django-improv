@@ -66,3 +66,7 @@ conf/local
 static_files/
 
 .DS_Store
+
+# Compressed JS
+bundle.js.map
+static/js/react_components.min.js

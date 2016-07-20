@@ -30,6 +30,16 @@
 {% block content %}
     {% if show_id == current_show.id %}
         <div class="container-fluid">
+            {% if option_number %}
+                <div class="row">
+                    <div class="col-md-offset-4 col-md-4">
+                        <div class="alert alert-danger text-center btn-shadow animated bounceInDown" role="alert" id="success-alert">
+                            <div class="large-font text-shadow">You voted for <strong>#{{option_number}}</strong></div>
+                            <div>(You cannot change your vote)</div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
             <div class="text-center text-shadow x-large-font animated bounceInDown">Live Voting Page</div>
             {% for option in vote_options %}
                 <div class="row">
@@ -41,7 +51,7 @@
                         </form>
                     </div>
                 </div>
-                {% if forloop.counter == 3 and channel.facebook_page %}
+                {% if forloop.counter == 4 and channel.facebook_page %}
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4">
                             <p class="text-right">
@@ -58,4 +68,12 @@
     {% else %}
         <div id="container-fluid" class="container-fluid xx-large-font">This Show has ended.</div>
     {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        $("#success-alert").fadeTo(4000, 500).slideUp(500, function(){
+            $("#success-alert").alert('close');
+        });
+    </script>
 {% endblock %}
