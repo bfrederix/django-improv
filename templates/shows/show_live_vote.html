@@ -51,7 +51,17 @@
                         </form>
                     </div>
                 </div>
-                {% if forloop.counter == 4 and channel.facebook_page %}
+                {% if forloop.counter == 4 and channel.facebook_page  %}
+                    <div class="row">
+                        <div class="col-md-4 col-md-offset-4">
+                            <p class="text-right">
+                                <div class="text-shadow pull-left large-font">Like us on Facebook&nbsp;</div>
+                                <div id="fbiframe" class="fb-like" data-href="{{channel.facebook_page}}" data-layout="button_count" data-action="like"></div>
+                            </p>
+                            <br />
+                        </div>
+                    </div>
+                {% elif vote_options|length == forloop.counter %}
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4">
                             <p class="text-right">
