@@ -61,7 +61,7 @@
                             <br />
                         </div>
                     </div>
-                {% elif vote_options|length == forloop.counter %}
+                {% elif vote_options|length < 4 and vote_options|length == forloop.counter %}
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4">
                             <p class="text-right">
