@@ -106,12 +106,12 @@ class ShowLiveVoteView(view_utils.ShowView):
         if context['current_show']:
             # Get the current vote type
             vote_type = context['current_show'].current_vote_type
-            context['show_option_values'] = vote_type.show_option_values
             # If we should show the option values instead of just numbers (slows things down)
             if vote_type and vote_type.show_option_values:
                 vote_options = shows_service.fetch_vote_options(show_id,
                                                                 vote_type.id,
                                                                 vote_type.current_interval)
+                context['show_option_values'] = vote_type.show_option_values
             else:
                 # Get a list of the max numbered vote options
                 vote_options = range(1, context['current_show'].vote_options + 1)
@@ -138,12 +138,12 @@ class ShowLiveVoteView(view_utils.ShowView):
         if context['current_show']:
             # Get the current vote type
             vote_type = context['current_show'].current_vote_type
-            context['show_option_values'] = vote_type.show_option_values
             # If we should show the option values instead of just numbers (slows things down)
             if vote_type and vote_type.show_option_values:
                 vote_options = shows_service.fetch_vote_options(show_id,
                                                                 vote_type.id,
                                                                 vote_type.current_interval)
+                context['show_option_values'] = vote_type.show_option_values
             else:
                 # Get a list of the max numbered vote options
                 vote_options = range(1, context['current_show'].vote_options + 1)
