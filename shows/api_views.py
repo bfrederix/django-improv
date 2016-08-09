@@ -132,7 +132,9 @@ class VoteOptionAPIObject(APIObject):
         self.player_id = option.player_id
         self.suggestion_id = option.suggestion_id
         # Determine if we should show the vote count
-        self.hide_vote_count = option.vote_type.hide_vote_count
+        self.hide_display_vote_count = option.vote_type.hide_display_vote_count
+        self.hide_recap_vote_count = option.vote_type.hide_recap_vote_count
+        self.show_option_values = option.vote_type.show_option_values
         # If there was a suggestion for the option
         if option.suggestion_id:
             suggestion = option.suggestion

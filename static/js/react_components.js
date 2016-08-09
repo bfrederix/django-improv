@@ -1771,23 +1771,41 @@ var VoteTypeForm = React.createClass({
                                  input={activeInput}
                                  helpBlock="Check this if the Vote Type should appear on the Create Show page" />);
 
-    // Hide Vote Count Input
-    var hideVoteCountInput = <input type="checkbox" name="hide_vote_count" value="1" defaultChecked={this.state.data.hide_vote_count}></input>;
+    // Hide Display Vote Count Input
+    var hideDisplayVoteCountInput = <input type="checkbox" name="hide_display_vote_count" value="1" defaultChecked={this.state.data.hide_display_vote_count}></input>;
     tabAdvancedContents.push(<FormGroup key="15"
                                  labelSize="2"
-                                 labelContents="Hide  Vote Count:"
+                                 labelContents="Hide Show Display Vote Count:"
                                  inputSize="5"
-                                 input={hideVoteCountInput}
-                                 helpBlock="Check this if the Vote Type should not show vote counts" />);
+                                 input={hideDisplayVoteCountInput}
+                                 helpBlock="Check this if the Vote Type should not show vote counts on the Show Display page" />);
+
+    // Hide Recap Vote Count Input
+    var hideRecapVoteCountInput = <input type="checkbox" name="hide_recap_vote_count" value="1" defaultChecked={this.state.data.hide_recap_vote_count}></input>;
+    tabAdvancedContents.push(<FormGroup key="16"
+                                 labelSize="2"
+                                 labelContents="Hide Recap Vote Count:"
+                                 inputSize="5"
+                                 input={hideRecapVoteCountInput}
+                                 helpBlock="Check this if the Vote Type should not show vote counts on the Recap page" />);
 
     // Don't randomize the Vote input
     var noRandomizeInput = <input type="checkbox" name="no_randomize" value="1" defaultChecked={this.state.data.no_randomize}></input>;
-    tabAdvancedContents.push(<FormGroup key="16"
+    tabAdvancedContents.push(<FormGroup key="17"
                                  labelSize="2"
                                  labelContents="Don't Randomize Vote Options:"
                                  inputSize="5"
                                  input={noRandomizeInput}
                                  helpBlock="Check this if the Vote Type options should not be randomized" />);
+
+    // Show option Values Input
+    var showOptionValuesInput = <input type="checkbox" name="show_option_values" value="1" defaultChecked={this.state.data.show_option_values}></input>;
+    tabAdvancedContents.push(<FormGroup key="18"
+                                 labelSize="2"
+                                 labelContents="Show Vote Option Values:"
+                                 inputSize="5"
+                                 input={showOptionValuesInput}
+                                 helpBlock="Check this if the Vote Type options should display the actual value instead of the corresponding number (Warning: slows down the voting page dramatically)" />);
 
     // Add the basic and advanced tabs to the form
     formContents.push(
@@ -1814,7 +1832,7 @@ var VoteTypeForm = React.createClass({
 
     // Submit Button
     var submitButton = <button type="submit" className="btn btn-danger btn-shadow text-shadow">Create/Edit Vote Type</button>;
-    formContents.push(<FormGroup key="15"
+    formContents.push(<FormGroup key="20"
                                  inputSize="2"
                                  input={submitButton} />);
     // Edit Vote Type Dropdown Input
@@ -1823,7 +1841,7 @@ var VoteTypeForm = React.createClass({
                                             defaultSelected={this.state.voteTypeID}
                                             defaultText="Select a Vote Type to Edit"
                                             loadingBarColor="#000" />;
-    formContents.push(<FormGroup key="16"
+    formContents.push(<FormGroup key="21"
                                  labelSize="2"
                                  labelContents="Edit VoteType:"
                                  inputSize="4"
@@ -3652,7 +3670,7 @@ var VoteOptionPlayer = React.createClass({
     );
 
     // If we should show the vote count
-    if (this.state.data.hide_vote_count == false) {
+    if (this.state.data.hide_display_vote_count == false) {
         voteCount = <Badge badgeColor={liveVotesColor} badgeClasses="xx-large-font" content={this.state.data.live_votes} />;
     }
 
@@ -3758,18 +3776,22 @@ var VoteOptionSuggestion = React.createClass({
         } else {
             submittedBy = <div>Submitted by: Anonymous</div>;
         }
+        // If we should show the vote count
+        if (this.state.data.hide_recap_vote_count == false) {
+            voteCount = <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />;
+        }
     // It's a vote option
     } else {
         optionButtonClasses = "btn btn-primary btn-lg btn-block word-wrap xx-large-font btn-shadow text-shadow animated fadeInDown";
         badgeClasses = "xx-large-font text-shadow";
+        // If we should show the vote count
+        if (this.state.data.hide_display_vote_count == false) {
+            voteCount = <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />;
+        }
     }
     // If the live votes changed
     if (this.state.voteDelta) {
         deltaSpan = <span className="xx-large-font animated fadeOutRight fadeOutRight-mod">+{this.state.voteDelta}</span>;
-    }
-    // If we should show the vote count
-    if (this.state.data.hide_vote_count == false) {
-        voteCount = <Badge badgeColor={liveVotesColor} badgeClasses={badgeClasses} content={this.state.data.live_votes} />;
     }
 
     return (
@@ -4009,7 +4031,7 @@ var ShowResultDisplayVotedOption = React.createClass({
     }
 
     // If we should show the vote count
-    if (this.props.voteTypeData.hide_vote_count == false) {
+    if (this.props.voteTypeData.hide_display_vote_count == false) {
         voteCount = <button key="live-votes" className={liveVotesClasses}>{this.state.data.live_votes} Votes</button>;
     }
 

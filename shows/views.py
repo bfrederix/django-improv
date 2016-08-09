@@ -104,10 +104,17 @@ class ShowLiveVoteView(view_utils.ShowView):
         context = self.get_default_channel_context(request, *args, **kwargs)
         # If there's a current show
         if context['current_show']:
-            # Get a list of the max numbered vote options
-            vote_options = range(1, context['current_show'].vote_options + 1)
             # Get the current vote type
             vote_type = context['current_show'].current_vote_type
+            context['show_option_values'] = vote_type.show_option_values
+            # If we should show the option values instead of just numbers (slows things down)
+            if vote_type and vote_type.show_option_values:
+                vote_options = shows_service.fetch_vote_options(show_id,
+                                                                vote_type.id,
+                                                                vote_type.current_interval)
+            else:
+                # Get a list of the max numbered vote options
+                vote_options = range(1, context['current_show'].vote_options + 1)
             # If there is a current vote type, and the vote type requires login
             if vote_type and vote_type.require_login and not getattr(request.user, 'id'):
                 # Redirect the user to the login page
@@ -125,13 +132,21 @@ class ShowLiveVoteView(view_utils.ShowView):
         show_id = kwargs.get('show_id')
         channel_name = kwargs.get('channel_name')
         option_number = request.POST.get('option_number')
+        option_value = request.POST.get('option_value')
         context = self.get_default_channel_context(request, *args, **kwargs)
         # If there's a current show
         if context['current_show']:
-            # Get a list of the max numbered vote options
-            vote_options = range(1, context['current_show'].vote_options + 1)
             # Get the current vote type
             vote_type = context['current_show'].current_vote_type
+            context['show_option_values'] = vote_type.show_option_values
+            # If we should show the option values instead of just numbers (slows things down)
+            if vote_type and vote_type.show_option_values:
+                vote_options = shows_service.fetch_vote_options(show_id,
+                                                                vote_type.id,
+                                                                vote_type.current_interval)
+            else:
+                # Get a list of the max numbered vote options
+                vote_options = range(1, context['current_show'].vote_options + 1)
             # If there is a current vote type, and the vote type requires login
             if vote_type and vote_type.require_login and not getattr(request.user, 'id'):
                 # Redirect the user to the login page
@@ -160,11 +175,11 @@ class ShowLiveVoteView(view_utils.ShowView):
                                    data=vote_post_data,
                                    headers={'Referer': live_vote_url})
             # Send the post
-            #logger.info(grequests.map([gpost], exception_handler=async_exception_handler))
-            grequests.map([gpost], exception_handler=async_exception_handler)
+            logger.info(grequests.map([gpost], exception_handler=async_exception_handler))
+            #grequests.map([gpost], exception_handler=async_exception_handler)
         context.update({'show_id': int(show_id),
                         'vote_options': vote_options,
-                        'option_number': option_number})
+                        'option_value': option_value})
         return render(request,
                       self.template_name,
                       context)

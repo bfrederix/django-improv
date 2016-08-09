@@ -142,8 +142,10 @@ class VoteType(models.Model):
     require_login = models.BooleanField(blank=False, default=False)
 
     # Advanced options
-    hide_vote_count = models.BooleanField(blank=False, default=False)
+    hide_display_vote_count = models.BooleanField(blank=False, default=False)
+    hide_recap_vote_count = models.BooleanField(blank=False, default=False)
     no_randomize = models.BooleanField(blank=False, default=False)
+    show_option_values = models.BooleanField(blank=False, default=False)
 
     # Implicit Vote Type Options
     player_options = models.BooleanField(blank=False, default=False)

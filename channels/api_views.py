@@ -29,7 +29,8 @@ class VoteTypeAPIObject(APIObject):
                   'current_interval', 'current_vote_init',
                   'interval_seconds_remaining', 'vote_seconds_remaining',
                   'remaining_intervals', 'created', 'no_randomize',
-                  'hide_vote_count']
+                  'hide_display_vote_count', 'hide_recap_vote_count',
+                  'show_option_values']
 
     def __init__(self, vote_type, **kwargs):
         super(VoteTypeAPIObject, self).__init__(vote_type, **kwargs)

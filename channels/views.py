@@ -349,8 +349,10 @@ class ChannelVoteTypesView(view_utils.ShowView):
                                 'result_length': int(request.POST.get('result_length', 10)),
                                 'button_color': request.POST.get('button_color'),
                                 'require_login': bool(request.POST.get('require_login', False)),
-                                'hide_vote_count': bool(request.POST.get('hide_vote_count', False)),
-                                'no_randomize': bool(request.POST.get('no_randomize', False)),}
+                                'hide_display_vote_count': bool(request.POST.get('hide_display_vote_count', False)),
+                                'hide_recap_vote_count': bool(request.POST.get('hide_recap_vote_count', False)),
+                                'no_randomize': bool(request.POST.get('no_randomize', False)),
+                                'show_option_values': bool(request.POST.get('show_option_values', False))}
             vote_type_kwargs.update(
                 channels_service.vote_type_style_to_fields(vote_type_kwargs['style']))
         # If we're deleting the vote type

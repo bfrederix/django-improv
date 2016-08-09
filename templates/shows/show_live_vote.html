@@ -30,11 +30,11 @@
 {% block content %}
     {% if show_id == current_show.id %}
         <div class="container-fluid">
-            {% if option_number %}
+            {% if option_value %}
                 <div class="row">
                     <div class="col-md-offset-4 col-md-4">
                         <div class="alert alert-danger text-center btn-shadow animated bounceInDown" role="alert" id="success-alert">
-                            <div class="large-font text-shadow">You voted for <strong>#{{option_number}}</strong></div>
+                            <div class="large-font text-shadow">You voted for <strong>{{option_value}}</strong></div>
                             <div>(You cannot change your vote)</div>
                         </div>
                     </div>
@@ -45,9 +45,12 @@
                 <div class="row">
                     <div class="col-md-offset-4 col-md-4">
                         <form action="{% url "show_live_vote" channel.name show_id %}" method="post">
-                            <input type="hidden" name="option_number" value="{{option}}" />
+                            <input type="hidden" name="option_number" value="{{forloop.counter}}" />
+                            <input type="hidden" name="option_value"
+                                   value="{% if show_option_values %}{% if option.suggestion %}{{option.suggestion.value}}{% elif option.player %}{{option.player.name}}{% endif %}{% else %}{{forloop.counter}}{% endif %}" />
                             {% csrf_token %}
-                            <input type="submit" class="btn btn-primary btn-block x-large-font btn-shadow text-shadow animated {% if forloop.counter|divisibleby:2 %}slideInRight{% else %}slideInLeft{% endif %}" value="{{forloop.counter}}"/>
+                            <input type="submit" class="btn btn-primary btn-block x-large-font btn-shadow text-shadow animated {% if forloop.counter|divisibleby:2 %}slideInRight{% else %}slideInLeft{% endif %}"
+                                   value="{% if show_option_values %}{{forloop.counter}}. {% if option.suggestion %}{{option.suggestion.value}}{% elif option.player %}{{option.player.name}}{% endif %}{% else %}{{forloop.counter}}{% endif %}"/>
                         </form>
                     </div>
                 </div>
@@ -72,7 +75,6 @@
                         </div>
                     </div>
                 {% endif %}
-
             {% endfor %}
         </div>
     {% else %}
