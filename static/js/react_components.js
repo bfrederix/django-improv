@@ -1150,10 +1150,15 @@ var ChannelCreateEditForm = React.createClass({
                                  inputSize="7"
                                  input={buyTicketsInput}
                                  helpBlock="The URL to buy tickets to your shows, premium feature only" />);
+    // Get the next show date properly formatted if it exists
+    var nextShow = '';
+    if (this.state.data.next_show) {
+        nextShow = this.state.data.next_show.replace('Z','');
+    }
     // Next Show
     var nextShowInput = (
         <div className='input-group date' id='next-show-picker'>
-            <input type="text" id="next_show" name="next_show" className="form-control" defaultValue={this.state.data.next_show.replace('Z','')}></input>
+            <input type="text" id="next_show" name="next_show" className="form-control" defaultValue={nextShow}></input>
             <span className="input-group-addon">
                 <span className="glyphicon glyphicon-calendar"></span>
             </span>
