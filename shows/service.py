@@ -226,6 +226,33 @@ def live_votes_exist(show_interval, user_id, session_id):
     logger.info(LiveVote.objects.filter(**live_vote_kwargs).count())
     return bool(LiveVote.objects.filter(**live_vote_kwargs).count())
 
+# Which option the user voted for, if any
+def user_voted_for(user_id, session_id, vote_options):
+    live_vote_kwargs = {}
+    # If the user was specified
+    if user_id:
+        live_vote_kwargs['user'] = user_id
+    # If the session id was specified
+    elif session_id:
+        live_vote_kwargs['session_id'] = session_id
+    else:
+        return None
+    for vote_option in vote_options:
+        # Set the vote option we're looking for
+        live_vote_kwargs['vote_option'] = vote_option.id
+        try:
+            LiveVote.objects.get(**live_vote_kwargs)
+        except ObjectDoesNotExist:
+            pass
+        else:
+            # If it was a suggestion vote option
+            if vote_option.suggestion_id:
+                return vote_option.suggestion.value
+            # If it was a player vote option
+            elif vote_option.player_id:
+                return vote_option.player.name
+    # No live vote was found
+    return None
 
 def create_live_votes(vote_option, show_interval, user, session_id, require_login):
     # Create a live vote

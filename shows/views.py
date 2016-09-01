@@ -144,6 +144,13 @@ class ShowLiveVoteView(view_utils.ShowView):
                                                                 vote_type.id,
                                                                 vote_type.current_interval)
                 context['show_option_values'] = vote_type.show_option_values
+                # Get the option that the user already voted for if it exists
+                voted_for = shows_service.user_voted_for(getattr(self.request.user, 'id'),
+                                                         session_utils.get_or_create_session_id(request),
+                                                         vote_options)
+                if voted_for:
+                    # Set the already voted for option value
+                    option_value = voted_for
             else:
                 # Get a list of the max numbered vote options
                 vote_options = range(1, context['current_show'].vote_options + 1)

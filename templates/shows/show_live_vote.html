@@ -49,7 +49,7 @@
                             <input type="hidden" name="option_value"
                                    value="{% if show_option_values %}{% if option.suggestion %}{{option.suggestion.value}}{% elif option.player %}{{option.player.name}}{% endif %}{% else %}{{forloop.counter}}{% endif %}" />
                             {% csrf_token %}
-                            <input type="submit" class="btn btn-primary btn-block x-large-font btn-shadow text-shadow animated {% if forloop.counter|divisibleby:2 %}slideInRight{% else %}slideInLeft{% endif %}"
+                            <input type="submit" class="btn btn-primary btn-block word-wrap x-large-font btn-shadow text-shadow animated {% if forloop.counter|divisibleby:2 %}slideInRight{% else %}slideInLeft{% endif %}"
                                    value="{% if show_option_values %}{{forloop.counter}}. {% if option.suggestion %}{{option.suggestion.value}}{% elif option.player %}{{option.player.name}}{% endif %}{% else %}{{forloop.counter}}{% endif %}"/>
                         </form>
                     </div>
