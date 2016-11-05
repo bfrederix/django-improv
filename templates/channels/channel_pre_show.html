@@ -4,8 +4,9 @@
 
 {% block title %}{{channel.display_name}} User Instructions{% endblock %}
 
-{% if is_channel_admin %}
-    {% block navigation %}
+
+{% block navigation %}
+    {% if is_channel_admin %}
         <nav id="top-nav-bar" class="navbar navbar-default navbar-custom" role="navigation" {% if channel.navbar_color %}style="background-color:{{channel.navbar_color}} !important;"{% endif %}>
             <div class="container-fluid">
             <!-- Brand and toggle get grouped for better mobile display -->
@@ -29,8 +30,10 @@
                 </div>
             </div>
         </nav>
-    {% endblock %}
-{% endif %}
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
 
 {% block content %}
     <div class="container-fluid">
@@ -42,63 +45,62 @@
                     </div>
                     <div class="panel-body text-shadow xx-large-font" style="background-color:{{channel.navbar_color}} !important;">
                         <ul class="list-unstyled">
-                            <li>
-                                Go to: http://dumpedit.com{% url "channel_home" channel.name %}
-                            </li>
-                            <hr />
-                            {% if channel.is_premium %}
+                            {% if is_channel_admin %}
+                                <li>
+                                    Go to: http://dumpedit.com{% url "channel_home" channel.name %}
+                                </li>
+                                <hr class="thick">
+                            {% endif %}
+                            {% if not request.user.is_authenticated %}
                                 <li>
                                     <div class="row">
-                                        <div class="col-md-3">
+                                        <div class="col-md-12">
                                             Login with
                                         </div>
-                                        <div class="col-md-3">
-                                            <img class="img-responsive img-rounded" src="{{IMAGE_URL}}facebook-sprite.png" />
+                                    </div>
+                                    <div class="row bg-default">
+                                        <div class="col-xs-6">
+                                            <a class='btn btn-block btn-lg x-large-font btn-shadow' href="{% url "social:begin" "facebook" %}?next={{request.path}}" style="background-color:#2952a3">
+                                                <i class="fa fa-facebook-official fa-lg"></i> <span class='hidden-xs text-shadow'>Facebook </span><span class='text-shadow'>Facebook</span>
+                                            </a>
                                         </div>
-                                        <div class="col-md-1">
-                                            or
-                                        </div>
-                                        <div class="col-md-3">
-                                            <img class="img-responsive img-rounded" src="{{IMAGE_URL}}google-sprite.png" />
-                                        </div>
-                                        <div class="col-md-1">
-                                            <span class="xx-large-font">*</span>
+                                        <div class="col-xs-6">
+                                            <a class='btn btn-block btn-danger btn-lg x-large-font btn-shadow' href="{% url "social:begin" "google-oauth2" %}?next={{request.path}}">
+                                                <i class="fa fa-google-plus-square fa-lg"></i> <span class='hidden-xs text-shadow'>Google </span><span class='text-shadow'>Google</span>
+                                            </a>
                                         </div>
                                     </div>
+                                    <hr class="thick">
                                 </li>
-                                <hr />
                             {% endif %}
                             {% if suggestion_pools %}
                                 <li>
-                                    Enter Suggestions for
+                                    Enter suggestions for
                                     {% for sp in suggestion_pools %}
                                         {% if not sp.admin_only %}
-                                            <span style="font-weight: bold;"><a class="white-link" href="{% url "show_suggestion_pool" channel.name current_show.id sp.id %}">{{sp.display_name}}</a></span>
-                                            {% if not forloop.last %}|{% endif %}
+                                            {% if not forloop.first %}and{% endif %}
+                                            <a class="underlined-link" href="{% url "show_suggestion_pool" channel.name current_show.id sp.id %}" target="_blank">{{sp.display_name}}</a>
                                         {% endif %}
                                     {% endfor %}
                                 </li>
-                                <hr />
+                                <hr class="thick">
                                 <li>
                                     <div class="row">
                                         <div class="col-md-3">
                                             <img class="img-responsive img-rounded" src="{{IMAGE_URL}}upvote-sprite.png" />
                                         </div>
                                         <div class="col-md-6">
-                                            the Suggestions you like!
-                                        </div>
-                                        <div class="col-md-3">
-                                            &nbsp;&nbsp;
+                                            the suggestions you like!
                                         </div>
                                     </div>
                                 </li>
-                                <hr />
+                                <hr class="thick">
                             {% endif %}
                             {% if channel.is_premium %}
                                 <div class="row">
                                     <div class="col-md-12">
                                         <span class="xx-large-font">*</span>
-                                        <span class="x-large-font">Note: Logging in isn't always required, but your votes count for double the points and you can also climb the show's leaderboard</span>
+                                        <span class="x-large-font">Note: Logging in isn't always required, but it puts you on our leaderboard and your votes count for double the points!</span>
                                     </div>
                                 </div>
                             {% endif %}
