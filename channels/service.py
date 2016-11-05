@@ -64,7 +64,7 @@ def vote_style_or_404(vote_style_id):
 
 
 def fetch_vote_types_by_ids(vote_type_ids):
-    return VoteType.objects.filter(pk__in=vote_type_ids)
+    return VoteType.objects.filter(pk__in=vote_type_ids).order_by('-ordering')
 
 
 def check_is_channel_admin(channel_name, user_id):
