@@ -30,7 +30,7 @@
 {% block content %}
     {% if show_id == current_show.id %}
         <div class="container-fluid">
-            {% if option_value %}
+            {% if option_value and show_option_values %}
                 <div class="row">
                     <div class="col-md-offset-4 col-md-4">
                         <div class="alert alert-danger text-center btn-shadow animated bounceInDown" role="alert" id="success-alert">

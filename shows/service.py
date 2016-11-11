@@ -240,11 +240,7 @@ def user_voted_for(user_id, session_id, vote_options):
     for vote_option in vote_options:
         # Set the vote option we're looking for
         live_vote_kwargs['vote_option'] = vote_option.id
-        try:
-            LiveVote.objects.get(**live_vote_kwargs)
-        except ObjectDoesNotExist:
-            pass
-        else:
+        if LiveVote.objects.filter(**live_vote_kwargs).count():
             # If it was a suggestion vote option
             if vote_option.suggestion_id:
                 return vote_option.suggestion.value
