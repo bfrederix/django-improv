@@ -48,6 +48,8 @@ def get_show_interval(show_id, vote_type_id, interval):
     except ObjectDoesNotExist:
         return None
 
+def fetch_show_intervals(show_id):
+    return ShowInterval.objects.filter(show=show_id)
 
 def fetch_suggestions(user_id=None, show_id=None, suggestion_pool_id=None,
                       used=None, count=False):
@@ -133,6 +135,13 @@ def show_user_winning_suggestion_count(show_id, user_id):
                                      user=user_id,
                                      used=True).count()
 
+def get_voted_item(show_id, vote_type_id, interval):
+    try:
+        return VotedItem.objects.get(show=show_id,
+                                     vote_type=vote_type_id,
+                                     interval=interval)
+    except ObjectDoesNotExist:
+        return None
 
 def fetch_voted_items_by_show(show_id, ordered=False):
     voted_items = VotedItem.objects.filter(show=show_id)
@@ -212,6 +221,13 @@ def fetch_option(show_id, vote_type_id, interval, option_number):
     except ObjectDoesNotExist:
         return None
 
+def all_intervals_voted(show_id):
+    intervals = ShowInterval.objects.filter(show=show_id).count()
+    voted_items = VotedItem.objects.filter(show=show_id).count()
+    if intervals == voted_items:
+        return True
+    else:
+        return False
 
 def live_votes_exist(show_interval, user_id, session_id):
     live_vote_kwargs = {'show_interval': show_interval}

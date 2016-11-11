@@ -1,5 +1,7 @@
 import datetime
 
+import pytz
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -59,9 +61,11 @@ class Show(models.Model):
 
     def show_seconds_remaining(self):
         if self.created and self.show_length:
-            # Get the show end
-            show_end = self.created + datetime.timedelta(minutes=self.show_length)
-            return (show_end - self.created).seconds
+            now = datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+            if now < self.show_end():
+                return (self.show_end() - now).seconds
+            else:
+                return 0
 
 # Doing this as a Many to Many so I can use BigInts
 class ShowVoteType(models.Model):

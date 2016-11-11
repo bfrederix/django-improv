@@ -67,11 +67,13 @@ class ShowAPIObject(APIObject):
                     # Determine the winning option
                     winning_option = shows_service.get_winning_option(self.vote_type,
                                                                       vote_options)
-                    # Set the voted winning option
-                    shows_service.set_voted_option(show,
-                                                   self.vote_type,
-                                                   self.vote_type.current_interval,
-                                                   winning_option)
+                    # If there is a winner
+                    if winning_option:
+                        # Set the voted winning option
+                        shows_service.set_voted_option(show,
+                                                       self.vote_type,
+                                                       self.vote_type.current_interval,
+                                                       winning_option)
                     # If the winning option was a user submitted suggestion
                     if winning_option.suggestion_id:
                         # Add a suggestion win to the leaderboard entry

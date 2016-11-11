@@ -47,6 +47,37 @@ class RecapViewSet(viewsets.ViewSet):
     """
 
     def retrieve(self, request, pk=None):
+        show = shows_service.show_or_404(pk)
+        # If the show is over
+        if not show.show_seconds_remaining():
+            # If the show intervals and voted item counts don't match
+            # Not all voted items were chosen
+            if not shows_service.all_intervals_voted(show.id):
+                # Go through all intervals for the show
+                for show_interval in shows_service.fetch_show_intervals(show.id):
+                    voted_item = shows_service.get_voted_item(show_interval.show_id,
+                                                              show_interval.vote_type_id,
+                                                              show_interval.interval)
+                    # If the interval wasn't voted on
+                    if not voted_item:
+                        # Get the vote options for this (interval or not)
+                        vote_options = shows_service.fetch_vote_options(
+                                            show_id=show.id,
+                                            vote_type_id=show_interval.vote_type_id,
+                                            interval=show_interval.interval)
+                        # Determine the winning option
+                        winning_option = shows_service.get_winning_option(
+                                                show_interval.vote_type,
+                                                vote_options)
+                        # If there is a winner
+                        if winning_option:
+                            # Set the voted winning option
+                            shows_service.set_voted_option(
+                                            show,
+                                            show_interval.vote_type,
+                                            show_interval.interval,
+                                            winning_option)
+
         voted_items = shows_service.fetch_voted_items_by_show(pk,
                                                               ordered=True)
         recaps = [RecapAPIObject(item) for item in voted_items]
