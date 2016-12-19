@@ -38,7 +38,7 @@
 {% block content %}
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-6 col-md-offset-3">
+            <div class="col-md-8 col-md-offset-2">
                 <div class="panel panel-info highlight-shadow">
                     <div class="panel-heading text-shadow xx-large-font">
                         User Instructions
@@ -47,7 +47,7 @@
                         <ul class="list-unstyled">
                             {% if is_channel_admin %}
                                 <li>
-                                    Go to: http://dumpedit.com{% url "channel_home" channel.name %}
+                                    1. Go to: http://dumpedit.com{% url "channel_home" channel.name %}
                                 </li>
                                 <hr class="thick">
                             {% endif %}
@@ -55,7 +55,7 @@
                                 <li>
                                     <div class="row">
                                         <div class="col-md-12">
-                                            Login with *
+                                            1. Login with *
                                         </div>
                                     </div>
                                     <div class="row bg-default">
@@ -70,27 +70,42 @@
                                             </a>
                                         </div>
                                     </div>
-                                    <hr class="thick">
                                 </li>
+                                <hr class="thick">
                             {% endif %}
                             {% if suggestion_pools %}
                                 <li>
-                                    Enter suggestions for
-                                    {% for sp in suggestion_pools %}
-                                        {% if not sp.admin_only %}
-                                            {% if not forloop.first %}and{% endif %}
-                                            <a class="underlined-link" href="{% url "show_suggestion_pool" channel.name current_show.id sp.id %}" target="_blank">{{sp.display_name}}</a>
-                                        {% endif %}
-                                    {% endfor %}
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            {% if is_channel_admin %}2.
+                                            {% elif request.user.is_authenticated %}1.
+                                            {% else %}2.
+                                            {% endif %}Enter suggestions for
+                                            {% for sp in suggestion_pools %}
+                                                {% if not sp.admin_only %}
+                                                    {% if not forloop.first %}and{% endif %}
+                                                    <a class="underlined-link" href="{% url "show_suggestion_pool" channel.name current_show.id sp.id %}" target="_blank">{{sp.display_name}}</a>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
                                 </li>
                                 <hr class="thick">
                                 <li>
                                     <div class="row">
-                                        <div class="col-md-3">
-                                            <img class="img-responsive img-rounded" src="{{IMAGE_URL}}upvote-sprite.png" />
+                                        <div class="col-md-1 pull-left" style="margin-right:-20px;">
+                                            {% if is_channel_admin %}3.&nbsp;
+                                            {% elif request.user.is_authenticated %}2.&nbsp;
+                                            {% else %}3.&nbsp;
+                                            {% endif %}
                                         </div>
-                                        <div class="col-md-6">
-                                            the suggestions you like!
+                                        <div class="col-md-11">
+                                            <div class="btn btn-success btn-sm xx-large-font btn-shadow pull-left" style="margin-right:10px;">
+                                                <span class="glyphicon glyphicon-circle-arrow-up"></span><span>&nbsp;Upvote</span>
+                                            </div>
+                                            <div class="xx-large-font">
+                                                the suggestions you like!
+                                            </div>
                                         </div>
                                     </div>
                                 </li>

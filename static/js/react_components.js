@@ -3888,7 +3888,8 @@ var ShowDefaultDisplay = React.createClass({
     if (this.state.data) {
         this.state.data.map(function (leaderboardEntry) {
             leKey = 'leaderboard-entry-' + this.counter;
-            leaderboardEntries.push(<div key={leKey} className="btn btn-danger btn-block btn-shadow text-shadow large-font animated fadeInDown">{this.counter}. {leaderboardEntry.username}</div>);
+            var leStyle = {"white-space": "normal"};
+            leaderboardEntries.push(<div key={leKey} className="btn btn-danger btn-block btn-shadow text-shadow large-font animated fadeInDown" style={leStyle}>{this.counter}. {leaderboardEntry.username}</div>);
             this.counter++;
             return leaderboardEntries;
         }, this);
@@ -3916,7 +3917,7 @@ var ShowDefaultDisplay = React.createClass({
     }
     return (
         <div className="row">
-            <div className="col-md-6 col-md-offset-3">
+            <div className="col-md-8 col-md-offset-2">
                 <div key="leaderboard-0" className="row">
                     <div className="col-md-12">
                         <a className="text-center" href={this.props.showLeaderboardUrl}>
