@@ -444,6 +444,9 @@ class UpvoteSubmitView(view_utils.ShowView):
         suggestion_id = request.POST.get('id')
         # If a suggestion was submitted properly
         if suggestion_id:
+            #Strip out button if it's there
+            if '-button' in suggestion_id:
+                suggestion_id = suggestion_id.replace('-button', '')
             preshow_kwargs = {'show': context['current_show'],
                               'suggestion': Suggestion.objects.get(pk=suggestion_id),
                               'session_id': session_utils.get_or_create_session_id(request)}

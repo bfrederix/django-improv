@@ -168,7 +168,7 @@ def channel_user_count(channel_id):
 
 def update_channel_user(channel, user, leaderboard_entries):
     # If no user id was specified
-    if not getattr(user, 'id'):
+    if not user or not getattr(user, 'id'):
         # Do nothing
         return
     # Add the user as a ChannelUser

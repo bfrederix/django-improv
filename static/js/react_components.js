@@ -3351,7 +3351,8 @@ var ShowSuggestionPool = React.createClass({
 var ShowControllerVoteType = React.createClass({
   mixins: [SetIntervalMixin], // Use the setInterval timing mixin
   getInitialState: function() {
-    return {data: undefined};
+    return {data: undefined,
+            disabledButton: false};
   },
   componentDidMount: function() {
     // Initially update the vote type
@@ -3365,17 +3366,23 @@ var ShowControllerVoteType = React.createClass({
       url: voteTypeAPIUrl,
       dataType: 'json',
       success: function(data) {
-        this.setState({data: data});
+        this.setState({data: data,
+                       disabledButton: this.state.disabledButton});
       }.bind(this),
       error: function(xhr, status, err) {
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
   },
+  onFormSubmit: function(e) {
+      this.setState({data: this.state.data,
+                     disabledButton: true});
+  },
   render: function() {
     if (!this.state.data) {
         return (<Loading loadingBarColor="#fff" />);
     }
+    var disabledButton = this.state.disabledButton ? 'disabled' : '';
     var buttonStyle = {backgroundColor: this.state.data.button_color};
     var voteTypeButton;
     var buttonText;
@@ -3407,7 +3414,7 @@ var ShowControllerVoteType = React.createClass({
                 voteTypeButton = (
                     <div>
                         <input key="1" type="hidden" name="vote_start" value={this.state.data.id} />
-                        <input key="2" type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />
+                        <input key="2" disabled={disabledButton} type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow vote-starter" style={buttonStyle} value={buttonText} />
                     </div>
                 );
                 // If interval control is automatic
@@ -3449,7 +3456,7 @@ var ShowControllerVoteType = React.createClass({
             voteTypeButton = (
                 <div>
                     <input key="1" type="hidden" name="vote_start" value={this.state.data.id} />
-                    <input key="2" type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow" style={buttonStyle} value={buttonText} />
+                    <input key="2" disabled={disabledButton} type="submit" className="btn btn-block btn-lg word-wrap white-input x-large-font btn-shadow text-shadow vote-starter" style={buttonStyle} value={buttonText} />
                 </div>
             );
         }
@@ -3481,6 +3488,7 @@ var ShowControllerVoteType = React.createClass({
     var voteTypeForm = <Form formStyle="horizontal"
                              formSubmitUrl={this.props.formSubmitUrl}
                              formContents={voteTypePanelContents}
+                             onFormSubmit={this.onFormSubmit}
                              csrfToken={this.props.csrfToken} />;
 
     return (

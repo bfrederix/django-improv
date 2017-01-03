@@ -220,6 +220,11 @@ def fetch_option(show_id, vote_type_id, interval, option_number):
                                       option_number=option_number)
     except ObjectDoesNotExist:
         return None
+    except MultipleObjectsReturned:
+        return VoteOption.objects.filter(show=show_id,
+                                         vote_type=vote_type_id,
+                                         interval=interval,
+                                         option_number=option_number)[0]
 
 def all_intervals_voted(show_id):
     intervals = ShowInterval.objects.filter(show=show_id).count()
@@ -267,6 +272,9 @@ def user_voted_for(user_id, session_id, vote_options):
     return None
 
 def create_live_votes(vote_option, show_interval, user, session_id, require_login):
+    if vote_option == None:
+        logger.error("Null Vote Option for Interval {0}".format(show_interval))
+        return
     # Create a live vote
     LiveVote(vote_option=vote_option,
              show_interval=show_interval,

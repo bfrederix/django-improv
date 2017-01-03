@@ -219,8 +219,11 @@ def add_leaderboard_entry_win(show_id, user_id, session_id):
     # Otherwise just one point
     else:
         le_kwargs['session_id'] = session_id
-    # Get or create the leaderboard entry
-    leaderboard_entry = LeaderboardEntry.objects.get(**le_kwargs)
-    # Add the win to the entry
-    leaderboard_entry.wins += 1
-    leaderboard_entry.save()
+    try:
+        # Get or create the leaderboard entry
+        leaderboard_entry = LeaderboardEntry.objects.get(**le_kwargs)
+        # Add the win to the entry
+        leaderboard_entry.wins += 1
+        leaderboard_entry.save()
+    except ObjectDoesNotExist:
+        return
