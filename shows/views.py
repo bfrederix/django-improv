@@ -262,7 +262,7 @@ class ShowVoteReceiverView(view_utils.ShowView):
         shows_service.create_live_votes(vote_option, show_interval, user, session_id, vote_type.require_login)
         # If it has a suggestion and it's not repeatable suggestions
         # create/update the leaderboard entry
-        if vote_option.suggestion_id and not vote_type.keep_suggestions:
+        if vote_option and vote_option.suggestion_id and not vote_type.keep_suggestions:
             # Get the suggestion from the vote option
             suggestion = vote_option.suggestion
             # Create/update leaderboard entry

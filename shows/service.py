@@ -78,23 +78,14 @@ def fetch_randomized_suggestions(show_id, suggestion_pool_id, option_count, no_r
     # Make sure there is a proper option count
     if not option_count:
         raise ValueError("Option count needs to be higher than 0")
-    # Return un-used suggestion keys, sorted by vote, and only if they've appeared less than twice
+    # Fetch un-used suggestion keys sorted by the amount voted on, preshow upvotes, and created time
     unused_suggestions = Suggestion.objects.filter(
                              show=show_id,
                              suggestion_pool=suggestion_pool_id,
-                             used=False,
-                             amount_voted_on__lt=2).order_by('amount_voted_on',
-                                                             '-preshow_value',
-                                                             'created')[:option_count*2]
-    # If there are less than the option amount left that haven't been voted on twice
-    # Allow suggestions that have been voted on twice already
-    if len(unused_suggestions) < option_count:
-        # Fetch un-used suggestion keys
-        unused_suggestions = Suggestion.objects.filter(
-                                 show=show_id,
-                                 suggestion_pool=suggestion_pool_id,
-                                 used=False).order_by('-preshow_value',
-                                                      'created')[:option_count*2]
+                             used=False).order_by('amount_voted_on',
+                                                  '-preshow_value',
+                                                  'id')[:option_count*2]
+
     # The suggestions should be randomized
     if no_randomize == False:
         # Get a randomized sample of the top "options" amount of suggestion
