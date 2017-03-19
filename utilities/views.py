@@ -133,7 +133,7 @@ Allow: /"""
 
 
 def ssl_verify(request):
-    live_txt = """E0938D8137A1553A001B2688E21A338DB70F8E0C
+    live_txt = """57420B94164572C12DD508A3AD1A6423258CD21F
 comodoca.com"""
     return HttpResponse(live_txt, content_type='text/plain')
 
